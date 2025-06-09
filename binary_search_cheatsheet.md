@@ -153,6 +153,40 @@ def searchMatrix(matrix, target):
 - [74. Search a 2D Matrix](https://leetcode.com/problems/search-a-2d-matrix/)
 - [240. Search a 2D Matrix II](https://leetcode.com/problems/search-a-2d-matrix-ii/) — uses 2-pointer strategy.
 
+
+## ⚙️ Template 7: Binary Search with Custom Function
+**When to use:** Search when transformation or simulation is needed on the fly.
+
+```python
+def binary_search_custom(left, right, check):
+    while left < right:
+        mid = (left + right) // 2
+        if check(mid):
+            right = mid
+        else:
+            left = mid + 1
+    return left
+```
+**Examples:**
+- [1231. Divide Chocolate](https://leetcode.com/problems/divide-chocolate/)
+- [1300. Sum of Mutated Array Closest to Target](https://leetcode.com/problems/sum-of-mutated-array-closest-to-target/) 
+
+## 🎯 Template 8:  Binary Search + Two Pointers / Greedy
+**When to use:** Hybrid problems needing extra pass (greedy/two-pointer) for feasibility check.
+
+**Examples:**
+- 875. Koko Eating Bananas
+- 1011. Capacity to Ship Packages
+- 1482. Minimum Days to Make m Bouquets
+
+## ✨ Template 9: Bonus: Binary Search + Heap / Prefix Sum / Monotonic Stack
+Advanced combos
+
+**Examples:**
+- Prefix sum: 644. Maximum Average Subarray II
+- Heap: 373. Find K Pairs with Smallest Sums
+- Monotonic stack: 901. Online Stock Span
+
 ---
 
 ## ⚠️ Common Mistakes
