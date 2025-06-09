@@ -175,9 +175,9 @@ def binary_search_custom(left, right, check):
 **When to use:** Hybrid problems needing extra pass (greedy/two-pointer) for feasibility check.
 
 **Examples:**
-- 875. Koko Eating Bananas
-- 1011. Capacity to Ship Packages
-- 1482. Minimum Days to Make m Bouquets
+- [875. Koko Eating Bananas](https://leetcode.com/problems/koko-eating-bananas/)
+- [1011. Capacity to Ship Packages](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/)
+- [1482. Minimum Days to Make m Bouquets](https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/)
 
 ## ✨ Template 9: Bonus: Binary Search + Heap / Prefix Sum / Monotonic Stack
 Advanced combos
