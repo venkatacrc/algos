@@ -32,6 +32,19 @@ ON e.dept_id = d.dept_id;
 
 **Pandas**
 ```python
+import pandas as pd
+
+employees = pd.DataFrame({
+    'employee_id': [1, 2, 3, 4],
+    'name': ['Alice', 'Bob', 'Carol', 'Dave'],
+    'dept_id': [10, 20, 10, 30]
+})
+
+departments = pd.DataFrame({
+    'dept_id': [10, 20, 40],
+    'dept_name': ['HR', 'Engineering', 'Marketing']
+})
+
 pd.merge(employees, departments, on='dept_id', how='inner')
 ```
 
