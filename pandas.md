@@ -93,5 +93,29 @@ bargain_wine = reviews.loc[bargain_idx, 'title']
 reviews_written = reviews.groupby('taster_twitter_handle').size()
 reviews_written = reviews.groupby('taster_twitter_handle').taster_twitter_handle.count() # same as above
 
+# selecting the name of the first wine reviewed from each winery in the dataset:
+reviews.groupby('winery').apply(lambda df: df.title.iloc[0])
 
+# here's how we would pick out the best wine by country and province
+reviews.groupby(['country', 'province']).apply(lambda df: df.loc[df.points.idxmax()])
+
+agg() lets you run a bunch of different functions on your DataFrame simultaneously.
+reviews.groupby('country').price.agg([len, min, max])
+```
+
+## Sorting  
+
+```python
+# Multi-indexes
+countries_reviewed = reviews.groupby(['country', 'province']).description.agg([len])
+
+countries_reviewed = countries_reviewed.reset_index()
+countries_reviewed.sort_values(by='len')
+countries_reviewed.sort_values(by='len', ascending=False) # descending order
+
+# sort by index
+countries_reviewed.sort_index()
+
+# to sort more than one column
+countries_reviewed.sort_values(by=['country', 'len'])
 ```
