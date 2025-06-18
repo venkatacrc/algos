@@ -1,6 +1,6 @@
 ### 169. Majority Element - Boyer-Moore Voting Algorithm
 
-🔍 Idea:
+🔍 Idea for constant space:
 - Keep a count initialized to 0.
 - Keep a candidate.
 - For each number:
