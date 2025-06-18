@@ -1,13 +1,12 @@
 ### 169. Majority Element - Boyer-Moore Voting Algorithm
 
-Algorithm
 🔍 Idea:
-Keep a count initialized to 0.
-Keep a candidate.
-For each number:
-- If count == 0, choose the current number as the candidate.
-- If the current number is the candidate, increment the count.
-- Otherwise, decrement the count.
+- Keep a count initialized to 0.
+- Keep a candidate.
+- For each number:
+-- If count == 0, choose the current number as the candidate.
+-- If the current number is the candidate, increment the count.
+-- Otherwise, decrement the count.
 
 ```python
     def majorityElement(nums: List[int]) -> int:
