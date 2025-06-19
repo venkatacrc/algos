@@ -23,3 +23,27 @@
                     count -= 1
         return candidate
 ```
+
+
+### 1650. Lowest Common Ancestor of a Binary Tree III
+
+🧠 Key Insight:
+- This problem is structurally similar to finding the intersection node of two singly linked lists, because we can traverse up the tree using parent pointers.
+
+✅ Approach:
+1. Start from p and q.
+2. Move each pointer up to its parent.
+3. When one pointer reaches the top (None), redirect it to the other node.
+4. Eventually, both will meet at the LCA.
+- This works because both pointers will traverse equal "heights" in total.
+
+```python
+class Solution:
+    def lowestCommonAncestor(self, p: 'Node', q: 'Node') -> 'Node':
+        a, b = p, q
+        while a != b:
+            a = a.parent if a else q
+            b = b.parent if b else p
+        return a
+
+```
