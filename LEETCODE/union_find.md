@@ -131,13 +131,14 @@ class UFWQUwithPathCompression:
 ```
 
 **Time Complexity:**
-- `find(p)`: O(\u03b1(n))
-- `union(p, q)`: O(\u03b1(n))
-- `connected(p, q)`: O(\u03b1(n))
+- `find(p)`: O(α(n))
+- `union(p, q)`: O(α(n))
+- `connected(p, q)`: O(α(n))
 
 **Space Complexity:** O(n)
 
-> \u03b1(n) is the inverse Ackermann function, which grows extremely slowly and is considered constant for practical purposes.
+> α(n) is the inverse Ackermann function, which grows extremely slowly and is considered constant for practical purposes.
+
 
 ### 🔁 Basic Union-Find Applications
 ```text
