@@ -1,3 +1,70 @@
+# Binary Search - LeetCode Problems
+
+**Binary Search** is a classic divide-and-conquer algorithm, typically used on **sorted arrays**, **monotonic functions**, or to **search for boundaries** under certain constraints. This document lists Binary Search problems on LeetCode grouped by difficulty, with Meta interview tags.
+
+---
+
+## 🟢 Easy
+
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | Binary Search | [LeetCode 704](https://leetcode.com/problems/binary-search/) | ✅ |
+| 2 | Guess Number Higher or Lower | [LeetCode 374](https://leetcode.com/problems/guess-number-higher-or-lower/) | ✅ |
+| 3 | First Bad Version | [LeetCode 278](https://leetcode.com/problems/first-bad-version/) | ✅ |
+
+---
+
+## 🟡 Medium
+
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | Search in Rotated Sorted Array | [LeetCode 33](https://leetcode.com/problems/search-in-rotated-sorted-array/) | ✅ |
+| 2 | Find Peak Element | [LeetCode 162](https://leetcode.com/problems/find-peak-element/) | ✅ |
+| 3 | Find Minimum in Rotated Sorted Array | [LeetCode 153](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/) | ✅ |
+| 4 | Search a 2D Matrix | [LeetCode 74](https://leetcode.com/problems/search-a-2d-matrix/) | ✅ |
+| 5 | Koko Eating Bananas | [LeetCode 875](https://leetcode.com/problems/koko-eating-bananas/) | ✅ |
+| 6 | Capacity To Ship Packages Within D Days | [LeetCode 1011](https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/) | ✅ |
+| 7 | Minimum Number of Days to Make m Bouquets | [LeetCode 1482](https://leetcode.com/problems/minimum-number-of-days-to-make-m-bouquets/) | ✅ |
+| 8 | Search in Rotated Sorted Array II | [LeetCode 81](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/) | ✅ |
+
+---
+
+## 🔴 Hard
+
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | Median of Two Sorted Arrays | [LeetCode 4](https://leetcode.com/problems/median-of-two-sorted-arrays/) | ✅ |
+| 2 | Split Array Largest Sum | [LeetCode 410](https://leetcode.com/problems/split-array-largest-sum/) | ✅ |
+| 3 | Find in Mountain Array | [LeetCode 1095](https://leetcode.com/problems/find-in-mountain-array/) | ✅ |
+| 4 | Allocate Minimum Number of Pages | [LeetCode Discuss](https://www.geeksforgeeks.org/allocate-minimum-number-pages/) | ✅ |
+| 5 | Maximum Number of Removable Characters | [LeetCode 1898](https://leetcode.com/problems/maximum-number-of-removable-characters/) | ✅ |
+
+---
+
+## ✅ Notes on Meta Asked Problems
+
+- Meta often asks **search in rotated arrays**, **binary search over answer**, and **edge-boundary detection** style questions.
+- Problems like **Koko Eating Bananas**, **Capacity to Ship**, and **Median of Two Sorted Arrays** are Meta favorites.
+- Mastering **lower bound / upper bound** patterns is essential for top-tier performance.
+
+---
+
+## 👨‍💻 Binary Search - Template
+
+```python
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+
+
 # 🔍 Binary Search Problems on LeetCode
 
 Binary Search is a classic algorithmic technique used to efficiently find elements in sorted data. Below is a categorized list of Binary Search problems on LeetCode, grouped by **difficulty** and **variant** (standard, lower/upper bound, answer-based binary search, 2D binary search, etc.).
