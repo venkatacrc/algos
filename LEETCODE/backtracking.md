@@ -1,89 +1,65 @@
-# 🧩 Backtracking Problems on LeetCode  
-*Focused on problems frequently asked by Meta (formerly Facebook)*
+# Backtracking - LeetCode Problems
 
-Backtracking (DFS + state pruning) is a classic interview pattern. Meta often asks **medium-hard backtracking problems**, especially variants like phone letter combinations and N‑Queens.
+**Backtracking** is a depth-first search-based technique used for solving problems involving **combinatorics, permutations, subsets, partitions, and constraint satisfaction**. Below is a curated list of Backtracking problems on LeetCode organized by difficulty and Meta interview frequency.
 
 ---
 
 ## 🟢 Easy
 
-- **17. Letter Combinations of a Phone Number**  
-  Classic “phone number” recursion with backtracking. *Mentioned frequently at Meta* :contentReference[oaicite:1]{index=1}  
-- String permutations / subsets (not always LeetCode-tagged)  
-- Palindrome partitioning (LeetCode 131) – recursive split  
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | Subsets | [LeetCode 78](https://leetcode.com/problems/subsets/) | ✅ |
+| 2 | Letter Case Permutation | [LeetCode 784](https://leetcode.com/problems/letter-case-permutation/) | ✅ |
+| 3 | Binary Watch | [LeetCode 401](https://leetcode.com/problems/binary-watch/) | ❌ |
 
 ---
 
-## 🟠 Medium
+## 🟡 Medium
 
-- **39. Combination Sum**  
-  Select elements that sum to target.  
-- **40. Combination Sum II**  
-  Like Combination Sum but skipping duplicates.  
-- **46. Permutations**  
-  Generate all permutations of unique elements.  
-- **78. Subsets**  
-  Enumerate all subsets of an array.  
-- **79. Word Search**  
-  2D board DFS backtracking.  
-- **797. All Paths From Source to Target**  
-  Graph-path enumeration via recursion.  
-- Variants: phone letter combinations and N‑Queens (LeetCode 51) *were referenced by Meta candidates* :contentReference[oaicite:2]{index=2}  
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | Permutations | [LeetCode 46](https://leetcode.com/problems/permutations/) | ✅ |
+| 2 | Combination Sum | [LeetCode 39](https://leetcode.com/problems/combination-sum/) | ✅ |
+| 3 | Word Search | [LeetCode 79](https://leetcode.com/problems/word-search/) | ✅ |
+| 4 | Palindrome Partitioning | [LeetCode 131](https://leetcode.com/problems/palindrome-partitioning/) | ✅ |
+| 5 | Generate Parentheses | [LeetCode 22](https://leetcode.com/problems/generate-parentheses/) | ✅ |
+| 6 | Combinations | [LeetCode 77](https://leetcode.com/problems/combinations/) | ✅ |
+| 7 | Combination Sum II | [LeetCode 40](https://leetcode.com/problems/combination-sum-ii/) | ✅ |
+| 8 | Subsets II | [LeetCode 90](https://leetcode.com/problems/subsets-ii/) | ✅ |
 
 ---
 
 ## 🔴 Hard
 
-- **131. Palindrome Partitioning**  
-  Partition a string into all palindromic substrings.  
-- **212. Word Search II**  
-  Find multiple words in a 2D grid (trie + backtracking).  
-- **10. Regular Expression Matching**  
-  Backtracking/string matching with patterns.  
-- **980. Unique Paths III**  
-  Unique traversal visits all cells exactly once.  
-- **140. Word Break II**  
-  Build sentences from dictionary words.  
+| # | Problem | Link | Asked at Meta |
+|---|---------|------|---------------|
+| 1 | N-Queens | [LeetCode 51](https://leetcode.com/problems/n-queens/) | ✅ |
+| 2 | N-Queens II | [LeetCode 52](https://leetcode.com/problems/n-queens-ii/) | ✅ |
+| 3 | Sudoku Solver | [LeetCode 37](https://leetcode.com/problems/sudoku-solver/) | ✅ |
+| 4 | Word Search II | [LeetCode 212](https://leetcode.com/problems/word-search-ii/) | ✅ |
+| 5 | Restore IP Addresses | [LeetCode 93](https://leetcode.com/problems/restore-ip-addresses/) | ✅ |
 
 ---
 
-## 📈 Insights & Meta-Relevance
+## ✅ Notes on Meta Asked Problems
 
-- META interviews commonly include **backtracking problems**, especially phone letter combos, N‑Queens, board or path searches :contentReference[oaicite:3]{index=3}.  
-- Backtracking often comes under **Recursion** in Meta screeners :contentReference[oaicite:4]{index=4}.  
-- Focus on **5–10 templated problems** → core skill demonstration :contentReference[oaicite:5]{index=5}.
-
----
-
-## 🎯 Study Strategy
-
-1. **Master easy → medium problems** listed above.  
-2. Practice variations (e.g., phone combos with constraints, N‑Queens size extensions).  
-3. Learn pruning tricks: early exits, boolean checks, visited-sets.  
-4. Dry-run recursively: trace recursion stack, backtracking steps.  
-5. Time drills: simulate 40 min Meta coding rounds.
+- Meta frequently asks **classic combinatorics problems** like permutations, combinations, and subset generation.
+- **Board-style backtracking** (e.g., Word Search, N-Queens, Sudoku) also appear frequently.
+- Clean recursion, pruning, and path tracking are key to optimizing solutions.
 
 ---
 
-### 📚 Recommended Practice List
+## 👨‍💻 Backtracking - Template
 
-| Difficulty | Problem ID & Title |
-|-----------|---------------------|
-| Easy      | 17 – Letter Combinations |
-| Medium    | 39 – Combination Sum |
-| Medium    | 40 – Combination Sum II |
-| Medium    | 46 – Permutations |
-| Medium    | 78 – Subsets |
-| Medium    | 79 – Word Search |
-| Medium    | 51 – N‑Queens |
-| Medium    | 797 – All Paths From Source to Target |
-| Hard      | 131 – Palindrome Partitioning |
-| Hard      | 212 – Word Search II |
-| Hard      | 10 – Regular Expression Matching |
-| Hard      | 980 – Unique Paths III |
-| Hard      | 140 – Word Break II |
-
----
-
-> ✅ **Tip**: Code each one cleanly, run edge cases (empty, duplicates, max constraints). Practice dry-runs on a whiteboard or plain text editor—Meta expects flawless logic under time pressure.
-
+```python
+def backtrack(path, options):
+    if base_case:
+        result.append(path[:])
+        return
+    for i in range(len(options)):
+        # choose
+        path.append(options[i])
+        # explore
+        backtrack(path, options[:i] + options[i+1:])
+        # un-choose
+        path.pop()
