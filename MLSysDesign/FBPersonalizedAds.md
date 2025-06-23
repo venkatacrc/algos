@@ -16,6 +16,6 @@
 - Secondary Metrics: To balance user experience to avoid low-quality ads with high bids. I will use **engagement quality or user feedback**.
 - Gaurdrail Metrics: To maintain a good user experience, I will track secondary guardrails like **page load latency, Ad fatigue/Ad freshness/Diversity, and Fairness and Spam/Policy Compliance.
   
-- Ad Revenue = $\sum(\text{CTR} x \text{Bid}) x (\text{payout rate})$ 
-- Rank Ads by expected revenue:
--   Score = $p(Click | User, Ad, Context) x Bid$
+-   Ad Revenue = $\sum(\text{CTR} x \text{Bid}) x (\text{payout rate})$ 
+-   Rank Ads by expected revenue:
+-   Score = $p(\text{Click | User, Ad, Context}) x {Bid}$
