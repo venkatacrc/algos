@@ -23,16 +23,20 @@
 ### System Architecture
 
 1. **Offline Pipeline:**
-*  Feature logs -> Traning data -> Model Traning
-*  Embedding generation (user/ad/context) for fast lookup
+    * Collect logs: `Impressions`, `Clicks`, `User context`, `Ad metadata`, `Page dwell time`, etc.
+    * Preprocess & label: `clicked = 1, not clicked = 0`
+    * Join features various sources (user profile, ad features, context).
+    * Generate Training dataset.
+    *  Feature logs -> Traning data -> Model Traning
+    *  Embedding generation (user/ad/context) for fast lookup
   
 2. **Online Serving System:**
-* Real-time user request
-* **Retrieval** top candidate ads (retrieval step)
-* Feature enrichment( user features, context, real-time stats)
-* **Ranking** using prediction:
-*   $\text{Score = p(Click | user, ad, context) x Bid}$
-*   Returned Ranked list
+    * Real-time user request
+    * **Retrieval** top candidate ads (retrieval step)
+    * Feature enrichment( user features, context, real-time stats)
+    * **Ranking** using prediction:
+    *   $\text{Score = p(Click | user, ad, context) x Bid}$
+    *   Returned Ranked list
    
 3. **Monitoring & Feedback Loop:**
    * Log impressions/clicks -> used forretraining (with delay)
