@@ -133,16 +133,16 @@ class UFWQUwithPathCompression:
 ## 5. UF for strings
 ```python
 class QuickUnion:
-    def __init__(self, ):
+    def __init__(self):
         self.parent = {}
     # recursive version: simpler and handles path compression
-    def find(self, x):
+    def find(self, x: str) -> str:
         if x != self.parent.setdefault(x, x):
             self.parent[x] = self.find(self.parent[x])
         return self.parent[x]
 
     # iterative version: mroe robust
-    def find(self, x):
+    def find(self, x: str) -> str:
         root = x
         while root != self.parent.setdefault(root, root):
             root = self.parent[root]
@@ -153,10 +153,10 @@ class QuickUnion:
             x = parent
         return root
     
-    def union(self, p, q):
+    def union(self, p: str, q: str) -> None:
         self.parent[self.find(p)] = self.find(q)
 
-    def connected(self, p, q):
+    def connected(self, p: str, q: str) -> bool:
         return self.find(p) == self.find(q)
 ```
 
