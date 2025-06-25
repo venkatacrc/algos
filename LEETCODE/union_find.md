@@ -130,6 +130,36 @@ class UFWQUwithPathCompression:
             self.size[rootQ] += self.size[rootP]
 ```
 
+## 5. UF for strings
+```python
+class QuickUnion:
+    def __init__(self, ):
+        self.parent = {}
+    # recursive version: simpler and handles path compression
+    def find(self, x):
+        if x != self.parent.setdefault(x, x):
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    # iterative version: mroe robust
+    def find(self, x):
+        root = x
+        while root != self.parent.setdefault(root, root):
+            root = self.parent[root]
+        # Optional: second loop for path compression
+        while x != root:
+            parent = self.parent[x]
+            self.parent[x] = root
+            x = parent
+        return root
+    
+    def union(self, p, q):
+        self.parent[self.find(p)] = self.find(q)
+
+    def connected(self, p, q):
+        return self.find(p) == self.find(q)
+```
+
 **Time Complexity:**
 - `find(p)`: O(α(n))
 - `union(p, q)`: O(α(n))
