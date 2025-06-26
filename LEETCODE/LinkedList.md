@@ -29,3 +29,47 @@ def buildBST2DLL(root):
 
   return self.first
 ```
+
+## Doubly Linked List to BST
+
+```python
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left  # prev
+        self.right = right  # next
+
+class Solution:
+    def sortedDoublyListToBST(self, head: 'Node') -> 'Node':
+        # Count nodes in DLL
+        def count(node):
+            cnt = 0
+            while node:
+                cnt += 1
+                node = node.right
+            return cnt
+
+        n = count(head)
+        self.curr = head  # Pointer to head of DLL
+
+        def buildBST(size):
+            if size == 0:
+                return None
+
+            # Recursively build left subtree
+            left = buildBST(size // 2)
+
+            # Root = current DLL node
+            root = Node(self.curr.val)
+            root.left = left
+
+            # Move DLL pointer forward
+            self.curr = self.curr.right
+
+            # Recursively build right subtree
+            root.right = buildBST(size - size // 2 - 1)
+
+            return root
+
+        return buildBST(n)
+```
