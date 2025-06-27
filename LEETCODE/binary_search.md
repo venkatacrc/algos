@@ -240,3 +240,29 @@ print(s.minimizeMax(nums=[10,1,2,7,1,3], p=2) == 1)
 print(s.minimizeMax(nums=[4,2,1,2], p=1) == 0)
 print(s.minimizeMax(nums=[0,5,3,4], p=0) == 0)
 ```
+## 1011 Capacity to ship packages within d days
+
+```python
+class Solution:
+    def shipWithinDays(self, weights: List[int], days: int) -> int:
+        def can_ship(max_weight):
+            curr_weight = 0
+            count = 1
+            for w in weights:
+                if w + curr_weight > max_weight:
+                    count += 1
+                    curr_weight = 0
+                curr_weight += w
+            return count <= days
+
+        low, high = max(weights), sum(weights)
+        answer = high
+        while low <= high:
+            mid = (low + high) // 2
+            if can_ship(mid):
+                answer = mid
+                high = mid - 1
+            else:
+                low = mid + 1
+        return answer
+```
