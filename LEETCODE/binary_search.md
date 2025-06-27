@@ -187,3 +187,56 @@ def sqrt_with_precision(x: float, epsilon: float = 1e-9) -> float:
 
     return (left + right) / 2
 ```
+
+## 1060 Missing Element in Sorted Array
+
+```python
+from typing import List
+from bisect import bisect_left
+
+class Solution:
+    def missingElement(self, nums: List[int], k: int) -> int:
+        n = len(nums)
+        missing = [0] * n
+        for i in range(1, n):
+            missing[i] += missing[i-1]
+            missing[i] += nums[i] - nums[i-1] - 1
+        if k > missing[n-1]:
+            return nums[n-1] + k - missing[n-1]
+        idx = bisect_left(missing, k)
+        return nums[idx] + k - missing[idx] - 1
+```
+
+## 2616 Minimize the Maximum Difference of Pairs
+
+```python
+class Solution:
+    def minimizeMax(self, nums: List[int], p: int) -> int:
+        nums.sort()
+        def can_form(max_diff):
+            i = 0
+            count = 0
+            while i < len(nums) - 1:
+                if nums[i+1] - nums[i] <= max_diff:
+                    count += 1
+                    i += 2
+                else:
+                    i += 1
+            return count >= p
+    
+        low, high = 0, nums[-1] - nums[0]
+        while low <= high:
+            mid = (low + high) // 2
+            if can_form(mid):
+                high = mid - 1 
+            else:
+                low = mid + 1
+        return low
+
+
+s = Solution()
+print(s.minimizeMax(nums=[3,4,2,3,2,1,2], p=3) == 1)
+print(s.minimizeMax(nums=[10,1,2,7,1,3], p=2) == 1)
+print(s.minimizeMax(nums=[4,2,1,2], p=1) == 0)
+print(s.minimizeMax(nums=[0,5,3,4], p=0) == 0)
+```
