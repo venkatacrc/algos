@@ -329,6 +329,8 @@ class Solution:
 
 ### LC 81 Search in Sorted Array with duplicates
 If we can't tell which side is sorted, shrink the search space linearly on the left and right.
+example: nums = [2, 2, 2, 2, 3, 1, 2, 2]
+mid = 3 and nums[0] == nums[mid] == nums[7]
 
 ```python
 class Solution:
