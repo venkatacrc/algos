@@ -266,3 +266,63 @@ class Solution:
                 low = mid + 1
         return answer
 ```
+
+## 3362 Zero Array Transformation III
+Binary search needs to be used if queries can not be sorted. 
+```python
+class Solution:
+    def maxRemoval(self, nums: List[int], queries: List[List[int]]) -> int:
+        n = len(nums)
+        m = len(queries)
+        queries.sort(key=lambda x: x[0])
+        def is_k_enough(k):
+            diff = [0] * (n + 1)
+            for i in range(k):
+                l, r = queries[i]
+                diff[l] -= 1
+                if r + 1 < n:
+                    diff[r + 1] += 1
+
+            curr = 0
+            for i in range(n):
+                curr += diff[i]
+                if nums[i] + curr > 0:
+                    return False
+            return True
+
+        l, r = 0, m
+        ans = -1
+        while l <= r:
+            mid = (l + r) // 2
+            if is_k_enough(mid):
+                ans = mid
+                r = mid - 1
+            else:
+                l = mid + 1
+
+        return -1 if ans == -1 else m - ans
+```
+If queries can be sorted then we can use the heapq + diff array using Greedy approach to pick up the query interval with the large segment.
+```python
+from heapq import heappush, heappop
+class Solution:
+    def maxRemoval(self, nums: List[int], queries: List[List[int]]) -> int:
+        n = len(nums)
+        m = len(queries)
+        queries.sort(key=lambda x: x[0])
+        diff = [0] * (n+1)
+        curr = 0
+        j = 0
+        heap = []
+        for i,num in enumerate(nums):
+            curr += diff[i]
+            while j < m and queries[j][0] == i:
+                heappush(heap, -queries[j][1])
+                j += 1
+            while curr < num and heap and -heap[0] >= i:
+                curr += 1
+                diff[-heappop(heap)+1] -= 1
+            if curr < num:
+                return -1
+        return len(heap)
+```
