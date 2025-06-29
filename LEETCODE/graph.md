@@ -186,10 +186,14 @@ With subtree sizes:
 - You can index into the BST in O(log n) to find the kth smallest
 - When modifying the tree, you update the size field during insertion and deletion
 ### 📦 Summary
-Feature	| Classic BST |	Augmented BST
-Insert/Delete |	O(log n) (balanced) | O(log n)
-kthSmallest (1-time) |	O(n) |	O(log n)
-kthSmallest (frequent) | ❌ inefficient |	✅ efficient
+| Feature                      | Classic BST (Recursive Inorder) | Augmented BST (with Subtree Sizes) |
+|-----------------------------|----------------------------------|------------------------------------|
+| **Insert/Delete**           | O(log n) (if balanced)           | O(log n)                            |
+| **kthSmallest (1-time)**    | O(n)                             | O(log n)                            |
+| **kthSmallest (frequent)**  | ❌ Inefficient                   | ✅ Efficient                        |
+| **Additional Space**        | None                             | +1 `size` field per node            |
+| **Implementation**          | Simple                           | Moderate complexity                 |
+| **Supports Frequent Queries** | 🚫 No                          | ✅ Yes                              |
 
 ```python
 class TreeNode:
