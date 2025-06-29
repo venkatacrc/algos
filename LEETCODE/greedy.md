@@ -60,3 +60,48 @@ for start, finish in intervals:
     if start >= end:
         count += 1
         end = finish
+```
+
+### 1234. gas station
+
+#### 🔍 1. Problem Requires an Optimal Choice (Single Pass Preferred)
+> “Find the starting gas station index such that you can complete the circuit once.”
+- You need to make a decision (start index) that enables the whole process to succeed.
+- You're not trying all possible combinations (like in DP or backtracking).
+- The array is circular → and you just need to pick one good point — this often hints at greedy.
+
+#### 🚩 2. Greedy Signal: Local decisions lead to global correctness
+The key insight is:
+> If I ever run out of gas on a route from station A to B, then A can never be a valid start.
+> So I can greedily skip to B + 1.
+This means:
+- You can reset your search as soon as failure is detected, without having to revisit old stations.
+- That's the essence of greedy — making a decision that allows you to move forward without reconsideration.
+
+#### 📐 3. No overlapping subproblems ⇒ No DP needed
+In many algorithmic problems, you check:
+- “Do I need to remember previous decisions to optimize future ones?”
+- Here: You don’t. The only thing that matters is whether you can keep going from a point.
+
+#### 🧭 4. You can simulate the process with simple conditions
+Simulation is often expensive unless:
+- You have a condition that guarantees the right answer can be found without backtracking.
+Here:
+- If total_gas >= total_cost, a solution is guaranteed.
+- And you can find the start index in one pass by tracking when your gas tank drops below zero.
+That makes it a classic greedy pattern.
+
+```python
+    def canCompleteCircuit(self, gas: List[int], cost: List[int]) -> int:
+        total_gas = 0
+        cur_gas = 0
+        start_idx = -1
+        for i in range(len(gas)):
+            total_gas += gas[i] - cost[i]
+            cur_gas += gas[i] - cost[i]
+
+            if cur_gas < 0:
+                cur_gas = 0
+                start_idx = i + 1
+        return start_idx if total_gas >= 0 else -1
+```
