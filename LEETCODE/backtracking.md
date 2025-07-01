@@ -51,6 +51,9 @@
 
 ## 👨‍💻 Backtracking - Template
 
+### Leetcode 247 – Strobogrammatic Number II
+A strobogrammatic number is a number that looks the same when rotated 180 degrees (i.e., turned upside down).
+Find all strobogrammatic numbers that are of length n.
 ```python
 def backtrack(path, options):
     if base_case:
@@ -63,3 +66,67 @@ def backtrack(path, options):
         backtrack(path, options[:i] + options[i+1:])
         # un-choose
         path.pop()
+```
+
+### Leetcode 248 – Strobogrammatic Number III
+Given two strings low and high, return the count of strobogrammatic numbers in the range [low, high] (inclusive).
+```python
+class Solution:
+    def findStrobogrammatic(self, n: int) -> List[str]:
+        pairs = [('0','0'), ('1', '1'), ('8', '8'), ('6', '9'), ('9', '6')]
+        def buildStrings(n, final_len):
+            if n == 0:
+                return ['']
+            if n == 1:
+                return ['0', '1', '8']
+            middle = buildStrings(n-2, final_len)
+            return [
+                a + m + b
+                for m in middle
+                for a, b in pairs
+                if not (n == final_len and a == '0')
+            ]
+        return buildStrings(n,n)
+```
+```python
+class Solution:
+    def strobogrammaticInRange(self, low: str, high: str) -> int:
+        pairs = [('0','0'), ('1','1'), ('6','9'), ('8','8'), ('9','6')]
+        self.count = 0
+
+        def is_valid(num):
+            if len(num) > 1 and num[0] == '0':
+                return False
+            if len(num) < len(low) or len(num) > len(high):
+                return False
+            if len(num) == len(low) and num < low:
+                return False
+            if len(num) == len(high) and num > high:
+                return False
+            return True
+
+        def build(n, total_len):
+            if n == 0:
+                return [""]
+            if n == 1:
+                return ["0", "1", "8"]
+
+            middle = build(n - 2, total_len)
+            return [
+                a + m + b
+                for m in middle
+                for a, b in pairs
+                if not (n == final_len and a == '0')
+            ]
+
+        for length in range(len(low), len(high) + 1):
+            for num in build(length, length):
+                if is_valid(num):
+                    self.count += 1
+
+        return self.count
+
+# Example usage:
+sol = Solution()
+print(sol.strobogrammaticInRange("50", "100"))  # Output: 3 ("69", "88", "96")
+```
