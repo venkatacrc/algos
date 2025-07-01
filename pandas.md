@@ -119,3 +119,22 @@ countries_reviewed.sort_index()
 # to sort more than one column
 countries_reviewed.sort_values(by=['country', 'len'])
 ```
+
+# LC 570. Managers with at Least 5 Direct Reports
+
+```python
+import pandas as pd
+
+data = [[101, 'John', 'A', None], [102, 'Dan', 'A', 101], [103, 'James', 'A', 101], [104, 'Amy', 'A', 101], [105, 'Anne', 'A', 101], [106, 'Ron', 'B', 101]]
+employee = pd.DataFrame(data, columns=['id', 'name', 'department', 'managerId']).astype({'id':'Int64', 'name':'object', 'department':'object', 'managerId':'Int64'})
+
+def find_managers(employee: pd.DataFrame) -> pd.DataFrame:
+    # Step 1: Count how many employees report to each managerId
+    counts = employee.groupby('managerId', dropna=True).size().reset_index(name='report_count')
+
+    # Step 2: Filter managers with >= 5 reports
+    counts = counts[counts['report_count'] >= 5]
+
+    # Step 3: Join back to employee to get actual employee rows where id == managerId
+    return employee.merge(counts, left_on='id', right_on='managerId')[['id']]
+```
