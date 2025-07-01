@@ -1,5 +1,56 @@
 # Pandas
 
+### Basics
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({'Mahith': [4, 9], 'Manasvi': [9, 13], 'Yasasri': [12, 16]})
+   Mahith  Manasvi  Yasasri
+0       4        9       12
+1       9       13       16
+
+df = pd.DataFrame({'Mahith': [4, 9], 'Manasvi': [9, 13], 'Yasasri': [12, 16]}, index=['Grade', 'Age'])
+       Mahith  Manasvi  Yasasri
+Grade       4        9       12
+Age         9       13       16
+
+df.Mahith
+Grade    4
+Age      9
+Name: Mahith, dtype: int64
+
+ds = pd.Series(data=[4, 9, 12], name='grades')
+0     4
+1     9
+2    12
+Name: grades, dtype: int64
+
+# index based location, uses python stdlib indexing scheme
+df.iloc[1]
+Mahith      9
+Manasvi    13
+Yasasri    16
+Name: Age, dtype: int64
+
+df.iloc[:, 1]
+Grade     9
+Age      13
+Name: Manasvi, dtype: int64
+
+df.iloc[:1, 1]
+Grade    9
+Name: Manasvi, dtype: int64
+df.iloc[1:2, 1] # is same as df.iloc[-1:, 1]
+Age    13
+Name: Manasvi, dtype: int64
+
+print(df.loc[:,['Yasasri']]) # loc can index any stdlib type and uses inclusive range df.iloc[0:10] == df.loc[0:9]
+       Yasasri
+Grade       12
+Age         16
+```
+
 ## Indexing
 
 loc, iloc (numerical position in data)
