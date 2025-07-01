@@ -275,3 +275,53 @@ bst.delete(3)
 print("3rd smallest after deleting 3:", bst.kthSmallest(3))  # Should now print 4
 
 ```
+
+# LC 529. Mineseeper
+TC: O(mxn)
+SC: O(mxn)
+
+```python
+from collections import deque
+from typing import List
+
+class Solution:
+    def updateBoard(self, board: List[List[str]], click: List[int]) -> List[List[str]]:
+        m, n = len(board), len(board[0])
+        x, y = click
+
+        if board[x][y] == 'M':
+            board[x][y] = 'X'
+            return board
+
+        directions = [(-1,0), (-1,1), (0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1)]
+        queue = deque()
+        queue.append((x, y))
+
+        while queue:
+            x, y = queue.popleft()
+
+            # Count adjacent mines
+            mine_count = 0
+            neighbors = []
+
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < m and 0 <= ny < n:
+                    if board[nx][ny] == 'M':
+                        mine_count += 1
+                    elif board[nx][ny] == 'E':
+                        neighbors.append((nx, ny))
+
+            if mine_count > 0:
+                board[x][y] = str(mine_count)
+            else:
+                board[x][y] = 'B'
+                for nx, ny in neighbors:
+                    # Only reveal unrevealed cells
+                    if board[nx][ny] == 'E':
+                        queue.append((nx, ny))
+                        board[nx][ny] = 'B'  # Mark visited
+
+        return board
+```
+
