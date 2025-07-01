@@ -325,3 +325,39 @@ class Solution:
         return board
 ```
 
+### LC 536 – Construct Binary Tree from String
+TC O(n)
+SC = O(h)
+ignore handling large numbersand negative numbers
+
+```python
+class Solution:
+    def str2tree(self, s: str) -> TreeNode:
+        if not s:
+            return
+
+        def parse(index):
+            num = 0
+            if index < len(s) and s[index].isdigit():
+                num = int(s[index])
+                index += 1
+
+            node = TreeNode(num)
+
+            # Parse left child
+            if index < len(s) and s[index] == '(':
+                index += 1
+                node.left, index = parse(index)
+                index += 1  # skip ')'
+
+            # Parse right child
+            if index < len(s) and s[index] == '(':
+                index += 1
+                node.right, index = parse(index)
+                index += 1  # skip ')'
+
+            return node, index
+
+        root, _ = parse(0)
+        return root
+```
