@@ -364,3 +364,21 @@ class Solution:
 
         return False
 ```
+
+### 540 Single Element in a Sorted Array
+
+first elem of the pair in even positions before single element and changes to odd after single element
+```python
+class Solution:
+    def singleNonDuplicate(self, nums: List[int]) -> int:
+        left, right = 0, len(nums) - 1
+        while left < right:
+            mid = (left + right) // 2
+            if mid % 2:
+                mid -= 1
+            if nums[mid] == nums[mid+1]:
+                left = mid + 2
+            else:
+                right = mid
+        return nums[left] 
+```
