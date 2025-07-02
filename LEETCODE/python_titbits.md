@@ -49,6 +49,50 @@ from heapq import heappush, heappop
 ```pyhton
 from collections import deque, Counter
 ```
+### OOP
+
+```python
+class MyCircularQueue:
+
+    def __init__(self, k: int):
+        self.q = [0] * k
+        self.num_elems = 0
+        self.head = 0
+        self.k = k        
+
+    def enQueue(self, value: int) -> bool:
+        if self.isFull():
+            return False
+        tail = (self.head + self.num_elems) % self.k       
+        self.q[tail] = value
+        self.num_elems += 1
+        return True
+
+    def deQueue(self) -> bool:
+        if self.isEmpty():
+            return False
+        self.head = (self.head + 1) % self.k
+        self.num_elems -=1
+        return True
+
+    def Front(self) -> int:
+        if self.num_elems:
+            return self.q[self.head]
+        return -1
+        
+    def Rear(self) -> int:
+        if self.num_elems:
+            tail = (self.head + self.num_elems - 1) % self.k
+            return self.q[tail]
+        return -1        
+
+    def isEmpty(self) -> bool:
+        return self.num_elems == 0
+        
+    def isFull(self) -> bool:
+        return self.num_elems == self.k
+```
+
 ### Testing
 ```pyhton
 import unittest
