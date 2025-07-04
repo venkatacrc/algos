@@ -394,7 +394,7 @@ class Solution:
         dfs(root)
         dfs_ptr(root)
         return map_nodes[root]
-
+    # one recusion 
     def copyRandomBinaryTree(self, root: 'Optional[Node]') -> 'Optional[Node]':
         if not root:
             return None
@@ -415,4 +415,33 @@ class Solution:
             return copy
 
         return clone(root)
+```
+
+### 1644 Lowest Common Ancestor of a Binary Tree II
+
+```python
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        self.found_p = False
+        self.found_q = False
+
+        def dfs(node):
+            if not node:
+                return None
+
+            left = dfs(node.left)
+            right = dfs(node.right)
+
+            if node == p:
+                self.found_p = True
+                return node
+            if node == q:
+                self.found_q = True
+                return node
+
+            if left and right:
+                return node
+            return left if left else right
+
+        lca = dfs(root)
+        return lca if self.found_p and self.found_q else None
 ```
