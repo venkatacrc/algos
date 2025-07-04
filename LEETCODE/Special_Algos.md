@@ -67,3 +67,21 @@ def subarraysSum(nums: List[int], k: int) -> int:
 
     return count
 ```
+#### LC 974. Subarray Sums Divisible by K
+
+```python
+class Solution:
+    def subarraysDivByK(self, nums: List[int], k: int) -> int:
+        count = 0
+        running_sum = 0
+        prefix_sum_counts = defaultdict(int)
+        prefix_sum_counts[0] = 1
+        for num in nums:
+            running_sum += num
+            mod = running_sum % k
+            if mod < 0:
+                mod += k
+            count += prefix_sum_counts[mod]
+            prefix_sum_counts[mod] += 1
+        return count  
+```
