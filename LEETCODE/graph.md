@@ -361,3 +361,58 @@ class Solution:
         root, _ = parse(0)
         return root
 ```
+
+
+### LC 1485. Clone Binary Tree With Random Pointer
+
+```python
+    def copyRandomBinaryTree(self, root: 'Optional[Node]') -> 'Optional[Node]':
+        if not root:
+            return None
+
+        map_nodes = {}
+
+        # First pass: create copies of all nodes
+        def dfs(node):
+            if not node:
+                return
+            map_nodes[node] = Node(node.val)
+            dfs(node.left)
+            dfs(node.right)
+
+        # Second pass: assign left, right, and random pointers
+        def dfs_ptr(node):
+            if not node:
+                return
+            cpnode = map_nodes[node]
+            cpnode.left = map_nodes[node.left] if node.left else None
+            cpnode.right = map_nodes[node.right] if node.right else None
+            cpnode.random = map_nodes[node.random] if node.random else None
+            dfs_ptr(node.left)
+            dfs_ptr(node.right)
+
+        dfs(root)
+        dfs_ptr(root)
+        return map_nodes[root]
+
+    def copyRandomBinaryTree(self, root: 'Optional[Node]') -> 'Optional[Node]':
+        if not root:
+            return None
+
+        node_map = {}
+
+        def clone(node):
+            if not node:
+                return None
+            if node in node_map:
+                return node_map[node]
+
+            copy = Node(node.val)
+            node_map[node] = copy
+            copy.left = clone(node.left)
+            copy.right = clone(node.right)
+            copy.random = clone(node.random)
+            return copy
+
+        return clone(root)
+```
