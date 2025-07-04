@@ -47,3 +47,23 @@ class Solution:
         return a
 
 ```
+
+### 560  LC subarray sum
+TC: O(n) SC: O(n)
+```python
+from collections import defaultdict
+
+def subarraysSum(nums: List[int], k: int) -> int:
+    count = 0
+    running_sum = 0
+    prefix_sum_counts = defaultdict(int)
+    prefix_sum_counts[0] = 1
+
+    for num in nums:
+        running_sum += num
+        if (running_sum - k) in prefix_sum_counts:
+            count += prefix_sum_counts[running_sum - k]
+        prefix_sum_counts[running_sum] += 1
+
+    return count
+```
