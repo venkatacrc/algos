@@ -238,3 +238,37 @@ These require either advanced Union Find (e.g., with path compression and rankin
 1584. Min Cost to Connect All Points (MST with Union Find)
 1168. Optimize Water Distribution in a Village
 ```
+
+### LC 947. Most Stones Removed with Same Row or Column
+- Treat each stone as having two components: row and ~col (e.g. ~b), so that row and col can be mapped in the same parent structure.
+- We union each stone’s row and column, then count the number of connected components.
+    - The result is: Total Stones − Number of Connected Components
+
+
+```python
+class UnionFind:
+
+    def __init__(self):
+        self.parent = {}
+
+    def find(self, x):
+        if x != self.parent.setdefault(x, x):
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+    
+    def union(self, p, q):
+        self.parent[self.find(p)] = self.find(q)
+    
+
+class Solution:
+    def removeStones(self, stones: List[List[int]]) -> int:
+        uf = UnionFind()
+        for a,b in stones:
+            uf.union(a, ~b)
+        
+        roots = set()
+        for a, b in stones:
+            roots.add(uf.find(a))
+        
+        return len(stones) - len(roots)
+```
