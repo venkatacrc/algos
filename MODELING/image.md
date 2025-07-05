@@ -14,11 +14,12 @@
 | **11. SAM / DINO / CLIP / Segment Anything (2023–2024)** | Foundation models trained with self-supervision and huge data   | Zero-shot, few-shot capabilities, multimodal understanding | Expensive training, high inference cost                 |
 
 
-> [ Handcrafted ] → [ LeNet ] → [ AlexNet ] → [ VGG ] → [ Inception ] → [ ResNet ]
->                                                             ↓
->                                                      [ DenseNet / EfficientNet ]
->                                                             ↓
->                                             [ ViT → ConvNeXt → SAM/CLIP ]
+ [ Handcrafted ] → [ LeNet ] → [ AlexNet ] → [ VGG ] → [ Inception ] → [ ResNet ]
+                                                             ↓
+                                                      [ DenseNet / EfficientNet ]
+                                                             ↓
+                                             [ ViT → ConvNeXt → SAM/CLIP ]
+
 
 ### 🔑 Key Shifts in Image Model Evolution
 
@@ -57,11 +58,11 @@
 | **10. Sora / V-JEPA (2024)**      | Video generation and prediction via self-supervised objectives     | Video + Text            | Spatio-temporal learning, general video understanding | High compute cost, interpretability still limited     |
 
 
-> [ Early Fusion ] → [ Show & Tell ] → [ VQA ] → [ ViLBERT / LXMERT ]
->                                                  ↓
->                            [ CLIP ] → [ Flamingo ] → [ PaLM-E ]
->                                                  ↓
->                                [ GPT-4 / Gemini ] → [ Sora / V-JEPA ]
+ [ Early Fusion ] → [ Show & Tell ] → [ VQA ] → [ ViLBERT / LXMERT ]
+                                                  ↓
+                            [ CLIP ] → [ Flamingo ] → [ PaLM-E ]
+                                                  ↓
+                                [ GPT-4 / Gemini ] → [ Sora / V-JEPA ]
 
 #### 🧬 Key Innovations Over Time
 
