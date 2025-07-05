@@ -1,5 +1,9 @@
 ### NLP Evolution
 
+![image](https://github.com/user-attachments/assets/492d4bfc-6ab2-479e-bbea-8e6f855b0a45)
+> [ N-gram ] → [ Neural LM ] → [ RNN ] → [ GRU / LSTM ] → [ Transformer ] → [ BERT ]
+![image](https://github.com/user-attachments/assets/e4cfbd0b-a6e3-4d15-b927-9a9a32c45ca1)
+
 1. n-gram model
 2. A neural probabilistic language model - Bengio et.
      - Plus (+)
@@ -13,7 +17,7 @@
      - parameter explosion: input grows with context size.
      - expensive softmax over large vocabularies
 4. RNNs
-5.   + Plus(+)
+     + Plus(+)
      + Handle variable -length context via hidden state
      + model sequential word order more naturally
      + Parameter efficiency - by resuing the same RNN cell at each time step (weight sharing)
