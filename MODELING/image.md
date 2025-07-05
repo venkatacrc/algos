@@ -20,6 +20,7 @@
                                                              ↓
                                              [ ViT → ConvNeXt → SAM/CLIP ]
 
+![image](https://github.com/user-attachments/assets/7c119fc5-8105-4c67-b06d-d5f07ca17a26)
 
 ### 🔑 Key Shifts in Image Model Evolution
 
@@ -63,6 +64,9 @@
                             [ CLIP ] → [ Flamingo ] → [ PaLM-E ]
                                                   ↓
                                 [ GPT-4 / Gemini ] → [ Sora / V-JEPA ]
+                                
+ ![image](https://github.com/user-attachments/assets/b232e750-5116-4272-86dc-3ce2c926c536)
+
 
 #### 🧬 Key Innovations Over Time
 
