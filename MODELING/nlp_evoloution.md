@@ -24,5 +24,9 @@
      + hard to parallelize
      + Softmax over large vocab still costly
   
-     ![image](https://github.com/user-attachments/assets/b3497b5e-3ac2-4b31-92fb-aff014fb2523)
+![image](https://github.com/user-attachments/assets/b3497b5e-3ac2-4b31-92fb-aff014fb2523)
+![image](https://github.com/user-attachments/assets/4493f536-a5e1-4a0f-9971-712b5ffc57f9)
+![image](https://github.com/user-attachments/assets/ca958853-d7ed-4416-8cdf-0efda5fade45)
+![image](https://github.com/user-attachments/assets/6de41c14-7357-46eb-ae6d-1109f240eb0c)
+
 
