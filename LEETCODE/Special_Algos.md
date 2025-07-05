@@ -85,3 +85,28 @@ class Solution:
             prefix_sum_counts[mod] += 1
         return count  
 ```
+
+### 1163 – Last Substring in Lexicographical Order
+> Given a string s, return the last substring in lexicographical order among all possible substrings.
+
+#### 🧠 Key Insight
+- This is not about sorting all substrings (too slow: O(n²)), but about finding one best starting index.
+- The trick is: Find the starting index of the suffix that gives the lexicographically largest substring.
+
+```python
+class Solution:
+    def lastSubstring(self, s: str) -> str:
+        i, j, k = 0, 1, 0
+        n = len(s)
+        while j + k < n:
+            if s[i + k] == s[j + k]:
+                k += 1
+            elif s[i + k] > s[j + k]:
+                j = j + k + 1
+                k = 0
+            else:
+                i = max(i + k + 1, j)
+                j = i + 1
+                k = 0
+        return s[i:]
+```
