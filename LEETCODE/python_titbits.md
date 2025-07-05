@@ -1,4 +1,9 @@
 ### list
+```python
+cnt = [[] for _ in range(26)] # correct
+cnt = [[] * 26] # wrong This evaluates to [[]]
+```
+
 append, pop
 consider swapping with last element to remove a value at random index
 ```pyhton
