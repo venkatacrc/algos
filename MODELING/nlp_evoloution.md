@@ -1,8 +1,39 @@
 ### NLP Evolution
 
-![image](https://github.com/user-attachments/assets/492d4bfc-6ab2-479e-bbea-8e6f855b0a45)
+#### 📚 Language Model Evolution Summary
+
+| Model                                                   | Core Idea                                                               | Strengths                                                        | Limitations                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **1. N-gram**                                           | Predict next word using fixed-size context (e.g., trigrams)             | Simple, fast, interpretable                                      | Data sparsity, no generalization, fixed context, no semantics              |
+| **2. Neural Probabilistic LM**<br>(Bengio et al., 2003) | Learn word embeddings + MLP to predict next word from context           | Generalizes to similar words, learns distributed representations | Fixed-size context window, slow, poor long-term memory                     |
+| **3. RNN**                                              | Sequentially process input, maintain a hidden state to encode history   | Variable-length context, parameter sharing                       | Vanishing/exploding gradients, poor long-term memory, no parallelism       |
+| **4. GRU** (2014)                                       | RNN with gating mechanism (update/reset gates) to manage memory         | Better at capturing dependencies, fewer parameters than LSTM     | Still sequential, less expressive than LSTM in some cases                  |
+| **5. LSTM** (1997, popularized 2014)                    | Adds memory cell + input/forget/output gates                            | Captures long-term dependencies, stable training                 | Computationally expensive, sequential, still hard to parallelize           |
+| **6. Transformer** (2017)                               | Uses self-attention for global context and full parallelization         | Global context, fast (parallel), scalable                        | No inherent order (needs positional encodings), costly softmax (quadratic) |
+| **7. BERT** (2018)                                      | Transformer encoder trained with Masked Language Modeling (MLM) and NSP | Deep bidirectional context, pretraining + fine-tuning paradigm   | No autoregressive generation (not good for generation tasks), expensive    |
+
+
 > [ N-gram ] → [ Neural LM ] → [ RNN ] → [ GRU / LSTM ] → [ Transformer ] → [ BERT ]
 ![image](https://github.com/user-attachments/assets/e4cfbd0b-a6e3-4d15-b927-9a9a32c45ca1)
+> 
+
+#### High-Level Concepts Behind the Transition
+     - From memorization → generalization: N-gram to neural LM (Bengio)     
+     - From fixed context → dynamic memory: Neural LM → RNNs     
+     - From shallow memory → gated memory: RNNs → GRU/LSTM
+     - From sequential → global + parallel: LSTM → Transformer     
+     - From unidirectional → bidirectional understanding: Transformer → BERT
+
+#### 🎯 Use-Cases:
+
+| Model        | Best Suited For                                |
+| ------------ | ---------------------------------------------- |
+| N-gram       | Small-scale or rule-based NLP tasks            |
+| Neural LM    | Academic experiments, early NLP systems        |
+| RNN/LSTM/GRU | Speech, text generation (pre-Transformer)      |
+| Transformer  | Machine translation, summarization, generation |
+| BERT         | Text classification, question answering, NLU   |
+
 
 1. n-gram model
 2. A neural probabilistic language model - Bengio et.
