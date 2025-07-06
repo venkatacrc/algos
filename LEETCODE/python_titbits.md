@@ -2,6 +2,8 @@
 ```python
 cnt = [[] for _ in range(26)] # correct
 cnt = [[] * 26] # wrong This evaluates to [[]]
+
+cols = defaultdict(lambda: defaultdict(list))
 ```
 
 append, pop
