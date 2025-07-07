@@ -25,5 +25,35 @@ def trap(height: List[int]) -> int:
         stack.append(i)
 
     return water
+```
+
+### LC Leetcode 239: Sliding Window Maximum ✅ Approach: Monotonic Deque (Optimal)
+
+```python
+from collections import deque
+from typing import List
+
+class Solution:
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        result = []
+        dq = deque()  # stores indices
+
+        for i in range(len(nums)):
+            # Remove out-of-window indices
+            if dq and dq[0] <= i - k:
+                dq.popleft()
+
+            # Maintain decreasing order
+            while dq and nums[i] >= nums[dq[-1]]:
+                dq.pop()
+
+            dq.append(i)
+
+            # Append current window max
+            if i >= k - 1:
+                result.append(nums[dq[0]])
+
+        return result
 
 ```
+
