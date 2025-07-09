@@ -85,5 +85,5 @@ feature value is larger then its parameter is small and vice versa
 #### Feature scaling
 #### Mean Normalization
 ```math
-x_1 = (x_1 - \mu_1) / (x_max - x_min) 
+x_1 = \frac{(x_1 - \mu_1)}{(x_(max) - x_(min))}
 ```
