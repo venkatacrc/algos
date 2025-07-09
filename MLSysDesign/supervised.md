@@ -1,3 +1,4 @@
+## Regression (Linear + Polynomial) 
 ![image](https://github.com/user-attachments/assets/587e5d4b-31c8-4d14-b57a-ad57611c5373)
 
 ### univariate linear regression
@@ -105,6 +106,22 @@ def compute_cost_logistic(X, y, w, b):
         cost += loss_i
     cost = cost / m
     return cost
+
+def compute_gradient_logistic(X, y, w, b):
+    m,n = X.shape
+    dj_dw = np.zeros((n,))
+    dj_db = 0.
+    for i in range(m):
+        f_wb_i = sigmoid(np.dot(X[i], w) + b) # scalar
+        err_i = f_wb_i - y[i]            # scalar
+        for j in range(n):
+            dj_dw_i[j] += err_i * X[i,j]  # scalar
+        dj_db += err_i
+    dj_dw = dj_dw / m
+    dj_db = dj_db / m
+    return dj_dw, dj_db
 ```
+
+
 
 
