@@ -101,7 +101,8 @@ def compute_cost_logistic(X, y, w, b):
     cost = 0.0
     m = X.shape[0]
     for i in range(m):
-        fwb_i = 1 / (1 + math.exp(np.dot(X[i], w) + b)
+        z_i = np.dot(X[i], w) + b
+        fwb_i = 1 / (1 + np.exp(-z_i)
         loss_i = -y[i] * np.log(fwb_i) - (1 - y[i]) * np.log(1 - fwb_i)
         cost += loss_i
     cost = cost / m
@@ -136,6 +137,15 @@ def compute_gradient_logistic(X, y, w, b):
     return dj_db, dj_dw  
 ```
 
+### Overfitting
 
+How do you address overfitting or high variance?
+![image](https://github.com/user-attachments/assets/bbef9c36-4fc9-4f16-95ed-52580fe5117c)
+
+- by using more training data
+- feature selection
+- regularization
+
+![image](https://github.com/user-attachments/assets/7804aacb-0bb9-411f-9d15-dfc017e2c8be)
 
 
