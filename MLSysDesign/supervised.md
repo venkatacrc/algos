@@ -74,5 +74,16 @@ def gradient_descent(x, y, w_in, b_in, alpha, num_iers, cost_function, gradient_
         b = b - alpha * dj_db
 
     return w, b
-        
+
+# vectorized linear regression
+f = np.dot(w,x) + b 
+```
+### Feature Engineering
+
+feature value is larger then its parameter is small and vice versa
+
+#### Feature scaling
+#### Mean Normalization
+```math
+x_1 = (x_1 - \mu_1) / (x_max - x_min) 
 ```
