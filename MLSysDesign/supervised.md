@@ -90,3 +90,21 @@ x_1 = \frac{(x_1 - \mu_1)}{x_{max} - x_{min}}
 #### Z-score normalization
 $$x = \frac{x - \mu}{\sigma}$$
 
+## Logistic Regression
+
+![image](https://github.com/user-attachments/assets/d51ff2f6-82f5-49c3-8dbd-1bc009e7b953)
+![image](https://github.com/user-attachments/assets/c3a3ab9d-4122-4524-920f-5639f21af335)
+
+```python
+def compute_cost_logistic(X, y, w, b):
+    cost = 0.0
+    m = X.shape[0]
+    for i in range(m):
+        fwb_i = 1 / (1 + math.exp(np.dot(X[i], w) + b)
+        loss_i = -y[i] * np.log(fwb_i) - (1 - y[i]) * np.log(1 - fwb_i)
+        cost += loss_i
+    cost = cost / m
+    return cost
+```
+
+
