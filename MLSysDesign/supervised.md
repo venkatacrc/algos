@@ -88,7 +88,5 @@ feature value is larger then its parameter is small and vice versa
 x_1 = \frac{(x_1 - \mu_1)}{(x_{max} - x_{min}}
 ```
 #### Z-score normalization
-```math
-x = \frac{x - \mu}(\sigma}
-```
+$$x = \frac{x - \mu}(\sigma}$$
 
