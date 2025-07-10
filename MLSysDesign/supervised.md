@@ -153,3 +153,17 @@ How do you address overfitting or high variance?
 
 
 ![image](https://github.com/user-attachments/assets/ff25da0e-9d81-4e9e-aa54-71f5815bafbb)
+
+
+![image](https://github.com/user-attachments/assets/6613bf2a-c461-4237-8cf5-154dc105f420)
+
+![image](https://github.com/user-attachments/assets/8f3e0f12-1e06-4417-9d20-5c655ed6fe2f)
+
+## Multi-label classification
+![image](https://github.com/user-attachments/assets/8e4b8fe1-f73c-4514-88cd-addd4f4ecc98)
+![image](https://github.com/user-attachments/assets/f0e199f7-2f36-4b5e-8193-ba886dc95cb6)
+
+
+
+
+
