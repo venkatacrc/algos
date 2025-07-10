@@ -163,6 +163,12 @@ How do you address overfitting or high variance?
 ![image](https://github.com/user-attachments/assets/8e4b8fe1-f73c-4514-88cd-addd4f4ecc98)
 ![image](https://github.com/user-attachments/assets/f0e199f7-2f36-4b5e-8193-ba886dc95cb6)
 
+### Layer Types
+
+- Dense
+- Convolutional
+![image](https://github.com/user-attachments/assets/d3b1b10c-a320-4e53-92c1-0e68b8b9c7f6)
+
 
 
 
