@@ -172,6 +172,7 @@ How do you address overfitting or high variance?
 ### Debugging
 
 ![image](https://github.com/user-attachments/assets/ca6c2f09-6b19-4e55-9452-eb933ce69742)
+![image](https://github.com/user-attachments/assets/f3249550-6933-4ac4-be72-a3fbf2a0c008)
 
 
 ### Evaluation
