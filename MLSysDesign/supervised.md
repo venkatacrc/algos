@@ -169,7 +169,17 @@ How do you address overfitting or high variance?
 - Convolutional
 ![image](https://github.com/user-attachments/assets/d3b1b10c-a320-4e53-92c1-0e68b8b9c7f6)
 
+### Debugging
 
+![image](https://github.com/user-attachments/assets/3a8421ed-d6cd-4867-96bc-60cbb2ddaeab)
+
+### Evlauation
+
+![image](https://github.com/user-attachments/assets/6e949c08-73c3-4e32-ab92-060b9d46c88d)
+
+![image](https://github.com/user-attachments/assets/9447ed19-b4ea-4645-bf2e-73e01be92b40)
+
+![image](https://github.com/user-attachments/assets/e3119ac2-b657-4180-9d23-1b1356661aea)
 
 
 
