@@ -173,7 +173,7 @@ How do you address overfitting or high variance?
 
 ![image](https://github.com/user-attachments/assets/3a8421ed-d6cd-4867-96bc-60cbb2ddaeab)
 
-### Evlauation
+### Evaluation
 
 ![image](https://github.com/user-attachments/assets/6e949c08-73c3-4e32-ab92-060b9d46c88d)
 
@@ -184,5 +184,13 @@ How do you address overfitting or high variance?
 ![image](https://github.com/user-attachments/assets/6b88a501-804a-493e-bb9f-77cd571d1ba6)
 
 ![image](https://github.com/user-attachments/assets/6258f793-b0c8-4e91-b57d-c033c4806849)
+
+![image](https://github.com/user-attachments/assets/161dab94-e09f-4d41-aaeb-facd2845c952)
+
+![image](https://github.com/user-attachments/assets/39bb3785-dd89-4b26-8045-2bc284cd9cc0)
+
+![image](https://github.com/user-attachments/assets/e7d89f81-1a22-475b-b096-220f54172bd6)
+
+![image](https://github.com/user-attachments/assets/94567e05-9935-4fb0-a8e3-fabfb0fc41c1)
 
 
