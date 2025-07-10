@@ -181,5 +181,8 @@ How do you address overfitting or high variance?
 
 ![image](https://github.com/user-attachments/assets/e3119ac2-b657-4180-9d23-1b1356661aea)
 
+![image](https://github.com/user-attachments/assets/6b88a501-804a-493e-bb9f-77cd571d1ba6)
+
+![image](https://github.com/user-attachments/assets/6258f793-b0c8-4e91-b57d-c033c4806849)
 
 
