@@ -151,3 +151,5 @@ How do you address overfitting or high variance?
 ## Multiclass  classification (Softmax Regression)
 ![image](https://github.com/user-attachments/assets/36cebb2a-6f4d-4295-abbf-40a7eea36d7f)
 
+
+![image](https://github.com/user-attachments/assets/ff25da0e-9d81-4e9e-aa54-71f5815bafbb)
