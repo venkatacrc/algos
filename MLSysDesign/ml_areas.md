@@ -21,6 +21,30 @@
 | Twitter Friend Graph | GraphSAGE, GNNs + heuristics   |
 | Amazon Product Rec   | DeepFM, DSSM, personalized MLP |
 
+# 🧠 ML System Design: Full Lifecycle Across Key Systems
+
+This document captures the **end-to-end lifecycle** for fourteen major ML systems:
+
+| #  | System Name                      | Primary Metric                  | Secondary Metrics               | Guardrail Metrics                | Model Type(s)                 | Loss Function(s)                | Evaluation Metrics            | Deployment Style              |
+| -- | -------------------------------- | ------------------------------- | ------------------------------- | -------------------------------- | ----------------------------- | ------------------------------- | ----------------------------- | ----------------------------- |
+| 1  | Personalized News Ranking        | CTR, dwell time                 | Relevance, recency              | Latency, bounce, diversity       | Wide & Deep, DLRM, DIN/DIEN   | BCE, BPR, Triplet, Softmax rank | NDCG\@k, MAP, AUC             | Real-time + cache             |
+| 2  | Ads Recommendation               | eCPM (CTR × bid)                | CVR, ROI                        | Budget pacing, latency, fairness | XGBoost, DLRM, DeepFM         | Logistic, NDCG, Uplift          | AUC, ROI simulation           | Real-time bidders             |
+| 3  | Product Recommendation           | Clicks, conversions             | Add-to-cart, revenue            | Inventory freshness, diversity   | Two-Tower, BERT4Rec, GNN      | BPR, BCE, Triplet               | Recall\@k, NDCG               | ANN engine, daily refresh     |
+| 4  | Friend Recommendation            | Follow-back rate                | Engagement, graph closure       | Abuse rate, latency              | GNNs: GraphSAGE, Node2Vec     | Link/BPR/contrastive            | Edge prediction, stickiness   | Online edge scorer            |
+| 5  | Google Search Ranking            | NDCG\@10                        | Clicks, bounce rate             | Latency, content freshness       | LambdaMART, BERT Reranker     | LambdaLoss, ListMLE             | NDCG, MAP, MRR                | Multi-stage cascade           |
+| 6  | Centralized ML Platform          | Model accuracy/freshness        | Drift, coverage                 | Serving uptime, latency          | IsolationForest, XGBoost      | Forecasting, anomaly            | Drift score, infra metrics    | gRPC APIs + monitoring agents |
+| 7  | Ads Ranking Evaluation Framework | ROI, eCPM                       | Calibration, revenue lift       | Label leakage, join errors       | XGBoost, uplift models        | Binary, uplift, robust          | Replay, shadow eval           | Shadow mode + flags           |
+| 8  | Fake News Detection              | Accuracy, F1                    | Trust score, source credibility | False positive, freedom tradeoff | BERT, GNNs                    | BCE, weighted focal             | Precision, ROC-AUC            | Batch + real-time API         |
+| 9  | Weapon Ads Detection             | Violation precision/recall      | Coverage of ad classes          | Latency, moderation backlog      | ViLT, CLIP                    | BCE, focal loss                 | Manual A/B, recall            | Inline moderation pipeline    |
+| 10 | Next Word Prediction             | Perplexity                      | Accuracy\@k                     | Toxicity, hallucination          | GPT, LLaMA                    | Cross-entropy                   | Perplexity, top-k accuracy    | On-device or cached inference |
+| 11 | Facebook Marketplace             | Match rate                      | View rate, transaction rate     | Fraud detection, latency         | Two-Tower + graph ranking     | Contrastive, pairwise           | Match, clicks, funnel metrics | Cascade: retrieval → rank     |
+| 12 | Comment Moderation               | Block rate (toxicity detection) | False positive rate             | Fairness, latency                | RoBERTa, BERT classifiers     | BCE, weighted loss              | F1, AUC, mod workload         | Inline + batch                |
+| 13 | Instagram Explore Page           | Engagement (likes, clicks)      | Diversity, freshness            | Repetition, latency              | Multi-stage vision+engagement | Ranking, NDCG                   | CTR, dwell time, scroll depth | Batch + real-time ranking     |
+| 14 | Language Detection               | Language ID accuracy            | Confidence score                | Short text robustness            | FastText, CNNs, NB            | Cross-entropy                   | Accuracy, top-3 match         | On-device or preprocessing    |
+
+Let me know if you want this table exported as CSV, Markdown table only, or with links to full descriptions.
+
+
 
 ## 📊 Summary Table of ML System Functions & Metrics
 
