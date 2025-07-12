@@ -3,12 +3,12 @@
 -   select and show best( == highest expected value) something that maximizes platforms objective function.
 -  What is the Primary Metric and the formula?
 
-personalized news ranking systems.
-ads recommendation system.
-product recommendation system.
-friend recommendation system for Twitter.
-Google Search Ranking.
-Centalized ML Management Platforms.
+    - perrsonalized news ranking systems.
+    - ads recommendation system.
+    - product recommendation system.
+    - friend recommendation system for Twitter.
+    - Google Search Ranking.
+    - Centalized ML Management Platforms.
 
 | # | System                                   | 🎯 Primary Function                                | ✅ Primary Metric(s)                                                      | 🧪 Secondary Metric(s)                                                                                     | 🛡️ Guardrail Metric(s)                                                                                     |
 | - | ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -22,26 +22,18 @@ Centalized ML Management Platforms.
 
 
 
-## Design a personalized news ranking systems.
-- To show the best news article to a user at a given opportunity
 
-## Design ads recommendation system.
-- Select the best ad to show to a user at a given opportunity
-- Primary Metric: Ads Score
+### Data Collection in Real ML Systems
+| # | System                              | 📥 Data Collection Methods                                                                                            | ⚙️ Key Components                                                                                                                                     | ⚖️ Tradeoffs & Considerations                                                                                                                                                    |
+| - | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Personalized News Ranking**       | - Click logs<br>- Scroll depth<br>- Time-on-article<br>- Shares/likes<br>- Impressions                                | - JavaScript web trackers<br>- Log collectors (e.g., Kafka)<br>- Mobile SDKs<br>- Snowplow / Segment<br>- Browser APIs                                | ✅ JS tracking is easy to deploy <br>❌ May be blocked by browsers/ad-blockers <br>✅ SDKs offer richer context <br>❌ Harder to version and maintain                                |
+| 2 | **Ads Recommendation**              | - Impressions & clicks<br>- Bid requests/responses<br>- Conversions (post-click)<br>- Pixel firing & attribution logs | - Pixel tracking<br>- Server-to-server (S2S) logging<br>- Event streaming (Kafka, Pub/Sub)<br>- Real-time data pipelines (Flink, Spark)               | ✅ Pixel tracking works for 3rd-party pages <br>❌ Fragile due to browser/JS failures <br>✅ S2S is robust and scalable <br>❌ Attribution delays & missing cookies (privacy)        |
+| 3 | **Product Recommendation**          | - User browse/click/add-to-cart logs<br>- Purchase & return logs<br>- View/interaction heatmaps                       | - Web/mobile SDKs<br>- Data lake ingestion<br>- Clickstream loggers<br>- Snowflake / Hive tables                                                      | ✅ Logs are passively collected and non-intrusive <br>❌ Large volume; high storage cost <br>✅ Event schema can evolve <br>❌ Clickstream may lack intent clarity                   |
+| 4 | **Friend Recommendation (Twitter)** | - Follow graph updates<br>- Like/retweet/comment patterns<br>- Mutual follows, co-engagement                          | - Social graph service (e.g., GraphDB, Nebula, RedisGraph)<br>- Event queues (Kafka)<br>- Offline ETL pipelines                                       | ✅ Graph DBs enable real-time edge queries <br>❌ Scaling with millions of edges is hard <br>✅ Kafka ensures ordered updates <br>❌ ETL lags affect freshness                       |
+| 5 | **Google Search Ranking**           | - Click logs<br>- Query reformulation<br>- Dwell time<br>- Return-to-SERP                                             | - Search logging service<br>- Chrome client-side logging<br>- Real-user monitoring (RUM)<br>- Federated analytics                                     | ✅ Client-side gives richer behavior data <br>❌ Browser privacy & telemetry limits <br>✅ Federated is privacy-friendly <br>❌ Harder to debug/model                                |
+| 6 | **Centralized ML Management**       | - Model training logs<br>- Metadata about datasets/models<br>- Inference traces<br>- Deployment status                | - ML metadata store (e.g., MLMD)<br>- Feature stores (Feast, Tecton)<br>- Experiment tracker (e.g., MLflow)<br>- Prometheus / Grafana / OpenTelemetry | ✅ Feature stores enable online + offline consistency <br>❌ Operational complexity <br>✅ Logging infra like OpenTelemetry is extensible <br>❌ Requires culture of instrumentation |
+| 7 | **Ads Ranking Evaluation**          | - Logs of serving decisions<br>- Auction inputs/outputs<br>- Post-click behavior (CVR)<br>- Budget delivery logs      | - Shadow logging / traffic mirroring<br>- Randomization framework (e.g., A/B infra)<br>- Delayed conversion joiners                                   | ✅ Shadow traffic captures ground truth w/o exposure <br>❌ Expensive compute cost <br>✅ A/B infra gives unbiased data <br>❌ Requires very high-quality labeling/timestamping      |
 
-## Design a product recommendation system.
-- To show a best product to a user at a given opportunity
-
-## Design a friend recommendation system for Twitter
-- To show best friend recommendation to a user at a given opportunity
-
-## Design a Google Search Ranking
-- To select best matchin URLs to the query and show it to a user at a given opportunity
-
-## Design a Centalized ML Management Platforms
-- 
-
-## Design an evaluation framework for ads ranking.
 
 
 # Training Data
