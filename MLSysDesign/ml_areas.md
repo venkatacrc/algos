@@ -34,11 +34,91 @@
 | 6 | **Centralized ML Management**       | - Model training logs<br>- Metadata about datasets/models<br>- Inference traces<br>- Deployment status                | - ML metadata store (e.g., MLMD)<br>- Feature stores (Feast, Tecton)<br>- Experiment tracker (e.g., MLflow)<br>- Prometheus / Grafana / OpenTelemetry | ✅ Feature stores enable online + offline consistency <br>❌ Operational complexity <br>✅ Logging infra like OpenTelemetry is extensible <br>❌ Requires culture of instrumentation |
 | 7 | **Ads Ranking Evaluation**          | - Logs of serving decisions<br>- Auction inputs/outputs<br>- Post-click behavior (CVR)<br>- Budget delivery logs      | - Shadow logging / traffic mirroring<br>- Randomization framework (e.g., A/B infra)<br>- Delayed conversion joiners                                   | ✅ Shadow traffic captures ground truth w/o exposure <br>❌ Expensive compute cost <br>✅ A/B infra gives unbiased data <br>❌ Requires very high-quality labeling/timestamping      |
 
+#### 🔍 Tradeoff Themes Across Systems
+
+| Component Type        | Pro                          | Con                               | Use Case Fit           |
+| --------------------- | ---------------------------- | --------------------------------- | ---------------------- |
+| **Web SDKs**          | Rich, contextual             | Versioning & device fragmentation | Web & mobile apps      |
+| **Pixel tracking**    | Universal, stateless         | Prone to failure, privacy limits  | Ads & attribution      |
+| **Server logs (S2S)** | Reliable, structured         | Setup cost, backend dependent     | Ad ranking, search     |
+| **Feature stores**    | Training-serving consistency | Complex infra, real-time updates  | All ML pipelines       |
+| **Kafka**             | Ordered, scalable            | Needs downstream consumers        | Real-time systems      |
+| **Graph DBs**         | Expressive queries           | Write-heavy scaling issues        | Social graphs          |
+| **Federated logging** | Privacy-preserving           | Hard to debug, aggregate          | Search, mobile systems |
 
 
-# Training Data
+# Features & Feature Engineering
+### 🧠 Features, Transformations, and Storage in ML Systems
+| # | System                              | 🔑 Key Feature Types                                                                                                                   | 🛠️ Feature Engineering                                                                                                                                    | 🗂️ Storage for Downstream ML                                                                                             |
+| - | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Personalized News Ranking**       | - User ID, age, location<br>- Article ID, topic, timestamp<br>- Click history<br>- Time-of-day, device                                 | - Text embeddings (article, title)<br>- Timestamp bucketing<br>- TF-IDF / LLM embeddings<br>- Normalization (age)<br>- Session history encoding            | - **Offline**: Feature Store (e.g., Feast, Tecton)<br>- **Online**: Redis, DynamoDB<br>- **Batch**: Data Lake (S3, GCS)   |
+| 2 | **Ads Recommendation**              | - User ID, geo, demographics<br>- Ad ID, campaign ID<br>- Past CTR/CVR stats<br>- Context (device, placement)<br>- Bid amount          | - Log transforms (e.g., bid, past CTR)<br>- Cross features (user × ad)<br>- Embeddings (user, ad IDs)<br>- Hashing/categorical encoding                    | - Feature Store (real-time and batch)<br>- Pub/Sub + materialized tables<br>- BigQuery / Hive for model input             |
+| 3 | **Product Recommendation**          | - User ID, purchase history<br>- Product ID, category, price<br>- View/click/add-to-cart<br>- Similarity to past purchases             | - Product text/image → embeddings<br>- Time-based aggregation (last 7d clicks)<br>- Bucket price<br>- Popularity rank encoding                             | - Feature Store<br>- Offline store (Parquet, Delta Lake)<br>- Pre-computed session features stored in data lake           |
+| 4 | **Friend Recommendation (Twitter)** | - User graph features (mutuals, 2-hop paths)<br>- User embeddings (activity, topics)<br>- Follow recency<br>- Tweet similarity metrics | - Graph-based embedding (Node2Vec, GraphSAGE)<br>- Text vectorization (tweets)<br>- Time decay for recency<br>- One-hot or dense embeddings                | - Graph DB (for online)<br>- Embedding store<br>- Offline ETL pipelines → TFRecords / Parquet                             |
+| 5 | **Google Search Ranking**           | - Query text<br>- Document features (BM25, freshness, pagerank)<br>- Click-through rate<br>- Snippet quality<br>- Language match       | - TF-IDF/BERT for queries<br>- N-gram matching<br>- Positional relevance features<br>- Feature binning / quantization                                      | - Lookup stores for real-time<br>- Document index services<br>- Offline join tables used in ranking models                |
+| 6 | **Centralized ML Platforms**        | - Model metadata (framework, size, latency)<br>- Dataset version, freshness<br>- Serving metrics (QPS, P99)<br>- Deployment frequency  | - Normalization (latency)<br>- Aggregation (last 7d success rate)<br>- Alert thresholds (feature drift)<br>- Tag encoding (pipeline, team)                 | - ML Metadata Store (e.g., MLMD)<br>- Feature Store (Feast)<br>- Monitoring tools (Prometheus, BigQuery)                  |
+| 7 | **Ads Ranking Evaluation**          | - Serving features: bid, budget, position<br>- Engagement: CTR, CVR, ROI<br>- User context<br>- Historical A/B data                    | - Online vs offline join (post-click CVR)<br>- Grouped metrics (per advertiser)<br>- Normalization and smoothing<br>- Calibration of predicted vs observed | - Real-time logging store (Kafka, Pub/Sub)<br>- Offline warehouse (BigQuery, Hive)<br>- Feature Store for reproducibility |
 
-# Feature Engineering
+#### 🧰 Common Feature Engineering Operations
+
+| Operation Type     | Examples                             | Why It's Needed                          |
+| ------------------ | ------------------------------------ | ---------------------------------------- |
+| **Normalization**  | z-score, min-max on price, time      | Align scales; improves model convergence |
+| **Aggregation**    | Rolling sums, averages (clicks/week) | Capture historical context               |
+| **Embedding**      | User/item/product ID, text/tweets    | Capture semantic and ID-based patterns   |
+| **Cross Features** | user × ad, category × price bucket   | Increase model expressiveness            |
+| **Binning**        | Price into buckets, quantized scores | Reduce feature noise, improve robustness |
+| **Recency/Decay**  | Time-weighted engagement             | Emphasize recent behavior over old       |
+
+#### Where features are stored
+| Storage Layer             | Usage                                          | Technologies                                        |
+| ------------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| **Offline Feature Store** | Model training (batch)                         | Feast (offline), Tecton, BigQuery, Hive, Delta Lake |
+| **Online Feature Store**  | Real-time inference                            | Redis, Cassandra, DynamoDB, Tecton online store     |
+| **Embedding Store**       | Storing dense embeddings for retrieval/ranking | Faiss, ScaNN, Milvus                                |
+| **Data Warehouse**        | Logging, ETL, A/B analysis                     | Snowflake, BigQuery, Hive                           |
+| **Event Stream Logs**     | Near-real-time features                        | Kafka, Pub/Sub, Kinesis                             |
+
+###  Data Versioning and Quality Checks in Production ML Systems
+| # | System                              | 🗂️ Data Versioning Needs                                                                                                        | ✅ Data Quality Checks                                                                                                                     |
+| - | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Personalized News Ranking**       | - Article content versioning (title, body)<br>- User event logs by timestamp<br>- Daily snapshot/versioned tables                | - Null/missing fields (e.g., article ID)<br>- Timestamp validation<br>- Label skew over time<br>- NDCG drift in offline eval              |
+| 2 | **Ads Recommendation System**       | - Campaign config versioning (bids, creatives)<br>- Bid request schema versions<br>- Real-time vs delayed conversion joins       | - Invalid click/conversion joins<br>- CTR outliers / drop spikes<br>- Time lag consistency<br>- Bid/price sanity checks                   |
+| 3 | **Product Recommendation**          | - Product catalog snapshot (e.g., nightly)<br>- Historical user interaction logs<br>- Backfilled feature tables versioned by run | - Missing product metadata<br>- Duplicates in catalog<br>- Invalid price buckets<br>- Add-to-cart → Purchase funnel drop issues           |
+| 4 | **Friend Recommendation (Twitter)** | - Social graph versioning (timestamped edges)<br>- User embedding versioning (daily/hourly)<br>- Interaction log snapshots       | - Graph integrity (no loops on undirected edges)<br>- Broken/expired accounts<br>- Missing embeddings<br>- Label imbalance (rare follows) |
+| 5 | **Google Search Ranking**           | - Query log versions (schema evolves)<br>- Index snapshot versioning<br>- Click/journey session stitching                        | - Query-spam filtering<br>- User-agent integrity<br>- Return-to-SERP vs dwell time mismatch<br>- Session gap time anomalies               |
+| 6 | **Centralized ML Management**       | - Dataset, model, experiment versioning (with lineage)<br>- Feature set and schema versioning                                    | - Missing metadata fields<br>- Version skew (e.g., serving uses older features)<br>- Training-serving skew<br>- Drift in model inputs     |
+| 7 | **Ads Ranking Evaluation**          | - A/B experiment logs versioned by bucket<br>- Conversion log joins (across delayed windows)<br>- Shadow model output snapshots  | - Invalid conversions (no click)<br>- Label leakage across buckets<br>- Budget pacing anomalies<br>- ROI divergence across variants       |
+
+
+#### 🧬 Types of Data Versioning You Should Use
+| Versioning Type          | Description                                           | Tools                                     |
+| ------------------------ | ----------------------------------------------------- | ----------------------------------------- |
+| **Feature versioning**   | Timestamped versions of feature sets (v1, v2)         | Feast, Tecton, Delta Lake                 |
+| **Dataset versioning**   | Snapshots for training (daily/hourly)                 | DVC, Pachyderm, LakeFS                    |
+| **Schema versioning**    | Capture changes in field names, types                 | Protocol Buffers, Avro, JSON schema       |
+| **Label versioning**     | Track delay-windowed labels (e.g., CVR\@1d, @7d)      | Custom ETL pipelines + partitioned tables |
+| **Embedding versioning** | Store model-specific embeddings with time/version tag | Faiss, Annoy, Milvus + metadata store     |
+
+#### ✅ Data Quality Checks: Real-World Checks to Protect Your Models
+| Category               | Check                                          | Example                                          |
+| ---------------------- | ---------------------------------------------- | ------------------------------------------------ |
+| **Schema Checks**      | Field presence, type, range                    | `click_time` must be non-null & within 24h       |
+| **Statistical Checks** | Distribution shift, mean/std deviation         | Drop in mean CTR from 0.12 → 0.01 signals error  |
+| **Integrity Checks**   | Join correctness, cardinality constraints      | Conversions without prior clicks                 |
+| **Temporal Checks**    | Freshness, latency, backfill consistency       | No training examples from future timestamps      |
+| **Skew Checks**        | Training-serving skew, A/B split bias          | Features differ between offline/online           |
+| **Label Leakage**      | Labels derived from future or improper sources | CVR labels joined from a post-ad exposure period |
+
+#### 🔧 Recommended Tooling & Frameworks
+| Function                      | Tools                                                              |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Data versioning               | [DVC](https://dvc.org), LakeFS, Delta Lake, Pachyderm              |
+| Data quality checks           | Great Expectations, Deequ, TensorFlow Data Validation (TFDV), Soda |
+| Feature store with versioning | Feast, Tecton                                                      |
+| Schema evolution              | Avro, Protobuf, JSON Schema                                        |
+| Logging & lineage             | MLflow, MLMD, OpenLineage                                          |
+
 
 # Modeling
 
