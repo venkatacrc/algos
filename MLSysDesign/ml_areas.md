@@ -22,6 +22,7 @@
 | Amazon Product Rec   | DeepFM, DSSM, personalized MLP |
 
 
+## 📊 Summary Table of ML System Functions & Metrics
 
 | # | System                                   | 🎯 Primary Function                                | ✅ Primary Metric(s)                                                      | 🧪 Secondary Metric(s)                                                                                     | 🛡️ Guardrail Metric(s)                                                                                     |
 | - | ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -32,7 +33,6 @@
 | 5 | **Google Search Ranking**                | Return most relevant results to query              | NDCG\@k, Return-to-SERP Rate                                             | - Click-through Rate (CTR) <br>- Long Click Rate <br>- Query Reformulation Rate                            | - Return-to-SERP Rate <br>- Spam/Low-Quality Score <br>- Latency (P99) <br>- Ads Cannibalization            |
 | 6 | **Centralized ML Management Platforms**  | Manage, deploy, monitor ML systems                 | Model Accuracy <br> Latency (P99) <br> Success Rate                      | - Resource Utilization <br>- Throughput <br>- Drift Alerts <br>- Time to Deployment                        | - Accuracy Drop <br>- SLA Misses <br>- Rollback Rate <br>- Data Staleness                                   |
 | 7 | **Evaluation Framework for Ads Ranking** | Assess quality & ROI of ad ranking pipelines       | ROI, NDCG, CTR, CVR, AUC                                                 | - Calibration Accuracy <br>- Lift over baseline <br>- Profit-per-mille (PPM) <br>- Budget Utilization Rate | - Underdelivery / Overdelivery <br>- Pacing Errors <br>- Fairness Across Advertisers <br>- Revenue Dilution |
-
 
 
 
