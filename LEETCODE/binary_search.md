@@ -1,6 +1,6 @@
 # Binary Search
 
-### Find the first and last occurence of the target element in a sorted array with duplicate elements.
+### 1. Find the first and last occurence of the target element in a sorted array with duplicate elements.
 A more robust pattern is to store the potential answer and keep narrowing the window.
 ```python
 def find_last_position(arr, target):
@@ -29,6 +29,29 @@ def find_first_and_last_position(arr, target):
   end = find_last_position(arr, target)
   return [start, end]
 ```
+
+### 2. search for a target in rotated sorted array.
+Insight: One side is always sorted
+```python
+def search_rotated_arr(nums, target):
+  left, right = 0 , len(nums) - 1
+  while left <= right:
+    mid = (left + right) // 2
+    if nums[mid] == target:
+      return mid
+    elif nums[left] <= nums[mid]:
+      if nums[left] <= target < nums[mid]:
+        right = mid - 1
+      else:
+        left = mid + 1
+    elif nums[mid] <= nums[right]:
+      if nums[mid] < target <= nums[right]:
+        left = mid + 1
+      else:
+        right = mid - 1
+  return -1
+```
+
 
 ## LeetCode Problems
 
