@@ -2,7 +2,33 @@
 
 ### Find the first and last occurence of the target element in a sorted array with duplicate elements.
 A more robust pattern is to store the potential answer and keep narrowing the window.
+```python
+def find_last_position(arr, target):
+  left, right = 0, len(arr) - 1
+  result = -1
 
+  while left <= right:
+    mid = (left + right) // 2
+    if arr[mid] == target:
+      result = mid
+      left = mid + 1
+    elif arr[mid] < target:
+      left = mid + 1
+    else:
+      right = mid - 1
+
+  return result
+
+def first fist_position(arr, target):
+  ...
+
+def find_first_and_last_position(arr, target):
+  start = find_first_position(arr, target)
+  if start == -1:
+    return [-1, -1]
+  end = find_last_position(arr, target)
+  return [start, end]
+```
 
 ## LeetCode Problems
 
