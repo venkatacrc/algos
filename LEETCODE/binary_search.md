@@ -1,4 +1,10 @@
-# Binary Search - LeetCode Problems
+# Binary Search
+
+### Find the first and last occurence of the target element in a sorted array with duplicate elements.
+A more robust pattern is to store the potential answer and keep narrowing the window.
+
+
+## LeetCode Problems
 
 **Binary Search** is a classic divide-and-conquer algorithm, typically used on **sorted arrays**, **monotonic functions**, or to **search for boundaries** under certain constraints. This document lists Binary Search problems on LeetCode grouped by difficulty, with Meta interview tags.
 
