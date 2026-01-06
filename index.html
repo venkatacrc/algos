@@ -59,7 +59,7 @@
 <body>
 
     <h1>📂 Patterns</h1>
-    <p>Directory contents of <code>venkatacrc/algos/patterns</code>:</p>
+    <p>Rendered views of <code>venkatacrc/algos/patterns</code>:</p>
     
     <ul id="file-list">
         <li class="loading">Loading files via GitHub API...</li>
@@ -73,6 +73,9 @@
         
         // GitHub API Endpoint
         const API_URL = `https://api.github.com/repos/${USER}/${REPO}/contents/${DIR_PATH}`;
+        
+        // Base URL for Rendered Pages
+        const PAGES_BASE_URL = `https://${USER}.github.io/${REPO}/${DIR_PATH}/`;
 
         const listContainer = document.getElementById('file-list');
 
@@ -99,11 +102,15 @@
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     
-                    // Link to the file in GitHub UI (better for viewing code)
-                    a.href = item.html_url; 
-                    a.target = "_blank"; // Open in new tab
+                    // --- THE FIX IS HERE ---
+                    // We manually build the URL to point to the github.io domain
+                    // instead of using item.html_url (which points to github.com source view)
+                    a.href = PAGES_BASE_URL + item.name; 
+                    
+                    // Note: If the item is a folder, this link might need to be adjusted
+                    // to point to that folder's index or listing. 
+                    // For now, it treats everything as a resource under the path.
 
-                    // Icon selection
                     const icon = item.type === 'dir' ? '📁' : '📄';
                     
                     a.innerHTML = `<span class="icon">${icon}</span>${item.name}`;
@@ -115,8 +122,7 @@
                 console.error(error);
                 listContainer.innerHTML = `<div class="error">
                     Failed to load files. <br>
-                    <small>${error.message}</small><br>
-                    <small>Note: Rate limits may apply to unauthenticated API requests.</small>
+                    <small>${error.message}</small>
                 </div>`;
             }
         }
