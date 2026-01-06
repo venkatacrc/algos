@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Window Pattern</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .pattern {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #fafafa;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+        }
+        
+        .pattern h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            margin-bottom: 10px;
+            font-size: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        
+        .concept {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .techniques {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .techniques ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .techniques li {
+            margin-bottom: 8px;
+        }
+        
+        .complexity {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .complexity table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .complexity th, .complexity td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .complexity th {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            color: #333;
+            padding: 0;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            background: transparent;
+        }
+        
+        .code-block code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            color: #1a1a1a;
+        }
+        
+        .code-block .token.comment,
+        .code-block .token.prolog,
+        .code-block .token.doctype,
+        .code-block .token.cdata {
+            color: #6a737d;
+            font-style: italic;
+        }
+        
+        .code-block .token.punctuation {
+            color: #1a1a1a;
+        }
+        
+        .code-block .token.variable,
+        .code-block .token.attr-name {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        
+        .code-block .token.property,
+        .code-block .token.tag,
+        .code-block .token.boolean,
+        .code-block .token.number,
+        .code-block .token.constant,
+        .code-block .token.symbol,
+        .code-block .token.deleted {
+            color: #005cc5;
+        }
+        
+        .code-block .token.selector,
+        .code-block .token.string,
+        .code-block .token.char,
+        .code-block .token.builtin,
+        .code-block .token.inserted {
+            color: #032f62;
+        }
+        
+        .code-block .token.operator,
+        .code-block .token.entity,
+        .code-block .token.url,
+        .code-block .language-css .token.string,
+        .code-block .style .token.string {
+            color: #d73a49;
+        }
+        
+        .code-block .token.atrule,
+        .code-block .token.attr-value,
+        .code-block .token.keyword {
+            color: #d73a49;
+            font-weight: 600;
+        }
+        
+        .code-block .token.function,
+        .code-block .token.class-name {
+            color: #6f42c1;
+        }
+        
+        .code-block .token.regex,
+        .code-block .token.important {
+            color: #e36209;
+        }
+        
+        .problem {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .problem h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        .problem p {
+            margin-bottom: 10px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                max-width: 100%;
+                padding: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .pattern {
+                page-break-inside: avoid;
+                margin-bottom: 30px;
+                padding: 15px;
+                background: white;
+                border-left: 3px solid #000;
+                border-radius: 0;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            .code-block {
+                background: #f8f9fa !important;
+                color: #000 !important;
+                border: 1px solid #000;
+                border-radius: 0;
+                page-break-inside: avoid;
+                font-size: 12px;
+            }
+            
+            .code-block pre {
+                padding: 15px !important;
+            }
+            
+            .code-block code {
+                color: #000 !important;
+            }
+            
+            .code-block .token {
+                color: #000 !important;
+            }
+            
+            .concept, .techniques, .complexity {
+                background: #f8f9fa !important;
+                border: 1px solid #ddd;
+                border-radius: 0;
+                page-break-inside: avoid;
+            }
+            
+            .problem {
+                background: #f8f9fa !important;
+                border: 1px solid #ddd;
+                border-radius: 0;
+                page-break-inside: avoid;
+            }
+            
+            h1, h2, h3, h4 {
+                color: #000 !important;
+                page-break-after: avoid;
+            }
+            
+            .complexity th {
+                background: #e0e0e0 !important;
+                color: #000 !important;
+            }
+            
+            .complexity table {
+                border: 1px solid #000;
+            }
+            
+            .complexity th, .complexity td {
+                border: 1px solid #000;
+            }
+            
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sliding Window Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Sliding Window</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Sliding Window pattern is used to solve problems involving subarrays or substrings of a fixed or variable size. Instead of recalculating everything for each window, we efficiently slide the window by adding one element and removing another.</p>
+                    <p><strong>Key Idea:</strong> Maintain a window that slides through the array/string, updating the window state incrementally rather than recalculating from scratch.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Fixed Size Window:</strong> Window size is constant (e.g., find max sum of k consecutive elements)</li>
+                        <li><strong>Variable Size Window:</strong> Window size changes based on conditions (e.g., smallest subarray with sum ≥ target)</li>
+                        <li><strong>Two Pointers:</strong> Use left and right pointers to expand/contract the window</li>
+                        <li><strong>Hash Map Tracking:</strong> Use hash maps to track character/element frequencies in the window</li>
+                        <li><strong>Window State:</strong> Maintain running sum, count, or other metrics as the window moves</li>
+                        <li><strong>Expansion Strategy:</strong> Expand right pointer until condition met, then contract left pointer</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is visited at most twice (once by left pointer, once by right pointer)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(k) or O(1)</td>
+                            <td>O(k) if using hash map for window tracking, O(1) for simple sum/count tracking</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Fixed Size Window:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def fixed_window(arr, k):
+    """
+    Find maximum sum of subarray of size k
+    """
+    if len(arr) < k:
+        return 0
+    
+    # Calculate sum of first window
+    window_sum = sum(arr[:k])
+    max_sum = window_sum
+    
+    # Slide the window
+    for i in range(k, len(arr)):
+        # Remove leftmost element, add rightmost element
+        window_sum = window_sum - arr[i - k] + arr[i]
+        max_sum = max(max_sum, window_sum)
+    
+    return max_sum
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Variable Size Window:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def variable_window(arr, target):
+    """
+    Find minimum length subarray with sum >= target
+    """
+    left = 0
+    window_sum = 0
+    min_len = float('inf')
+    
+    for right in range(len(arr)):
+        # Expand window
+        window_sum += arr[right]
+        
+        # Contract window while condition is met
+        while window_sum >= target:
+            min_len = min(min_len, right - left + 1)
+            window_sum -= arr[left]
+            left += 1
+    
+    return min_len if min_len != float('inf') else 0
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Sliding Window with Hash Map:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def longest_substring_k_distinct(s, k):
+    """
+    Find longest substring with at most k distinct characters
+    """
+    char_count = {}
+    left = 0
+    max_len = 0
+    
+    for right in range(len(s)):
+        # Add character to window
+        char_count[s[right]] = char_count.get(s[right], 0) + 1
+        
+        # Shrink window if more than k distinct chars
+        while len(char_count) > k:
+            char_count[s[left]] -= 1
+            if char_count[s[left]] == 0:
+                del char_count[s[left]]
+            left += 1
+        
+        max_len = max(max_len, right - left + 1)
+    
+    return max_len
+
+# TC: O(n)
+# SC: O(k)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Maximum Sum Subarray of Size K</h4>
+                    <p><strong>Description:</strong> Given an array of integers and a number k, find the maximum sum of any contiguous subarray of size k.</p>
+                    <p><strong>Example:</strong> arr = [2, 1, 5, 1, 3, 2], k = 3 → Output: 9 (subarray [5, 1, 3])</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_sum_subarray(arr, k):
+    if len(arr) < k:
+        return 0
+    
+    window_sum = sum(arr[:k])
+    max_sum = window_sum
+    
+    for i in range(k, len(arr)):
+        window_sum = window_sum - arr[i - k] + arr[i]
+        max_sum = max(max_sum, window_sum)
+    
+    return max_sum</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Longest Substring Without Repeating Characters</h4>
+                    <p><strong>Description:</strong> Find the length of the longest substring without repeating characters.</p>
+                    <p><strong>Example:</strong> "abcabcbb" → Output: 3 ("abc")</p>
+                    <div class="code-block">
+<pre><code class="language-python">def length_of_longest_substring(s):
+    char_index = {}
+    left = 0
+    max_len = 0
+    
+    for right in range(len(s)):
+        # If character seen and within current window
+        if s[right] in char_index and char_index[s[right]] >= left:
+            left = char_index[s[right]] + 1
+        
+        char_index[s[right]] = right
+        max_len = max(max_len, right - left + 1)
+    
+    return max_len</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Minimum Window Substring</h4>
+                    <p><strong>Description:</strong> Find the minimum window in string s that contains all characters of string t.</p>
+                    <p><strong>Example:</strong> s = "ADOBECODEBANC", t = "ABC" → Output: "BANC"</p>
+                    <div class="code-block">
+<pre><code class="language-python">def min_window(s, t):
+    if not s or not t:
+        return ""
+    
+    # Count characters in t
+    need = {}
+    for char in t:
+        need[char] = need.get(char, 0) + 1
+    
+    left = 0
+    valid = 0  # Number of unique characters in current window matching t
+    window = {}
+    start = 0
+    min_len = float('inf')
+    
+    for right in range(len(s)):
+        c = s[right]
+        if c in need:
+            window[c] = window.get(c, 0) + 1
+            if window[c] == need[c]:
+                valid += 1
+        
+        # Try to shrink window
+        while valid == len(need):
+            if right - left + 1 < min_len:
+                start = left
+                min_len = right - left + 1
+            
+            d = s[left]
+            if d in need:
+                if window[d] == need[d]:
+                    valid -= 1
+                window[d] -= 1
+            left += 1
+    
+    return "" if min_len == float('inf') else s[start:start + min_len]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

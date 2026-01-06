@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Programming Pattern</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        .pattern { margin-bottom: 40px; padding: 25px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #34495e; margin-bottom: 10px; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .concept { background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques { background: #fff9e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques ul { margin-left: 20px; margin-top: 10px; }
+        .techniques li { margin-bottom: 8px; }
+        .complexity { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .complexity th, .complexity td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .code-block { background: #f8f9fa; color: #333; padding: 0; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 15px 0; font-size: 14px; line-height: 1.5; }
+        .code-block pre { margin: 0; padding: 20px; background: transparent; }
+        .code-block code { font-family: 'Courier New', Consolas, Monaco, monospace; color: #1a1a1a; }
+        .code-block .token.comment, .code-block .token.prolog, .code-block .token.doctype, .code-block .token.cdata { color: #6a737d; font-style: italic; }
+        .code-block .token.punctuation { color: #1a1a1a; }
+        .code-block .token.variable, .code-block .token.attr-name { color: #1a1a1a; font-weight: 500; }
+        .code-block .token.property, .code-block .token.tag, .code-block .token.boolean, .code-block .token.number, .code-block .token.constant, .code-block .token.symbol, .code-block .token.deleted { color: #005cc5; }
+        .code-block .token.selector, .code-block .token.string, .code-block .token.char, .code-block .token.builtin, .code-block .token.inserted { color: #032f62; }
+        .code-block .token.operator, .code-block .token.entity, .code-block .token.url { color: #d73a49; }
+        .code-block .token.atrule, .code-block .token.attr-value, .code-block .token.keyword { color: #d73a49; font-weight: 600; }
+        .code-block .token.function, .code-block .token.class-name { color: #6f42c1; }
+        .code-block .token.regex, .code-block .token.important { color: #e36209; }
+        .problem { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .problem h4 { color: #e74c3c; margin-bottom: 10px; }
+        .problem p { margin-bottom: 10px; }
+        @media print { body { background: white; padding: 0; } .container { max-width: 100%; padding: 0; box-shadow: none; border-radius: 0; } .pattern { page-break-inside: avoid; margin-bottom: 30px; padding: 15px; background: white; border-left: 3px solid #000; border-radius: 0; } .section { page-break-inside: avoid; } .code-block { background: #f8f9fa !important; color: #000 !important; border: 1px solid #000; border-radius: 0; page-break-inside: avoid; font-size: 12px; } .code-block pre { padding: 15px !important; } .code-block code { color: #000 !important; } .code-block .token { color: #000 !important; } .concept, .techniques, .complexity { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } .problem { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; } .complexity th { background: #e0e0e0 !important; color: #000 !important; } .complexity table { border: 1px solid #000; } .complexity th, .complexity td { border: 1px solid #000; } a { color: #000; text-decoration: underline; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dynamic Programming Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Dynamic Programming</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Dynamic Programming solves complex problems by breaking them into simpler subproblems and storing results to avoid recomputation. It optimizes recursive solutions with overlapping subproblems.</p>
+                    <p><strong>Key Idea:</strong> Identify optimal substructure (optimal solution contains optimal solutions to subproblems) and overlapping subproblems. Use memoization (top-down) or tabulation (bottom-up).</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Memoization (Top-Down):</strong> Cache results of recursive calls</li>
+                        <li><strong>Tabulation (Bottom-Up):</strong> Build solution iteratively from base cases</li>
+                        <li><strong>1D DP:</strong> dp[i] represents state at position i</li>
+                        <li><strong>2D DP:</strong> dp[i][j] represents state with two dimensions</li>
+                        <li><strong>State Transition:</strong> Define how to compute current state from previous states</li>
+                        <li><strong>Space Optimization:</strong> Reduce space by reusing arrays</li>
+                        <li><strong>Pattern Recognition:</strong> Identify DP patterns (knapsack, LIS, edit distance, etc.)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n) to O(n²)</td>
+                            <td>Depends on problem. Typically O(states × transitions)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n) to O(n²)</td>
+                            <td>Space for DP table. Can often be optimized to O(1) or O(n)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>1D DP (Fibonacci):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def fibonacci(n):
+    """
+    Bottom-up DP approach
+    """
+    if n <= 1:
+        return n
+    
+    dp = [0] * (n + 1)
+    dp[1] = 1
+    
+    for i in range(2, n + 1):
+        dp[i] = dp[i - 1] + dp[i - 2]
+    
+    return dp[n]
+
+# Space optimized
+def fibonacci_optimized(n):
+    if n <= 1:
+        return n
+    
+    prev2, prev1 = 0, 1
+    for i in range(2, n + 1):
+        curr = prev1 + prev2
+        prev2, prev1 = prev1, curr
+    
+    return prev1
+
+# TC: O(n)
+# SC: O(1) optimized</code></pre>
+                </div>
+                
+                <h4>2D DP (Unique Paths):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def unique_paths(m, n):
+    """
+    Number of unique paths from top-left to bottom-right
+    """
+    dp = [[1] * n for _ in range(m)]
+    
+    for i in range(1, m):
+        for j in range(1, n):
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    
+    return dp[m - 1][n - 1]
+
+# Space optimized
+def unique_paths_optimized(m, n):
+    prev = [1] * n
+    
+    for i in range(1, m):
+        curr = [1] * n
+        for j in range(1, n):
+            curr[j] = prev[j] + curr[j - 1]
+        prev = curr
+    
+    return prev[n - 1]
+
+# TC: O(m * n)
+# SC: O(n) optimized</code></pre>
+                </div>
+                
+                <h4>Memoization (Top-Down):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def coin_change_memo(coins, amount):
+    """
+    Minimum coins to make amount (memoization)
+    """
+    memo = {}
+    
+    def dp(remaining):
+        if remaining == 0:
+            return 0
+        if remaining < 0:
+            return float('inf')
+        if remaining in memo:
+            return memo[remaining]
+        
+        min_coins = float('inf')
+        for coin in coins:
+            result = dp(remaining - coin)
+            if result != float('inf'):
+                min_coins = min(min_coins, 1 + result)
+        
+        memo[remaining] = min_coins
+        return min_coins
+    
+    result = dp(amount)
+    return result if result != float('inf') else -1
+
+# TC: O(amount * len(coins))
+# SC: O(amount)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Climbing Stairs</h4>
+                    <p><strong>Description:</strong> Find number of ways to climb n stairs (1 or 2 steps at a time).</p>
+                    <p><strong>Example:</strong> n = 3 → 3 ways (1+1+1, 1+2, 2+1)</p>
+                    <div class="code-block">
+<pre><code class="language-python">def climb_stairs(n):
+    if n <= 2:
+        return n
+    
+    prev2, prev1 = 1, 2
+    for i in range(3, n + 1):
+        curr = prev1 + prev2
+        prev2, prev1 = prev1, curr
+    
+    return prev1</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Coin Change</h4>
+                    <p><strong>Description:</strong> Find minimum coins to make amount.</p>
+                    <p><strong>Example:</strong> coins = [1,2,5], amount = 11 → 3 (5+5+1)</p>
+                    <div class="code-block">
+<pre><code class="language-python">def coin_change(coins, amount):
+    dp = [float('inf')] * (amount + 1)
+    dp[0] = 0
+    
+    for i in range(1, amount + 1):
+        for coin in coins:
+            if i >= coin:
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+    
+    return dp[amount] if dp[amount] != float('inf') else -1</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Longest Increasing Subsequence</h4>
+                    <p><strong>Description:</strong> Find length of longest strictly increasing subsequence.</p>
+                    <p><strong>Example:</strong> nums = [10,9,2,5,3,7,101,18] → 4 ([2,3,7,101])</p>
+                    <div class="code-block">
+<pre><code class="language-python">def length_of_lis(nums):
+    dp = [1] * len(nums)
+    
+    for i in range(1, len(nums)):
+        for j in range(i):
+            if nums[j] < nums[i]:
+                dp[i] = max(dp[i], dp[j] + 1)
+    
+    return max(dp)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

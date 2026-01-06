@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyclic Sort Pattern</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        .pattern { margin-bottom: 40px; padding: 25px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #34495e; margin-bottom: 10px; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .concept { background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques { background: #fff9e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques ul { margin-left: 20px; margin-top: 10px; }
+        .techniques li { margin-bottom: 8px; }
+        .complexity { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .complexity th, .complexity td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .code-block { background: #f8f9fa; color: #333; padding: 0; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 15px 0; font-size: 14px; line-height: 1.5; }
+        .code-block pre { margin: 0; padding: 20px; background: transparent; }
+        .code-block code { font-family: 'Courier New', Consolas, Monaco, monospace; color: #1a1a1a; }
+        .code-block .token.comment, .code-block .token.prolog, .code-block .token.doctype, .code-block .token.cdata { color: #6a737d; font-style: italic; }
+        .code-block .token.punctuation { color: #1a1a1a; }
+        .code-block .token.variable, .code-block .token.attr-name { color: #1a1a1a; font-weight: 500; }
+        .code-block .token.property, .code-block .token.tag, .code-block .token.boolean, .code-block .token.number, .code-block .token.constant, .code-block .token.symbol, .code-block .token.deleted { color: #005cc5; }
+        .code-block .token.selector, .code-block .token.string, .code-block .token.char, .code-block .token.builtin, .code-block .token.inserted { color: #032f62; }
+        .code-block .token.operator, .code-block .token.entity, .code-block .token.url { color: #d73a49; }
+        .code-block .token.atrule, .code-block .token.attr-value, .code-block .token.keyword { color: #d73a49; font-weight: 600; }
+        .code-block .token.function, .code-block .token.class-name { color: #6f42c1; }
+        .code-block .token.regex, .code-block .token.important { color: #e36209; }
+        .problem { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .problem h4 { color: #e74c3c; margin-bottom: 10px; }
+        .problem p { margin-bottom: 10px; }
+        @media print { body { background: white; padding: 0; } .container { max-width: 100%; padding: 0; box-shadow: none; border-radius: 0; } .pattern { page-break-inside: avoid; margin-bottom: 30px; padding: 15px; background: white; border-left: 3px solid #000; border-radius: 0; } .section { page-break-inside: avoid; } .code-block { background: #f8f9fa !important; color: #000 !important; border: 1px solid #000; border-radius: 0; page-break-inside: avoid; font-size: 12px; } .code-block pre { padding: 15px !important; } .code-block code { color: #000 !important; } .code-block .token { color: #000 !important; } .concept, .techniques, .complexity { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } .problem { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; } .complexity th { background: #e0e0e0 !important; color: #000 !important; } .complexity table { border: 1px solid #000; } .complexity th, .complexity td { border: 1px solid #000; } a { color: #000; text-decoration: underline; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cyclic Sort Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Cyclic Sort</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Cyclic Sort is an in-place sorting algorithm that works well when dealing with arrays containing numbers in a given range. It places each number at its correct index.</p>
+                    <p><strong>Key Idea:</strong> For an array of n elements with values in range [0, n-1] or [1, n], each value should be at index equal to its value. We swap elements to their correct positions.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Range-Based Sorting:</strong> Works best when numbers are in a known range</li>
+                        <li><strong>Index Mapping:</strong> Value at index i should be i (or i+1 for 1-based)</li>
+                        <li><strong>Swap Strategy:</strong> Swap current element to its correct position</li>
+                        <li><strong>Missing Number Detection:</strong> After sorting, find index where value != index</li>
+                        <li><strong>Duplicate Detection:</strong> Identify duplicates during sorting process</li>
+                        <li><strong>Boundary Checks:</strong> Ensure indices are within valid range before swapping</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is swapped at most once to its correct position</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Sorting is done in-place, only using constant extra space</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Basic Cyclic Sort (0 to n-1):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def cyclic_sort(arr):
+    """
+    Sort array where numbers are in range [0, n-1]
+    """
+    i = 0
+    while i < len(arr):
+        # If number is at correct position, move to next
+        if arr[i] == i:
+            i += 1
+        else:
+            # Swap to correct position
+            arr[i], arr[arr[i]] = arr[arr[i]], arr[i]
+    
+    return arr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Cyclic Sort (1 to n):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def cyclic_sort_1_to_n(arr):
+    """
+    Sort array where numbers are in range [1, n]
+    """
+    i = 0
+    while i < len(arr):
+        correct_pos = arr[i] - 1
+        if arr[i] != arr[correct_pos]:
+            arr[i], arr[correct_pos] = arr[correct_pos], arr[i]
+        else:
+            i += 1
+    
+    return arr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Find Missing Number:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def find_missing_number(arr):
+    """
+    Find missing number in array containing n distinct numbers from range [0, n]
+    """
+    i = 0
+    while i < len(arr):
+        if arr[i] < len(arr) and arr[i] != i:
+            arr[i], arr[arr[i]] = arr[arr[i]], arr[i]
+        else:
+            i += 1
+    
+    # Find first index where value != index
+    for i in range(len(arr)):
+        if arr[i] != i:
+            return i
+    
+    return len(arr)  # n is missing
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Find Missing Number</h4>
+                    <p><strong>Description:</strong> Given an array containing n distinct numbers from range [0, n], find the missing number.</p>
+                    <p><strong>Example:</strong> nums = [3, 0, 1] → Output: 2</p>
+                    <div class="code-block">
+<pre><code class="language-python">def missing_number(nums):
+    i = 0
+    while i < len(nums):
+        if nums[i] < len(nums) and nums[i] != i:
+            nums[i], nums[nums[i]] = nums[nums[i]], nums[i]
+        else:
+            i += 1
+    
+    for i in range(len(nums)):
+        if nums[i] != i:
+            return i
+    
+    return len(nums)</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Find All Duplicates</h4>
+                    <p><strong>Description:</strong> Find all duplicates in an array where numbers are in range [1, n].</p>
+                    <p><strong>Example:</strong> nums = [4,3,2,7,8,2,3,1] → Output: [2,3]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_duplicates(nums):
+    i = 0
+    while i < len(nums):
+        correct_pos = nums[i] - 1
+        if nums[i] != nums[correct_pos]:
+            nums[i], nums[correct_pos] = nums[correct_pos], nums[i]
+        else:
+            i += 1
+    
+    duplicates = []
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            duplicates.append(nums[i])
+    
+    return duplicates</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Find All Missing Numbers</h4>
+                    <p><strong>Description:</strong> Find all numbers missing from an array containing n numbers from range [1, n].</p>
+                    <p><strong>Example:</strong> nums = [4,3,2,7,8,2,3,1] → Output: [5,6]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_missing_numbers(nums):
+    i = 0
+    while i < len(nums):
+        correct_pos = nums[i] - 1
+        if nums[i] != nums[correct_pos]:
+            nums[i], nums[correct_pos] = nums[correct_pos], nums[i]
+        else:
+            i += 1
+    
+    missing = []
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            missing.append(i + 1)
+    
+    return missing</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
