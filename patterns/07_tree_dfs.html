@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree DFS Pattern</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        .pattern { margin-bottom: 40px; padding: 25px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #34495e; margin-bottom: 10px; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .concept { background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques { background: #fff9e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques ul { margin-left: 20px; margin-top: 10px; }
+        .techniques li { margin-bottom: 8px; }
+        .complexity { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .complexity th, .complexity td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .code-block { background: #f8f9fa; color: #333; padding: 0; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 15px 0; font-size: 14px; line-height: 1.5; }
+        .code-block pre { margin: 0; padding: 20px; background: transparent; }
+        .code-block code { font-family: 'Courier New', Consolas, Monaco, monospace; color: #1a1a1a; }
+        .code-block .token.comment, .code-block .token.prolog, .code-block .token.doctype, .code-block .token.cdata { color: #6a737d; font-style: italic; }
+        .code-block .token.punctuation { color: #1a1a1a; }
+        .code-block .token.variable, .code-block .token.attr-name { color: #1a1a1a; font-weight: 500; }
+        .code-block .token.property, .code-block .token.tag, .code-block .token.boolean, .code-block .token.number, .code-block .token.constant, .code-block .token.symbol, .code-block .token.deleted { color: #005cc5; }
+        .code-block .token.selector, .code-block .token.string, .code-block .token.char, .code-block .token.builtin, .code-block .token.inserted { color: #032f62; }
+        .code-block .token.operator, .code-block .token.entity, .code-block .token.url { color: #d73a49; }
+        .code-block .token.atrule, .code-block .token.attr-value, .code-block .token.keyword { color: #d73a49; font-weight: 600; }
+        .code-block .token.function, .code-block .token.class-name { color: #6f42c1; }
+        .code-block .token.regex, .code-block .token.important { color: #e36209; }
+        .problem { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .problem h4 { color: #e74c3c; margin-bottom: 10px; }
+        .problem p { margin-bottom: 10px; }
+        @media print { body { background: white; padding: 0; } .container { max-width: 100%; padding: 0; box-shadow: none; border-radius: 0; } .pattern { page-break-inside: avoid; margin-bottom: 30px; padding: 15px; background: white; border-left: 3px solid #000; border-radius: 0; } .section { page-break-inside: avoid; } .code-block { background: #f8f9fa !important; color: #000 !important; border: 1px solid #000; border-radius: 0; page-break-inside: avoid; font-size: 12px; } .code-block pre { padding: 15px !important; } .code-block code { color: #000 !important; } .code-block .token { color: #000 !important; } .concept, .techniques, .complexity { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } .problem { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; } .complexity th { background: #e0e0e0 !important; color: #000 !important; } .complexity table { border: 1px solid #000; } .complexity th, .complexity td { border: 1px solid #000; } a { color: #000; text-decoration: underline; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tree DFS Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Tree DFS (Depth-First Search)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>DFS traverses a tree by going as deep as possible before backtracking. It uses recursion or a stack to explore paths.</p>
+                    <p><strong>Key Idea:</strong> Explore one path completely before backtracking. Three main orders: Pre-order (root-left-right), In-order (left-root-right), Post-order (left-right-root).</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Recursive DFS:</strong> Use function calls to naturally traverse depth-first</li>
+                        <li><strong>Iterative DFS:</strong> Use stack to simulate recursion</li>
+                        <li><strong>Pre-order:</strong> Process root before children (root-left-right)</li>
+                        <li><strong>In-order:</strong> Process left, then root, then right (for BST gives sorted order)</li>
+                        <li><strong>Post-order:</strong> Process children before root (left-right-root)</li>
+                        <li><strong>Path Tracking:</strong> Maintain current path while traversing</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Visit each node exactly once</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(h)</td>
+                            <td>h is height of tree (recursion stack or explicit stack)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Pre-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def preorder_traversal(root):
+    """
+    Pre-order: root -> left -> right
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        result.append(node.val)
+        dfs(node.left)
+        dfs(node.right)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>In-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def inorder_traversal(root):
+    """
+    In-order: left -> root -> right
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        dfs(node.left)
+        result.append(node.val)
+        dfs(node.right)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Post-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def postorder_traversal(root):
+    """
+    Post-order: left -> right -> root
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        dfs(node.left)
+        dfs(node.right)
+        result.append(node.val)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Iterative DFS (Pre-order):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def preorder_iterative(root):
+    """
+    Pre-order using stack
+    """
+    if not root:
+        return []
+    
+    result = []
+    stack = [root]
+    
+    while stack:
+        node = stack.pop()
+        result.append(node.val)
+        
+        # Push right first, then left (so left is processed first)
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+    
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Maximum Depth of Binary Tree</h4>
+                    <p><strong>Description:</strong> Find the maximum depth of a binary tree.</p>
+                    <p><strong>Example:</strong> [3,9,20,null,null,15,7] → 3</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_depth(root):
+    if not root:
+        return 0
+    
+    left_depth = max_depth(root.left)
+    right_depth = max_depth(root.right)
+    
+    return 1 + max(left_depth, right_depth)</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Path Sum</h4>
+                    <p><strong>Description:</strong> Check if there exists a root-to-leaf path with given sum.</p>
+                    <p><strong>Example:</strong> root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22 → True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def has_path_sum(root, target_sum):
+    if not root:
+        return False
+    
+    if not root.left and not root.right:
+        return root.val == target_sum
+    
+    remaining = target_sum - root.val
+    return (has_path_sum(root.left, remaining) or 
+            has_path_sum(root.right, remaining))</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Binary Tree Maximum Path Sum</h4>
+                    <p><strong>Description:</strong> Find the maximum path sum (path can start and end at any node).</p>
+                    <p><strong>Example:</strong> [-10,9,20,null,null,15,7] → 42</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_path_sum(root):
+    max_sum = float('-inf')
+    
+    def dfs(node):
+        nonlocal max_sum
+        if not node:
+            return 0
+        
+        left_sum = max(0, dfs(node.left))
+        right_sum = max(0, dfs(node.right))
+        
+        # Path through current node
+        current_path = node.val + left_sum + right_sum
+        max_sum = max(max_sum, current_path)
+        
+        # Return max path from this node (can only use one branch)
+        return node.val + max(left_sum, right_sum)
+    
+    dfs(root)
+    return max_sum</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

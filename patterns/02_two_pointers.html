@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Pointers Pattern</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        .pattern { margin-bottom: 40px; padding: 25px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #34495e; margin-bottom: 10px; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .concept { background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques { background: #fff9e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques ul { margin-left: 20px; margin-top: 10px; }
+        .techniques li { margin-bottom: 8px; }
+        .complexity { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .complexity th, .complexity td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .code-block { background: #f8f9fa; color: #333; padding: 0; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 15px 0; font-size: 14px; line-height: 1.5; }
+        .code-block pre { margin: 0; padding: 20px; background: transparent; }
+        .code-block code { font-family: 'Courier New', Consolas, Monaco, monospace; color: #1a1a1a; }
+        .code-block .token.comment, .code-block .token.prolog, .code-block .token.doctype, .code-block .token.cdata { color: #6a737d; font-style: italic; }
+        .code-block .token.punctuation { color: #1a1a1a; }
+        .code-block .token.variable, .code-block .token.attr-name { color: #1a1a1a; font-weight: 500; }
+        .code-block .token.property, .code-block .token.tag, .code-block .token.boolean, .code-block .token.number, .code-block .token.constant, .code-block .token.symbol, .code-block .token.deleted { color: #005cc5; }
+        .code-block .token.selector, .code-block .token.string, .code-block .token.char, .code-block .token.builtin, .code-block .token.inserted { color: #032f62; }
+        .code-block .token.operator, .code-block .token.entity, .code-block .token.url { color: #d73a49; }
+        .code-block .token.atrule, .code-block .token.attr-value, .code-block .token.keyword { color: #d73a49; font-weight: 600; }
+        .code-block .token.function, .code-block .token.class-name { color: #6f42c1; }
+        .code-block .token.regex, .code-block .token.important { color: #e36209; }
+        .problem { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .problem h4 { color: #e74c3c; margin-bottom: 10px; }
+        .problem p { margin-bottom: 10px; }
+        @media print { body { background: white; padding: 0; } .container { max-width: 100%; padding: 0; box-shadow: none; border-radius: 0; } .pattern { page-break-inside: avoid; margin-bottom: 30px; padding: 15px; background: white; border-left: 3px solid #000; border-radius: 0; } .section { page-break-inside: avoid; } .code-block { background: #f8f9fa !important; color: #000 !important; border: 1px solid #000; border-radius: 0; page-break-inside: avoid; font-size: 12px; } .code-block pre { padding: 15px !important; } .code-block code { color: #000 !important; } .code-block .token { color: #000 !important; } .concept, .techniques, .complexity { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } .problem { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; } .complexity th { background: #e0e0e0 !important; color: #000 !important; } .complexity table { border: 1px solid #000; } .complexity th, .complexity td { border: 1px solid #000; } a { color: #000; text-decoration: underline; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Two Pointers Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Two Pointers</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Two Pointers pattern uses two pointers that traverse the data structure in a coordinated way. This pattern is highly efficient for solving problems involving arrays, strings, or linked lists.</p>
+                    <p><strong>Key Idea:</strong> Use two pointers moving at different speeds or from different directions to efficiently solve problems without nested loops.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Opposite Ends:</strong> Start pointers at opposite ends and move them toward each other</li>
+                        <li><strong>Fast & Slow:</strong> Use two pointers moving at different speeds (Floyd's cycle detection)</li>
+                        <li><strong>Same Direction:</strong> Both pointers move in the same direction at different speeds</li>
+                        <li><strong>Sliding Window:</strong> Two pointers define a window that slides through the array</li>
+                        <li><strong>Partitioning:</strong> Use pointers to partition array into sections</li>
+                        <li><strong>Cycle Detection:</strong> Fast pointer catches slow pointer if cycle exists</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is visited at most once by each pointer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Only using a constant amount of extra space for pointers</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Opposite Ends (Two Sum in Sorted Array):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def two_sum_sorted(arr, target):
+    """
+    Find two numbers that add up to target in sorted array
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left < right:
+        current_sum = arr[left] + arr[right]
+        if current_sum == target:
+            return [left, right]
+        elif current_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Fast & Slow (Cycle Detection):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def has_cycle(head):
+    """
+    Detect cycle in linked list using Floyd's algorithm
+    """
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Same Direction (Remove Duplicates):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def remove_duplicates(arr):
+    """
+    Remove duplicates in-place from sorted array
+    """
+    if not arr:
+        return 0
+    
+    write_ptr = 1
+    
+    for read_ptr in range(1, len(arr)):
+        if arr[read_ptr] != arr[read_ptr - 1]:
+            arr[write_ptr] = arr[read_ptr]
+            write_ptr += 1
+    
+    return write_ptr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Two Sum II - Input Array Is Sorted</h4>
+                    <p><strong>Description:</strong> Given a sorted array, find two numbers that add up to a specific target.</p>
+                    <p><strong>Example:</strong> numbers = [2, 7, 11, 15], target = 9 → Output: [1, 2]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def two_sum(numbers, target):
+    left, right = 0, len(numbers) - 1
+    
+    while left < right:
+        current_sum = numbers[left] + numbers[right]
+        if current_sum == target:
+            return [left + 1, right + 1]  # 1-indexed
+        elif current_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Linked List Cycle</h4>
+                    <p><strong>Description:</strong> Determine if a linked list has a cycle using O(1) space.</p>
+                    <p><strong>Example:</strong> head = [3,2,0,-4], pos = 1 → Output: True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def has_cycle(head):
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Container With Most Water</h4>
+                    <p><strong>Description:</strong> Find two lines that together with the x-axis forms a container that holds the most water.</p>
+                    <p><strong>Example:</strong> height = [1,8,6,2,5,4,8,3,7] → Output: 49</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_area(height):
+    left, right = 0, len(height) - 1
+    max_water = 0
+    
+    while left < right:
+        width = right - left
+        current_area = min(height[left], height[right]) * width
+        max_water = max(max_water, current_area)
+        
+        # Move pointer with smaller height
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    
+    return max_water</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
+
