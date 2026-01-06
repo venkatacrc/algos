@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithms - Patterns</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            border-bottom: 2px solid #eaecef;
+            padding-bottom: 10px;
+        }
+        #file-list {
+            list-style: none;
+            padding: 0;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+        }
+        #file-list li {
+            border-bottom: 1px solid #e1e4e8;
+        }
+        #file-list li:last-child {
+            border-bottom: none;
+        }
+        #file-list a {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #0366d6;
+            font-weight: 500;
+        }
+        #file-list a:hover {
+            background-color: #f6f8fa;
+            text-decoration: underline;
+        }
+        .icon {
+            margin-right: 10px;
+            color: #6a737d;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: #d73a49;
+            background-color: #ffdce0;
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📂 Patterns</h1>
+    <p>Directory contents of <code>venkatacrc/algos/patterns</code>:</p>
+    
+    <ul id="file-list">
+        <li class="loading">Loading files via GitHub API...</li>
+    </ul>
+
+    <script>
+        // CONFIGURATION
+        const USER = 'venkatacrc';
+        const REPO = 'algos';
+        const DIR_PATH = 'patterns'; 
+        
+        // GitHub API Endpoint
+        const API_URL = `https://api.github.com/repos/${USER}/${REPO}/contents/${DIR_PATH}`;
+
+        const listContainer = document.getElementById('file-list');
+
+        async function fetchFiles() {
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // Clear loading text
+                listContainer.innerHTML = '';
+
+                // sort: folders first, then files
+                data.sort((a, b) => {
+                    if (a.type === b.type) return a.name.localeCompare(b.name);
+                    return a.type === 'dir' ? -1 : 1;
+                });
+
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    
+                    // Link to the file in GitHub UI (better for viewing code)
+                    a.href = item.html_url; 
+                    a.target = "_blank"; // Open in new tab
+
+                    // Icon selection
+                    const icon = item.type === 'dir' ? '📁' : '📄';
+                    
+                    a.innerHTML = `<span class="icon">${icon}</span>${item.name}`;
+                    li.appendChild(a);
+                    listContainer.appendChild(li);
+                });
+
+            } catch (error) {
+                console.error(error);
+                listContainer.innerHTML = `<div class="error">
+                    Failed to load files. <br>
+                    <small>${error.message}</small><br>
+                    <small>Note: Rate limits may apply to unauthenticated API requests.</small>
+                </div>`;
+            }
+        }
+
+        fetchFiles();
+    </script>
+
+</body>
+</html>
