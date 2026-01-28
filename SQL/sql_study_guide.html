@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Study Guide - Essential Patterns</title>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 28px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        h4 {
+            color: #34495e;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .toc ol {
+            margin-left: 20px;
+            margin-top: 15px;
+        }
+        
+        .toc li {
+            margin-bottom: 10px;
+        }
+        
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #fafafa;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            color: #333;
+            padding: 0;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            background: transparent;
+        }
+        
+        .code-block code {
+            font-family: 'Courier New', Consolas, Monaco, monospace;
+            color: #1a1a1a;
+        }
+        
+        .pattern {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+        
+        .pattern h4 {
+            color: #e67e22;
+            margin-top: 0;
+        }
+        
+        .tip-box {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+        
+        .practice-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .practice-section h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        
+        .practice-section ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .practice-section li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 30px 0;
+        }
+        
+        strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        em {
+            color: #7f8c8d;
+        }
+        
+        .bad-pattern {
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 5px solid #f44336;
+        }
+        
+        .good-pattern {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 5px solid #4caf50;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                max-width: 100%;
+                padding: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .section, .pattern, .tip-box, .practice-section {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                padding: 15px;
+                background: white;
+                border-left: 3px solid #000;
+                border-radius: 0;
+            }
+            
+            .code-block {
+                background: #f8f9fa !important;
+                color: #000 !important;
+                border: 1px solid #000;
+                border-radius: 0;
+                page-break-inside: avoid;
+                font-size: 12px;
+            }
+            
+            .code-block pre {
+                padding: 15px !important;
+            }
+            
+            h1, h2, h3, h4 {
+                color: #000 !important;
+                page-break-after: avoid;
+            }
+            
+            th {
+                background: #e0e0e0 !important;
+                color: #000 !important;
+            }
+            
+            table {
+                border: 1px solid #000;
+            }
+            
+            th, td {
+                border: 1px solid #000;
+            }
+            
+            a {
+                color: #000;
+                text-decoration: underline;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 SQL Study Guide - Essential Patterns</h1>
+        <p style="font-size: 18px; color: #7f8c8d; margin-bottom: 30px;">A comprehensive guide covering all essential SQL patterns and techniques for interviews and real-world applications.</p>
+        
+        <div class="toc">
+            <h2>📚 Table of Contents</h2>
+            <ol>
+                <li><a href="#basic-queries">Basic Queries</a></li>
+                <li><a href="#joins">Joins</a></li>
+                <li><a href="#aggregations">Aggregations</a></li>
+                <li><a href="#window-functions">Window Functions</a></li>
+                <li><a href="#subqueries">Subqueries</a></li>
+                <li><a href="#ctes">Common Table Expressions (CTEs)</a></li>
+                <li><a href="#set-operations">Set Operations</a></li>
+                <li><a href="#date-time">Date & Time Functions</a></li>
+                <li><a href="#string-functions">String Functions</a></li>
+                <li><a href="#conditional-logic">Conditional Logic</a></li>
+                <li><a href="#ranking">Ranking & Top-N Patterns</a></li>
+                <li><a href="#pivot">Pivot & Unpivot</a></li>
+                <li><a href="#recursive">Recursive Queries</a></li>
+                <li><a href="#performance">Performance Patterns</a></li>
+                <li><a href="#interview-patterns">Common Interview Patterns</a></li>
+                <li><a href="#practice">Practice Problems</a></li>
+            </ol>
+        </div>
+
+        <hr>
+
+        <section id="basic-queries" class="section">
+            <h2>Basic Queries</h2>
+            
+            <h3>SELECT, WHERE, ORDER BY, LIMIT</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Basic SELECT with filtering and sorting
+SELECT column1, column2, column3
+FROM table_name
+WHERE condition
+ORDER BY column1 DESC, column2 ASC
+LIMIT 10;
+
+-- DISTINCT to remove duplicates
+SELECT DISTINCT column1
+FROM table_name;
+
+-- Aliasing
+SELECT 
+    column1 AS alias1,
+    column2 AS alias2,
+    COUNT(*) AS total_count
+FROM table_name
+GROUP BY column1, column2;</code></pre>
+            </div>
+
+            <h3>WHERE Clause Patterns</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Multiple conditions
+WHERE condition1 AND condition2
+WHERE condition1 OR condition2
+WHERE NOT condition
+
+-- IN / NOT IN
+WHERE column IN (value1, value2, value3)
+WHERE column NOT IN (SELECT ...)
+
+-- BETWEEN
+WHERE column BETWEEN value1 AND value2
+
+-- LIKE patterns
+WHERE column LIKE 'pattern%'  -- starts with
+WHERE column LIKE '%pattern'  -- ends with
+WHERE column LIKE '%pattern%' -- contains
+WHERE column LIKE '_pattern'  -- single char wildcard
+
+-- NULL handling
+WHERE column IS NULL
+WHERE column IS NOT NULL</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="joins" class="section">
+            <h2>Joins</h2>
+            
+            <h3>INNER JOIN</h3>
+            <p>Returns only matching rows from both tables.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM table1 t1
+INNER JOIN table2 t2
+ON t1.id = t2.id;</code></pre>
+            </div>
+
+            <h3>LEFT JOIN (LEFT OUTER JOIN)</h3>
+            <p>Returns all rows from left table, matching rows from right (NULL if no match).</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM employees e
+LEFT JOIN departments d
+ON e.dept_id = d.dept_id;</code></pre>
+            </div>
+
+            <h3>RIGHT JOIN (RIGHT OUTER JOIN)</h3>
+            <p>Returns all rows from right table, matching rows from left (NULL if no match).</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM employees e
+RIGHT JOIN departments d
+ON e.dept_id = d.dept_id;</code></pre>
+            </div>
+
+            <h3>FULL OUTER JOIN</h3>
+            <p>Returns all rows from both tables, matching when possible.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM employees e
+FULL OUTER JOIN departments d
+ON e.dept_id = d.dept_id;</code></pre>
+            </div>
+
+            <h3>CROSS JOIN</h3>
+            <p>Cartesian product - all combinations.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM table1
+CROSS JOIN table2;</code></pre>
+            </div>
+
+            <h3>SELF JOIN</h3>
+            <p>Join a table to itself.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Find employees in the same department
+SELECT e1.name AS emp1, e2.name AS emp2
+FROM employees e1
+JOIN employees e2 
+ON e1.dept_id = e2.dept_id
+WHERE e1.employee_id < e2.employee_id;</code></pre>
+            </div>
+
+            <h3>Multiple Joins</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM orders o
+JOIN customers c ON o.customer_id = c.id
+LEFT JOIN products p ON o.product_id = p.id
+LEFT JOIN categories cat ON p.category_id = cat.id;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="aggregations" class="section">
+            <h2>Aggregations</h2>
+            
+            <h3>GROUP BY</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Basic aggregation
+SELECT department, COUNT(*) AS emp_count
+FROM employees
+GROUP BY department;
+
+-- Multiple columns
+SELECT department, status, COUNT(*) AS count
+FROM employees
+GROUP BY department, status;
+
+-- Aggregation functions
+SELECT 
+    department,
+    COUNT(*) AS total,
+    COUNT(DISTINCT status) AS unique_statuses,
+    SUM(salary) AS total_salary,
+    AVG(salary) AS avg_salary,
+    MIN(salary) AS min_salary,
+    MAX(salary) AS max_salary
+FROM employees
+GROUP BY department;</code></pre>
+            </div>
+
+            <h3>HAVING</h3>
+            <p>Filter groups (WHERE filters rows, HAVING filters groups).</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT department, AVG(salary) AS avg_salary
+FROM employees
+GROUP BY department
+HAVING AVG(salary) > 50000;</code></pre>
+            </div>
+
+            <h3>Common Aggregation Patterns</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Count with conditions
+SELECT 
+    COUNT(*) AS total,
+    COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_count,
+    SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_sum
+FROM employees;
+
+-- Percentage calculation
+SELECT 
+    department,
+    COUNT(*) AS total,
+    COUNT(CASE WHEN status = 'active' THEN 1 END) * 100.0 / COUNT(*) AS active_pct
+FROM employees
+GROUP BY department;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="window-functions" class="section">
+            <h2>Window Functions</h2>
+            
+            <h3>ROW_NUMBER, RANK, DENSE_RANK</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- ROW_NUMBER: unique sequential numbers
+SELECT 
+    name,
+    salary,
+    ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num
+FROM employees;
+
+-- RANK: same rank for ties, gaps in sequence
+SELECT 
+    name,
+    salary,
+    RANK() OVER (ORDER BY salary DESC) AS rank
+FROM employees;
+
+-- DENSE_RANK: same rank for ties, no gaps
+SELECT 
+    name,
+    salary,
+    DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank
+FROM employees;</code></pre>
+            </div>
+
+            <h3>PARTITION BY</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Rank within each department
+SELECT 
+    name,
+    department,
+    salary,
+    RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank
+FROM employees;</code></pre>
+            </div>
+
+            <h3>Aggregate Window Functions</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Running totals
+SELECT 
+    date,
+    amount,
+    SUM(amount) OVER (ORDER BY date) AS running_total
+FROM transactions;
+
+-- Window frame specification
+SELECT 
+    date,
+    amount,
+    SUM(amount) OVER (
+        ORDER BY date 
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS three_day_sum
+FROM transactions;
+
+-- Partitioned aggregates
+SELECT 
+    employee_id,
+    date,
+    amount,
+    SUM(amount) OVER (PARTITION BY employee_id ORDER BY date) AS emp_running_total,
+    AVG(amount) OVER (PARTITION BY employee_id) AS emp_avg
+FROM sales;</code></pre>
+            </div>
+
+            <h3>LAG and LEAD</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Previous/next row values
+SELECT 
+    date,
+    amount,
+    LAG(amount, 1) OVER (ORDER BY date) AS prev_amount,
+    LEAD(amount, 1) OVER (ORDER BY date) AS next_amount,
+    amount - LAG(amount, 1) OVER (ORDER BY date) AS diff
+FROM transactions;</code></pre>
+            </div>
+
+            <h3>FIRST_VALUE and LAST_VALUE</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT 
+    employee_id,
+    date,
+    amount,
+    FIRST_VALUE(amount) OVER (
+        PARTITION BY employee_id 
+        ORDER BY date 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS first_amount,
+    LAST_VALUE(amount) OVER (
+        PARTITION BY employee_id 
+        ORDER BY date 
+        ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+    ) AS last_amount
+FROM sales;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="subqueries" class="section">
+            <h2>Subqueries</h2>
+            
+            <h3>Scalar Subquery</h3>
+            <p>Returns a single value.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">-- In SELECT
+SELECT 
+    name,
+    salary,
+    (SELECT AVG(salary) FROM employees) AS avg_salary
+FROM employees;
+
+-- In WHERE
+SELECT *
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);</code></pre>
+            </div>
+
+            <h3>Correlated Subquery</h3>
+            <p>References outer query.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Employees earning more than their department average
+SELECT e1.*
+FROM employees e1
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees e2
+    WHERE e2.department = e1.department
+);</code></pre>
+            </div>
+
+            <h3>EXISTS / NOT EXISTS</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Employees who have orders
+SELECT *
+FROM employees e
+WHERE EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.employee_id = e.id
+);
+
+-- Employees with no orders
+SELECT *
+FROM employees e
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders o
+    WHERE o.employee_id = e.id
+);</code></pre>
+            </div>
+
+            <h3>IN / NOT IN with Subqueries</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Employees in departments with more than 10 employees
+SELECT *
+FROM employees
+WHERE department IN (
+    SELECT department
+    FROM employees
+    GROUP BY department
+    HAVING COUNT(*) > 10
+);</code></pre>
+            </div>
+
+            <h3>Subquery in FROM (Derived Table)</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT *
+FROM (
+    SELECT department, AVG(salary) AS avg_sal
+    FROM employees
+    GROUP BY department
+) AS dept_avg
+WHERE avg_sal > 50000;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="ctes" class="section">
+            <h2>Common Table Expressions (CTEs)</h2>
+            
+            <h3>Basic CTE</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">WITH dept_stats AS (
+    SELECT 
+        department,
+        AVG(salary) AS avg_salary,
+        COUNT(*) AS emp_count
+    FROM employees
+    GROUP BY department
+)
+SELECT *
+FROM dept_stats
+WHERE avg_salary > 50000;</code></pre>
+            </div>
+
+            <h3>Multiple CTEs</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">WITH 
+active_employees AS (
+    SELECT * FROM employees WHERE status = 'active'
+),
+high_earners AS (
+    SELECT * FROM active_employees WHERE salary > 100000
+)
+SELECT 
+    department,
+    COUNT(*) AS high_earner_count
+FROM high_earners
+GROUP BY department;</code></pre>
+            </div>
+
+            <h3>CTE for Readability</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">WITH 
+monthly_sales AS (
+    SELECT 
+        DATE_TRUNC('month', order_date) AS month,
+        SUM(amount) AS total_sales
+    FROM orders
+    GROUP BY DATE_TRUNC('month', order_date)
+),
+prev_month_sales AS (
+    SELECT 
+        month,
+        total_sales,
+        LAG(total_sales) OVER (ORDER BY month) AS prev_sales
+    FROM monthly_sales
+)
+SELECT 
+    month,
+    total_sales,
+    prev_sales,
+    total_sales - prev_sales AS growth
+FROM prev_month_sales;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="set-operations" class="section">
+            <h2>Set Operations</h2>
+            
+            <h3>UNION</h3>
+            <p>Combines results, removes duplicates.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT name FROM employees
+UNION
+SELECT name FROM contractors;</code></pre>
+            </div>
+
+            <h3>UNION ALL</h3>
+            <p>Combines results, keeps duplicates.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT name FROM employees
+UNION ALL
+SELECT name FROM contractors;</code></pre>
+            </div>
+
+            <h3>INTERSECT</h3>
+            <p>Returns common rows.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT customer_id FROM orders_2023
+INTERSECT
+SELECT customer_id FROM orders_2024;</code></pre>
+            </div>
+
+            <h3>EXCEPT (or MINUS)</h3>
+            <p>Returns rows in first query but not in second.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT customer_id FROM orders_2023
+EXCEPT
+SELECT customer_id FROM orders_2024;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="date-time" class="section">
+            <h2>Date & Time Functions</h2>
+            
+            <h3>Date Extraction</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT 
+    EXTRACT(YEAR FROM order_date) AS year,
+    EXTRACT(MONTH FROM order_date) AS month,
+    EXTRACT(DAY FROM order_date) AS day,
+    EXTRACT(DOW FROM order_date) AS day_of_week
+FROM orders;
+
+-- MySQL
+SELECT 
+    YEAR(order_date) AS year,
+    MONTH(order_date) AS month,
+    DAY(order_date) AS day,
+    DAYOFWEEK(order_date) AS day_of_week
+FROM orders;</code></pre>
+            </div>
+
+            <h3>Date Arithmetic</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT 
+    order_date,
+    order_date + INTERVAL '7 days' AS next_week,
+    order_date - INTERVAL '1 month' AS last_month,
+    CURRENT_DATE - order_date AS days_ago
+FROM orders;
+
+-- MySQL
+SELECT 
+    order_date,
+    DATE_ADD(order_date, INTERVAL 7 DAY) AS next_week,
+    DATE_SUB(order_date, INTERVAL 1 MONTH) AS last_month,
+    DATEDIFF(CURRENT_DATE, order_date) AS days_ago
+FROM orders;</code></pre>
+            </div>
+
+            <h3>Date Formatting</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT TO_CHAR(order_date, 'YYYY-MM-DD') AS formatted_date
+FROM orders;
+
+-- MySQL
+SELECT DATE_FORMAT(order_date, '%Y-%m-%d') AS formatted_date
+FROM orders;</code></pre>
+            </div>
+
+            <h3>Common Date Patterns</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Last 30 days
+SELECT *
+FROM orders
+WHERE order_date >= CURRENT_DATE - INTERVAL '30 days';
+
+-- This month
+SELECT *
+FROM orders
+WHERE DATE_TRUNC('month', order_date) = DATE_TRUNC('month', CURRENT_DATE);
+
+-- Year over year comparison
+SELECT 
+    EXTRACT(YEAR FROM order_date) AS year,
+    SUM(amount) AS total
+FROM orders
+GROUP BY EXTRACT(YEAR FROM order_date);</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="string-functions" class="section">
+            <h2>String Functions</h2>
+            
+            <h3>Concatenation</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL / MySQL
+SELECT CONCAT(first_name, ' ', last_name) AS full_name
+FROM employees;
+
+-- PostgreSQL
+SELECT first_name || ' ' || last_name AS full_name
+FROM employees;</code></pre>
+            </div>
+
+            <h3>Substring</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Extract substring
+SELECT SUBSTRING(email, 1, 5) AS prefix
+FROM users;
+
+-- Position-based
+SELECT SUBSTRING(email FROM 1 FOR 5) AS prefix  -- PostgreSQL
+SELECT LEFT(email, 5) AS prefix  -- MySQL
+SELECT RIGHT(email, 10) AS suffix  -- MySQL</code></pre>
+            </div>
+
+            <h3>Case Conversion</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT 
+    UPPER(name) AS upper_name,
+    LOWER(name) AS lower_name,
+    INITCAP(name) AS title_case  -- PostgreSQL
+FROM employees;</code></pre>
+            </div>
+
+            <h3>Pattern Matching</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- LIKE
+WHERE email LIKE '%@gmail.com'
+WHERE name LIKE 'John%'
+WHERE code LIKE 'A_B%'  -- A, any char, B, then anything
+
+-- Regular expressions (PostgreSQL)
+WHERE email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'</code></pre>
+            </div>
+
+            <h3>String Manipulation</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Trim
+SELECT TRIM('  hello  ') AS trimmed;
+SELECT LTRIM('  hello') AS left_trimmed;
+SELECT RTRIM('hello  ') AS right_trimmed;
+
+-- Replace
+SELECT REPLACE(email, '@gmail.com', '@company.com') AS new_email
+FROM users;
+
+-- Length
+SELECT LENGTH(name) AS name_length
+FROM employees;
+
+-- Position
+SELECT POSITION('@' IN email) AS at_position
+FROM users;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="conditional-logic" class="section">
+            <h2>Conditional Logic</h2>
+            
+            <h3>CASE Statement</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Simple CASE
+SELECT 
+    name,
+    CASE status
+        WHEN 'active' THEN 'Working'
+        WHEN 'inactive' THEN 'Not Working'
+        ELSE 'Unknown'
+    END AS status_description
+FROM employees;
+
+-- Searched CASE
+SELECT 
+    name,
+    salary,
+    CASE
+        WHEN salary > 100000 THEN 'High'
+        WHEN salary > 50000 THEN 'Medium'
+        ELSE 'Low'
+    END AS salary_category
+FROM employees;
+
+-- In aggregation
+SELECT 
+    department,
+    COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_count,
+    COUNT(CASE WHEN status = 'inactive' THEN 1 END) AS inactive_count
+FROM employees
+GROUP BY department;</code></pre>
+            </div>
+
+            <h3>COALESCE</h3>
+            <p>Returns first non-NULL value.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT 
+    name,
+    COALESCE(phone, email, 'No contact') AS contact
+FROM employees;</code></pre>
+            </div>
+
+            <h3>NULLIF</h3>
+            <p>Returns NULL if two values are equal.</p>
+            <div class="code-block">
+                <pre><code class="language-sql">SELECT 
+    name,
+    NULLIF(salary, 0) AS salary  -- NULL if salary is 0
+FROM employees;</code></pre>
+            </div>
+
+            <h3>IF / IIF</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- MySQL
+SELECT IF(salary > 50000, 'High', 'Low') AS category
+FROM employees;
+
+-- SQL Server
+SELECT IIF(salary > 50000, 'High', 'Low') AS category
+FROM employees;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="ranking" class="section">
+            <h2>Ranking & Top-N Patterns</h2>
+            
+            <h3>Top N per Group</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Top 3 employees per department by salary
+WITH ranked AS (
+    SELECT 
+        name,
+        department,
+        salary,
+        ROW_NUMBER() OVER (
+            PARTITION BY department 
+            ORDER BY salary DESC
+        ) AS rn
+    FROM employees
+)
+SELECT *
+FROM ranked
+WHERE rn <= 3;</code></pre>
+            </div>
+
+            <h3>Nth Highest/Lowest</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- 2nd highest salary
+SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1;
+
+-- Using window function
+WITH ranked AS (
+    SELECT 
+        salary,
+        DENSE_RANK() OVER (ORDER BY salary DESC) AS rk
+    FROM employees
+)
+SELECT salary
+FROM ranked
+WHERE rk = 2;</code></pre>
+            </div>
+
+            <h3>Percentile</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT 
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) AS median,
+    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY salary) AS q1,
+    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY salary) AS q3
+FROM employees;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="pivot" class="section">
+            <h2>Pivot & Unpivot</h2>
+            
+            <h3>Pivot (Rows to Columns)</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT 
+    department,
+    SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active,
+    SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) AS inactive
+FROM employees
+GROUP BY department;
+
+-- SQL Server
+SELECT *
+FROM (
+    SELECT department, status, employee_id
+    FROM employees
+) AS src
+PIVOT (
+    COUNT(employee_id)
+    FOR status IN ([active], [inactive])
+) AS pvt;</code></pre>
+            </div>
+
+            <h3>Unpivot (Columns to Rows)</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+SELECT 
+    department,
+    'active' AS status,
+    active_count AS count
+FROM (
+    SELECT 
+        department,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_count,
+        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) AS inactive_count
+    FROM employees
+    GROUP BY department
+) AS pivoted
+UNION ALL
+SELECT 
+    department,
+    'inactive' AS status,
+    inactive_count AS count
+FROM (
+    SELECT 
+        department,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_count,
+        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) AS inactive_count
+    FROM employees
+    GROUP BY department
+) AS pivoted;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="recursive" class="section">
+            <h2>Recursive Queries</h2>
+            
+            <h3>Recursive CTE Pattern</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Hierarchical data (employee-manager relationship)
+WITH RECURSIVE employee_hierarchy AS (
+    -- Base case: top-level managers
+    SELECT 
+        employee_id,
+        name,
+        manager_id,
+        0 AS level
+    FROM employees
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive case: employees reporting to managers
+    SELECT 
+        e.employee_id,
+        e.name,
+        e.manager_id,
+        eh.level + 1
+    FROM employees e
+    JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT * FROM employee_hierarchy;
+
+-- Number sequence
+WITH RECURSIVE numbers AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1
+    FROM numbers
+    WHERE n < 100
+)
+SELECT * FROM numbers;</code></pre>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="performance" class="section">
+            <h2>Performance Patterns</h2>
+            
+            <h3>Index Usage</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- Create index
+CREATE INDEX idx_employee_dept ON employees(department);
+CREATE INDEX idx_employee_dept_status ON employees(department, status);
+
+-- Composite index for common query patterns
+CREATE INDEX idx_orders_date_customer ON orders(order_date, customer_id);</code></pre>
+            </div>
+
+            <h3>EXPLAIN / EXPLAIN ANALYZE</h3>
+            <div class="code-block">
+                <pre><code class="language-sql">-- PostgreSQL
+EXPLAIN ANALYZE
+SELECT * FROM employees WHERE department = 'Engineering';
+
+-- MySQL
+EXPLAIN
+SELECT * FROM employees WHERE department = 'Engineering';</code></pre>
+            </div>
+
+            <h3>Query Optimization Tips</h3>
+            <ul>
+                <li><strong>Use indexes on WHERE and JOIN columns</strong></li>
+                <li><strong>Avoid SELECT *</strong> - specify needed columns</li>
+                <li><strong>Use LIMIT when possible</strong></li>
+                <li><strong>Avoid functions on indexed columns in WHERE</strong></li>
+                <li><strong>Use EXISTS instead of IN for large subqueries</strong></li>
+                <li><strong>Consider materialized views for complex aggregations</strong></li>
+            </ul>
+
+            <h3>Common Anti-patterns</h3>
+            <div class="bad-pattern">
+                <strong>❌ Bad: Function on indexed column</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">WHERE YEAR(order_date) = 2024</code></pre>
+                </div>
+            </div>
+            <div class="good-pattern">
+                <strong>✅ Good: Range query</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">WHERE order_date >= '2024-01-01' AND order_date < '2025-01-01'</code></pre>
+                </div>
+            </div>
+            
+            <div class="bad-pattern">
+                <strong>❌ Bad: SELECT * with many columns</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT * FROM large_table</code></pre>
+                </div>
+            </div>
+            <div class="good-pattern">
+                <strong>✅ Good: Specific columns</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT id, name, status FROM large_table</code></pre>
+                </div>
+            </div>
+            
+            <div class="bad-pattern">
+                <strong>❌ Bad: Correlated subquery in SELECT</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    name,
+    (SELECT COUNT(*) FROM orders WHERE orders.emp_id = employees.id) AS order_count
+FROM employees</code></pre>
+                </div>
+            </div>
+            <div class="good-pattern">
+                <strong>✅ Good: JOIN with aggregation</strong>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    e.name,
+    COUNT(o.id) AS order_count
+FROM employees e
+LEFT JOIN orders o ON e.id = o.emp_id
+GROUP BY e.id, e.name</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="interview-patterns" class="section">
+            <h2>🎯 Common Interview Patterns</h2>
+            
+            <div class="pattern">
+                <h4>Pattern 1: Find Duplicates</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT column1, COUNT(*)
+FROM table
+GROUP BY column1
+HAVING COUNT(*) > 1;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 2: Find Missing Values</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">-- Values in table1 but not in table2
+SELECT t1.id
+FROM table1 t1
+LEFT JOIN table2 t2 ON t1.id = t2.id
+WHERE t2.id IS NULL;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 3: Self-Referencing (Manager-Employee)</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    e.name AS employee,
+    m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.employee_id;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 4: Running Totals</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    date,
+    amount,
+    SUM(amount) OVER (ORDER BY date) AS running_total
+FROM transactions;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 5: Compare Current vs Previous</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    date,
+    amount,
+    LAG(amount) OVER (ORDER BY date) AS prev_amount,
+    amount - LAG(amount) OVER (ORDER BY date) AS change
+FROM transactions;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 6: Top N per Category</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">WITH ranked AS (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (PARTITION BY category ORDER BY score DESC) AS rn
+    FROM scores
+)
+SELECT * FROM ranked WHERE rn <= 3;</code></pre>
+                </div>
+            </div>
+
+            <div class="pattern">
+                <h4>Pattern 7: Consecutive Records</h4>
+                <div class="code-block">
+                    <pre><code class="language-sql">-- Find 3+ consecutive records
+WITH grouped AS (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (ORDER BY date) - 
+        ROW_NUMBER() OVER (PARTITION BY status ORDER BY date) AS grp
+    FROM records
+)
+SELECT *
+FROM grouped
+GROUP BY grp, status
+HAVING COUNT(*) >= 3;</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="practice" class="practice-section">
+            <h2>📝 Practice Problems</h2>
+            
+            <h3>Easy</h3>
+            <ul>
+                <li>Find employees earning more than average</li>
+                <li>Count orders per customer</li>
+                <li>List products never ordered</li>
+                <li>Find duplicate emails</li>
+            </ul>
+
+            <h3>Medium</h3>
+            <ul>
+                <li>Second highest salary per department</li>
+                <li>Employees who report to same manager</li>
+                <li>Monthly sales growth percentage</li>
+                <li>Customers who bought all products in a category</li>
+            </ul>
+
+            <h3>Hard</h3>
+            <ul>
+                <li>Employee hierarchy (all levels)</li>
+                <li>Median salary per department</li>
+                <li>Consecutive login days</li>
+                <li>Complex pivot with multiple aggregations</li>
+            </ul>
+        </section>
+
+        <div class="tip-box">
+            <p>✅ <strong>Pro Tip:</strong> Master window functions, CTEs, and joins - these are the most commonly tested patterns in SQL interviews. Practice writing queries from scratch and optimizing existing ones.</p>
+        </div>
+
+    </div>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
