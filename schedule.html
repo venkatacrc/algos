@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7c6ef6">
+    <link rel="manifest" href="manifest.json">
+    <title>Schedule – Study, Work & Personal</title>
+    <style>
+        :root {
+            --bg: #0f0f12;
+            --surface: #1a1a20;
+            --surface-hover: #22222a;
+            --border: #2d2d36;
+            --text: #e8e8ed;
+            --text-muted: #8888a0;
+            --accent: #7c6ef6;
+            --accent-hover: #9288f8;
+            --danger: #e85d6a;
+            --danger-hover: #ef7a85;
+            --study: #5dd4e8;
+            --paper: #e8b85d;
+            --blog: #85e85d;
+            --work: #e85d9a;
+            --personal: #9d85e8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 24px 20px 48px;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .wrap {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            letter-spacing: -0.02em;
+        }
+        .back {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back:hover { color: var(--accent); }
+        .sub {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 28px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 16px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .form-row {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .form-row.two { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 520px) { .form-row.two { grid-template-columns: 1fr; } }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.95rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .btn-ghost:hover { background: var(--surface-hover); color: var(--text); }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+        }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+        .actions-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .filter-row input[type="date"] { width: auto; }
+        .filter-row select { width: auto; min-width: 120px; }
+        .entry-list { list-style: none; padding: 0; margin: 0; }
+        .entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: var(--surface);
+            transition: border-color 0.15s;
+        }
+        .entry:hover { border-color: var(--accent); }
+        .entry-type {
+            flex-shrink: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .entry-type.study { background: var(--study); }
+        .entry-type.paper { background: var(--paper); }
+        .entry-type.blog { background: var(--blog); }
+        .entry-type.work { background: var(--work); }
+        .entry-type.personal { background: var(--personal); }
+        .entry-body { flex: 1; min-width: 0; }
+        .entry-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .entry-title a {
+            color: var(--text);
+            text-decoration: none;
+        }
+        .entry-title a:hover { text-decoration: underline; color: var(--accent); }
+        .entry-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .entry-notes {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .entry-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 6px;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h3 { margin: 0 0 16px; font-size: 1.1rem; }
+        .app-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a href="index.html" class="back">← Back to Algos</a>
+        <h1>Schedule</h1>
+        <p class="sub">Study, work, and personal plans. Data is stored in your browser (and in the app when installed on your phone).</p>
+        <div class="app-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-install" style="display: none;">📱 Install app</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export data</button>
+            <label class="btn btn-ghost btn-sm" style="margin:0; cursor:pointer;">Import data<input type="file" id="input-import" accept=".json" hidden></label>
+        </div>
+
+        <section class="card">
+            <h2>Add entry</h2>
+            <form id="form-add">
+                <div class="form-row two">
+                    <div>
+                        <label for="add-type">Type</label>
+                        <select id="add-type" required>
+                            <option value="study">Study</option>
+                            <option value="paper">Paper</option>
+                            <option value="blog">Blog / link</option>
+                            <option value="work">Work</option>
+                            <option value="personal">Personal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="add-date">Date</label>
+                        <input type="date" id="add-date" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="add-title">Title</label>
+                    <input type="text" id="add-title" placeholder="e.g. LeetCode DP, Blog post title" required>
+                </div>
+                <div class="form-row">
+                    <label for="add-link">Link (optional)</label>
+                    <input type="url" id="add-link" placeholder="https://...">
+                </div>
+                <div class="form-row">
+                    <label for="add-notes">Notes (optional)</label>
+                    <textarea id="add-notes" placeholder="Details, reminders..."></textarea>
+                </div>
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Add entry</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Planned entries</h2>
+            <div class="filter-row">
+                <label style="margin:0;">Date</label>
+                <input type="date" id="filter-date">
+                <label style="margin:0;">Type</label>
+                <select id="filter-type">
+                    <option value="">All</option>
+                    <option value="study">Study</option>
+                    <option value="paper">Paper</option>
+                    <option value="blog">Blog</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                </select>
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-filter">Clear filter</button>
+            </div>
+            <ul class="entry-list" id="entry-list"></ul>
+            <div class="empty hidden" id="empty-msg">No entries yet. Add one above or change the filter.</div>
+        </section>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-edit">
+        <div class="modal">
+            <h3>Edit entry</h3>
+            <form id="form-edit">
+                <input type="hidden" id="edit-id">
+                <div class="form-row two">
+                    <div>
+                        <label for="edit-type">Type</label>
+                        <select id="edit-type" required>
+                            <option value="study">Study</option>
+                            <option value="paper">Paper</option>
+                            <option value="blog">Blog / link</option>
+                            <option value="work">Work</option>
+                            <option value="personal">Personal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="edit-date">Date</label>
+                        <input type="date" id="edit-date" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="edit-title">Title</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="form-row">
+                    <label for="edit-link">Link (optional)</label>
+                    <input type="url" id="edit-link">
+                </div>
+                <div class="form-row">
+                    <label for="edit-notes">Notes (optional)</label>
+                    <textarea id="edit-notes"></textarea>
+                </div>
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-ghost" id="edit-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'algos-schedule';
+        const listEl = document.getElementById('entry-list');
+        const emptyEl = document.getElementById('empty-msg');
+        const modalEdit = document.getElementById('modal-edit');
+        const formAdd = document.getElementById('form-add');
+        const formEdit = document.getElementById('form-edit');
+        const filterDate = document.getElementById('filter-date');
+        const filterType = document.getElementById('filter-type');
+
+        function today() {
+            const d = new Date();
+            return d.toISOString().slice(0, 10);
+        }
+
+        function loadEntries() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveEntries(entries) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            render();
+        }
+
+        function addEntry(entry) {
+            const entries = loadEntries();
+            entry.id = 'id-' + Date.now();
+            entry.date = entry.date || today();
+            entry.type = entry.type || 'study';
+            entry.title = (entry.title || '').trim();
+            entry.link = (entry.link || '').trim() || null;
+            entry.notes = (entry.notes || '').trim() || null;
+            entries.push(entry);
+            saveEntries(entries);
+        }
+
+        function updateEntry(id, data) {
+            const entries = loadEntries();
+            const i = entries.findIndex(e => e.id === id);
+            if (i === -1) return;
+            entries[i] = { ...entries[i], ...data };
+            saveEntries(entries);
+        }
+
+        function deleteEntry(id) {
+            if (!confirm('Delete this entry?')) return;
+            const entries = loadEntries().filter(e => e.id !== id);
+            saveEntries(entries);
+        }
+
+        function getFiltered() {
+            const entries = loadEntries();
+            const dateVal = filterDate.value;
+            const typeVal = filterType.value;
+            let out = entries;
+            if (dateVal) out = out.filter(e => e.date === dateVal);
+            if (typeVal) out = out.filter(e => e.type === typeVal);
+            return out.sort((a, b) => {
+                const d = (a.date || '').localeCompare(b.date || '');
+                if (d !== 0) return d;
+                return (a.title || '').localeCompare(b.title || '');
+            });
+        }
+
+        function openEdit(entry) {
+            document.getElementById('edit-id').value = entry.id;
+            document.getElementById('edit-type').value = entry.type || 'study';
+            document.getElementById('edit-date').value = entry.date || today();
+            document.getElementById('edit-title').value = entry.title || '';
+            document.getElementById('edit-link').value = entry.link || '';
+            document.getElementById('edit-notes').value = entry.notes || '';
+            modalEdit.classList.remove('hidden');
+        }
+
+        function closeEdit() {
+            modalEdit.classList.add('hidden');
+        }
+
+        function render() {
+            const entries = getFiltered();
+            listEl.innerHTML = '';
+            if (entries.length === 0) {
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+            entries.forEach(entry => {
+                const li = document.createElement('li');
+                li.className = 'entry';
+                const title = entry.title || 'Untitled';
+                const titleContent = entry.link
+                    ? `<a href="${escapeHtml(entry.link)}" target="_blank" rel="noopener">${escapeHtml(title)}</a>`
+                    : escapeHtml(title);
+                li.innerHTML = `
+                    <span class="entry-type ${escapeHtml(entry.type)}" title="${escapeHtml(entry.type)}"></span>
+                    <div class="entry-body">
+                        <div class="entry-title">${titleContent}</div>
+                        <div class="entry-meta">${escapeHtml(entry.type)} · ${escapeHtml(entry.date)}</div>
+                        ${entry.notes ? `<div class="entry-notes">${escapeHtml(entry.notes)}</div>` : ''}
+                    </div>
+                    <div class="entry-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-edit" data-id="${escapeHtml(entry.id)}">Edit</button>
+                        <button type="button" class="btn btn-danger btn-sm btn-delete" data-id="${escapeHtml(entry.id)}">Delete</button>
+                    </div>
+                `;
+                li.querySelector('.btn-edit').addEventListener('click', () => openEdit(entry));
+                li.querySelector('.btn-delete').addEventListener('click', () => deleteEntry(entry.id));
+                listEl.appendChild(li);
+            });
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        document.getElementById('add-date').value = today();
+
+        formAdd.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addEntry({
+                type: document.getElementById('add-type').value,
+                date: document.getElementById('add-date').value,
+                title: document.getElementById('add-title').value,
+                link: document.getElementById('add-link').value,
+                notes: document.getElementById('add-notes').value
+            });
+            document.getElementById('add-title').value = '';
+            document.getElementById('add-link').value = '';
+            document.getElementById('add-notes').value = '';
+        });
+
+        formEdit.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            updateEntry(id, {
+                type: document.getElementById('edit-type').value,
+                date: document.getElementById('edit-date').value,
+                title: document.getElementById('edit-title').value,
+                link: document.getElementById('edit-link').value,
+                notes: document.getElementById('edit-notes').value
+            });
+            closeEdit();
+        });
+
+        document.getElementById('edit-cancel').addEventListener('click', closeEdit);
+        modalEdit.addEventListener('click', (e) => { if (e.target === modalEdit) closeEdit(); });
+
+        filterDate.addEventListener('change', render);
+        filterType.addEventListener('change', render);
+        document.getElementById('btn-clear-filter').addEventListener('click', () => {
+            filterDate.value = '';
+            filterType.value = '';
+            render();
+        });
+
+        // Install app (PWA)
+        let installPrompt = null;
+        const btnInstall = document.getElementById('btn-install');
+        const installIosHint = document.getElementById('install-ios-hint');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            installPrompt = e;
+            btnInstall.style.display = 'inline-flex';
+        });
+        btnInstall.addEventListener('click', () => {
+            if (installPrompt) {
+                installPrompt.prompt();
+                installPrompt.userChoice.then(() => { installPrompt = null; btnInstall.style.display = 'none'; });
+            }
+        });
+
+        // Service worker (store & run from phone when installed)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js', { scope: './' }).catch(() => {});
+        }
+
+        // Export data (save to phone or share)
+        document.getElementById('btn-export').addEventListener('click', () => {
+            const entries = loadEntries();
+            const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'schedule-data-' + today() + '.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+
+        // Import data (load from file on phone or from another device)
+        document.getElementById('input-import').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const data = JSON.parse(reader.result);
+                    const list = Array.isArray(data) ? data : (data.entries || []);
+                    if (list.length === 0) { alert('No entries in file.'); e.target.value = ''; return; }
+                    const replace = confirm('Replace all current entries with ' + list.length + ' from file? (Cancel = merge)');
+                    const existing = replace ? [] : loadEntries();
+                    const seen = new Set(existing.map((x) => x.id));
+                    list.forEach((ent) => {
+                        if (!ent.id || seen.has(ent.id)) ent.id = 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                        seen.add(ent.id);
+                        existing.push(ent);
+                    });
+                    saveEntries(existing);
+                    alert('Imported ' + list.length + ' entries.');
+                } catch (err) {
+                    alert('Invalid file: ' + err.message);
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        render();
+    </script>
+</body>
+</html>
