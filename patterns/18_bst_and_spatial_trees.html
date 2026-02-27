@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST & Spatial Trees (KD-Tree) Pattern</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" media="screen" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        .pattern { margin-bottom: 40px; padding: 25px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .section { margin-bottom: 20px; }
+        .section h3 { color: #34495e; margin-bottom: 10px; font-size: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        .concept { background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques { background: #fff9e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .techniques ul { margin-left: 20px; margin-top: 10px; }
+        .techniques li { margin-bottom: 8px; }
+        .complexity { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .complexity th, .complexity td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .code-block { background: #f8f9fa; color: #333; padding: 0; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 15px 0; font-size: 15px; line-height: 1.55; }
+        .code-block pre { margin: 0; padding: 20px; background: transparent; font-family: 'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .code-block code, .code-block pre, pre[class*="language-"] code { font-family: 'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace; color: #1a1a1a; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-shadow: none; }
+        .code-block .token.comment, .code-block .token.prolog, .code-block .token.doctype, .code-block .token.cdata { color: #6a737d; font-style: italic; }
+        .code-block .token.punctuation { color: #1a1a1a; }
+        .code-block .token.variable, .code-block .token.attr-name { color: #1a1a1a; font-weight: 500; }
+        .code-block .token.property, .code-block .token.tag, .code-block .token.boolean, .code-block .token.number, .code-block .token.constant, .code-block .token.symbol, .code-block .token.deleted { color: #005cc5; }
+        .code-block .token.selector, .code-block .token.string, .code-block .token.char, .code-block .token.builtin, .code-block .token.inserted { color: #032f62; }
+        .code-block .token.operator, .code-block .token.entity, .code-block .token.url { color: #d73a49; }
+        .code-block .token.atrule, .code-block .token.attr-value, .code-block .token.keyword { color: #d73a49; font-weight: 600; }
+        .code-block .token.function, .code-block .token.class-name { color: #6f42c1; }
+        .code-block .token.regex, .code-block .token.important { color: #e36209; }
+        .problem { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .problem h4 { color: #e74c3c; margin-bottom: 10px; }
+        .problem p { margin-bottom: 10px; }
+        @media print { body { background: white; padding: 0; } .container { max-width: 100%; padding: 0; box-shadow: none; border-radius: 0; } .pattern { page-break-inside: avoid; margin-bottom: 30px; padding: 15px; background: white; border-left: 3px solid #000; border-radius: 0; } .section { page-break-inside: avoid; } .code-block { background: #f8f9fa !important; color: #000 !important; border: 1px solid #000; border-radius: 0; page-break-inside: avoid; font-size: 12px; } .code-block pre { padding: 15px !important; } .code-block code { color: #000 !important; } .code-block .token { color: #000 !important; } .concept, .techniques, .complexity { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } .problem { background: #f8f9fa !important; border: 1px solid #ddd; border-radius: 0; page-break-inside: avoid; } h1, h2, h3, h4 { color: #000 !important; page-break-after: avoid; } .complexity th { background: #e0e0e0 !important; color: #000 !important; } .complexity table { border: 1px solid #000; } .complexity th, .complexity td { border: 1px solid #000; } a { color: #000; text-decoration: underline; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BST & Spatial Trees (KD-Tree) Pattern</h1>
+        
+        <!-- ========== BINARY SEARCH TREE ========== -->
+        <div class="pattern">
+            <h2>Binary Search Tree (BST)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>A Binary Search Tree is a binary tree where for every node: <strong>left subtree &lt; root &lt; right subtree</strong>. In-order traversal yields sorted order. Used for fast search, insert, delete (average O(log n)) and range/successor queries.</p>
+                    <p><strong>Key Idea:</strong> Use the ordering property to discard one subtree per step. Validate by passing (min, max) bounds down. Kth smallest = in-order with a counter.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Search:</strong> Compare with root, recurse left or right</li>
+                        <li><strong>Insert:</strong> Find leaf position by comparing, then attach</li>
+                        <li><strong>Delete:</strong> 0 children → remove; 1 child → bypass; 2 children → replace with inorder successor/predecessor</li>
+                        <li><strong>Validate BST:</strong> Pass (min, max) bounds; left must be in (min, root.val), right in (root.val, max)</li>
+                        <li><strong>Kth smallest:</strong> In-order traversal with counter; return when count == k</li>
+                        <li><strong>BST from sorted array:</strong> Mid as root, recurse left/right on halves</li>
+                        <li><strong>Successor / Predecessor:</strong> Use parent pointers or in-order stack</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity (BST)</h3>
+                <div class="complexity">
+                    <table>
+                        <tr><th>Operation</th><th>Time (avg)</th><th>Time (worst)</th><th>Space</th></tr>
+                        <tr><td>Search / Insert / Delete</td><td>O(log n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td>In-order (sorted)</td><td>O(n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td>Validate / Kth smallest</td><td>O(n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td colspan="4">h = height; balanced BST gives h = O(log n)</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 BST Boilerplate</h3>
+                
+                <h4>Search & Validate BST:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def search_bst(root, target):
+    if not root or root.val == target:
+        return root
+    if target < root.val:
+        return search_bst(root.left, target)
+    return search_bst(root.right, target)
+
+def is_valid_bst(root, lo=float('-inf'), hi=float('inf')):
+    if not root:
+        return True
+    if not (lo < root.val < hi):
+        return False
+    return is_valid_bst(root.left, lo, root.val) and is_valid_bst(root.right, root.val, hi)
+
+# TC: Search O(h), Validate O(n). SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Kth Smallest (in-order):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def kth_smallest(root, k):
+    def inorder(node):
+        nonlocal k, ans
+        if not node or ans is not None:
+            return
+        inorder(node.left)
+        k -= 1
+        if k == 0:
+            ans = node.val
+            return
+        inorder(node.right)
+    ans = None
+    inorder(root)
+    return ans
+
+# TC: O(k) to O(n). SC: O(h)</code></pre>
+                </div>
+                
+                <h4>BST from Sorted Array:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def sorted_array_to_bst(nums):
+    def build(l, r):
+        if l > r:
+            return None
+        mid = (l + r) // 2
+        node = TreeNode(nums[mid])
+        node.left = build(l, mid - 1)
+        node.right = build(mid + 1, r)
+        return node
+    return build(0, len(nums) - 1)
+
+# TC: O(n). SC: O(log n) recursion</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 BST Problems</h3>
+                <div class="problem">
+                    <h4>Problem 1: Validate BST</h4>
+                    <p><strong>Description:</strong> Check if binary tree is a valid BST (strict min/max per node).</p>
+                    <div class="code-block">
+<pre><code class="language-python">def isValidBST(root):
+    def valid(node, lo, hi):
+        if not node: return True
+        if not (lo < node.val < hi): return False
+        return valid(node.left, lo, node.val) and valid(node.right, node.val, hi)
+    return valid(root, float('-inf'), float('inf'))</code></pre>
+                    </div>
+                </div>
+                <div class="problem">
+                    <h4>Problem 2: Kth Smallest in BST</h4>
+                    <p><strong>Description:</strong> Return the kth smallest value (1-indexed) using in-order.</p>
+                    <div class="code-block">
+<pre><code class="language-python">def kthSmallest(root, k):
+    stack = []
+    while root or stack:
+        while root:
+            stack.append(root)
+            root = root.left
+        root = stack.pop()
+        k -= 1
+        if k == 0:
+            return root.val
+        root = root.right</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== KD-TREE ========== -->
+        <div class="pattern">
+            <h2>KD-Tree (K-Dimensional Tree)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>A KD-tree is a space-partitioning tree for organizing points in <strong>k-dimensional</strong> space. Each level splits along one dimension (cycling through dimensions). Used for <strong>nearest neighbor search</strong>, range queries, and spatial indexing.</p>
+                    <p><strong>Key Idea:</strong> Build by repeatedly splitting on median along alternating axes. Search: traverse like BST (compare on current axis), then possibly check the other subtree if the splitting hyperplane is within the search radius.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Build:</strong> Choose dimension (e.g. depth % k), find median, split into left/right; recurse</li>
+                        <li><strong>Nearest Neighbor:</strong> Go toward query point first; then backtrack to the "other side" if the hyperplane is closer than best so far</li>
+                        <li><strong>Range Query:</strong> Check if node's point in range; recurse left/right if the splitting plane intersects the range</li>
+                        <li><strong>Dimension cycling:</strong> Level 0 → axis 0, level 1 → axis 1, … level k → axis 0 again</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space (KD-Tree)</h3>
+                <div class="complexity">
+                    <table>
+                        <tr><th>Operation</th><th>Time (avg)</th><th>Time (worst)</th><th>Space</th></tr>
+                        <tr><td>Build (n points)</td><td>O(n log n)</td><td>O(n²)</td><td>O(n)</td></tr>
+                        <tr><td>Nearest neighbor</td><td>O(log n)</td><td>O(n)</td><td>O(log n)</td></tr>
+                        <tr><td>Range query</td><td>O(√n + k)</td><td>O(n)</td><td>O(log n)</td></tr>
+                        <tr><td colspan="4">k = number of points in range; worst case in high dimensions</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 KD-Tree Boilerplate (2D)</h3>
+                <div class="code-block">
+<pre><code class="language-python">class KDNode:
+    def __init__(self, point, left=None, right=None):
+        self.point = point
+        self.left = left
+        self.right = right
+
+def build_kdtree(points, depth=0):
+    if not points:
+        return None
+    k = len(points[0])
+    axis = depth % k
+    points_sorted = sorted(points, key=lambda p: p[axis])
+    mid = len(points_sorted) // 2
+    return KDNode(
+        points_sorted[mid],
+        build_kdtree(points_sorted[:mid], depth + 1),
+        build_kdtree(points_sorted[mid + 1:], depth + 1)
+    )
+
+def dist_sq(p, q):
+    return sum((a - b) ** 2 for a, b in zip(p, q))
+
+def nearest(node, query, depth=0, best=None):
+    if not node:
+        return best
+    k = len(query)
+    axis = depth % k
+    d = dist_sq(node.point, query)
+    if best is None or d < dist_sq(best, query):
+        best = node.point
+    if query[axis] < node.point[axis]:
+        near, far = node.left, node.right
+    else:
+        near, far = node.right, node.left
+    best = nearest(near, query, depth + 1, best)
+    # Check other side if hyperplane is within current best distance
+    if far and (query[axis] - node.point[axis]) ** 2 < dist_sq(best, query):
+        best = nearest(far, query, depth + 1, best)
+    return best
+
+# Build: O(n log n). Nearest: O(log n) average. SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 KD-Tree Problem</h3>
+                <div class="problem">
+                    <h4>Problem: K Nearest Neighbors (KNN) with KD-Tree</h4>
+                    <p><strong>Description:</strong> Given points and a query, find K nearest points. Maintain a max-heap of size K (or collect and sort) while doing nearest-neighbor-style traversal.</p>
+                    <div class="code-block">
+<pre><code class="language-python">import heapq
+def k_nearest_kdtree(root, query, k):
+    heap = []  # max-heap by negative distance
+    def search(node, depth=0):
+        if not node:
+            return
+        axis = depth % len(query)
+        d = dist_sq(node.point, query)
+        if len(heap) < k:
+            heapq.heappush(heap, (-d, node.point))
+        elif d < -heap[0][0]:
+            heapq.heapreplace(heap, (-d, node.point))
+        if query[axis] < node.point[axis]:
+            search(node.left, depth + 1)
+            if len(heap) < k or (node.point[axis] - query[axis])**2 <= -heap[0][0]:
+                search(node.right, depth + 1)
+        else:
+            search(node.right, depth + 1)
+            if len(heap) < k or (query[axis] - node.point[axis])**2 <= -heap[0][0]:
+                search(node.left, depth + 1)
+    search(root)
+    return [p for _, p in heap]
+
+# TC: O(log n + k) average. SC: O(k + log n)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== OTHER SPATIAL TREES ========== -->
+        <div class="pattern">
+            <h2>Other Spatial / Partitioning Trees</h2>
+            
+            <div class="section">
+                <h3>📖 Overview</h3>
+                <div class="concept">
+                    <p><strong>R-tree:</strong> B-tree-like structure for rectangles (bounding boxes). Good for geographic data, "find all objects in this region." Insert/search by merging/splitting bounding boxes.</p>
+                    <p><strong>BSP (Binary Space Partitioning):</strong> Recursively split space with hyperplanes. Used in graphics (visibility) and collision detection.</p>
+                    <p><strong>Quadtree / Octree:</strong> Split 2D/3D space into 4/8 children at each node. Good for grid-like data, collision, LOD. Simpler than KD-tree for axis-aligned subdivisions.</p>
+                    <p><strong>When to use:</strong> KD-tree → nearest neighbor in moderate dimensions; R-tree → range queries on rectangles; Quadtree → 2D grids and games.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
