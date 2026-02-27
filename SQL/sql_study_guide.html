@@ -7,6 +7,9 @@
     <!-- Prism.js for syntax highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" media="screen" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -111,19 +114,26 @@
             border-radius: 5px;
             overflow-x: auto;
             margin: 15px 0;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 15px;
+            line-height: 1.55;
         }
         
         .code-block pre {
             margin: 0;
             padding: 20px;
             background: transparent;
+            font-family: 'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        .code-block code {
-            font-family: 'Courier New', Consolas, Monaco, monospace;
+        .code-block code,
+        .code-block pre,
+        pre[class*="language-"] code {
+            font-family: 'JetBrains Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
             color: #1a1a1a;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .pattern {
@@ -241,6 +251,25 @@
             border-radius: 5px;
             margin: 10px 0;
             border-left: 5px solid #4caf50;
+        }
+        
+        .real-world {
+            background: #e8f4fd;
+            padding: 18px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .real-world h4 {
+            color: #1565c0;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .real-world p {
+            margin-bottom: 10px;
         }
         
         @media print {
@@ -381,6 +410,19 @@ WHERE column LIKE '_pattern'  -- single char wildcard
 WHERE column IS NULL
 WHERE column IS NOT NULL</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> E-commerce support dashboard — show the 10 most recent non-cancelled orders so agents can quickly see what needs attention.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT order_id, customer_id, order_date, total_amount, status
+FROM orders
+WHERE status != 'cancelled'
+  AND order_date >= CURRENT_DATE - INTERVAL '30 days'
+ORDER BY order_date DESC
+LIMIT 10;</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -451,6 +493,18 @@ JOIN customers c ON o.customer_id = c.id
 LEFT JOIN products p ON o.product_id = p.id
 LEFT JOIN categories cat ON p.category_id = cat.id;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> SaaS billing — get every subscription with its customer name and plan details for an invoice run. Use LEFT JOIN so subscriptions without a matching plan (e.g. legacy) still appear.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT s.subscription_id, c.email, c.company_name, p.plan_name, p.monthly_price
+FROM subscriptions s
+INNER JOIN customers c ON s.customer_id = c.customer_id
+LEFT JOIN plans p ON s.plan_id = p.plan_id
+WHERE s.status = 'active';</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -508,6 +562,23 @@ SELECT
     COUNT(CASE WHEN status = 'active' THEN 1 END) * 100.0 / COUNT(*) AS active_pct
 FROM employees
 GROUP BY department;</code></pre>
+            </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Product analytics — count active users and revenue per country for a monthly exec report; only include countries with at least 100 users.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    country,
+    COUNT(DISTINCT user_id) AS active_users,
+    SUM(revenue_usd) AS total_revenue
+FROM user_events
+WHERE event_date >= DATE_TRUNC('month', CURRENT_DATE)
+  AND is_active = true
+GROUP BY country
+HAVING COUNT(DISTINCT user_id) >= 100
+ORDER BY total_revenue DESC;</code></pre>
+                </div>
             </div>
         </section>
 
@@ -610,6 +681,21 @@ FROM transactions;</code></pre>
     ) AS last_amount
 FROM sales;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Finance — daily revenue report with running total for the month and day-over-day change so the CFO can see trend at a glance.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    date,
+    daily_revenue,
+    SUM(daily_revenue) OVER (ORDER BY date) AS month_running_total,
+    daily_revenue - LAG(daily_revenue) OVER (ORDER BY date) AS day_over_day_change
+FROM daily_sales
+WHERE date >= DATE_TRUNC('month', CURRENT_DATE)::date
+ORDER BY date;</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -690,6 +776,20 @@ FROM (
 ) AS dept_avg
 WHERE avg_sal > 50000;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Marketing — find customers who made a purchase in the last 90 days but have never been sent a win-back email (from a separate campaigns table).</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT customer_id, email, last_purchase_date
+FROM customers c
+WHERE last_purchase_date >= CURRENT_DATE - INTERVAL '90 days'
+  AND NOT EXISTS (
+      SELECT 1 FROM email_campaigns e
+      WHERE e.customer_id = c.customer_id AND e.campaign_type = 'winback'
+  );</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -752,6 +852,30 @@ SELECT
     total_sales - prev_sales AS growth
 FROM prev_month_sales;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Product funnel — break the funnel into clear steps (sessions with signup, then those with first purchase) and compute conversion rate between steps.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">WITH sessions_with_signup AS (
+    SELECT session_id, user_id, created_at
+    FROM sessions s
+    WHERE EXISTS (SELECT 1 FROM signups sg WHERE sg.session_id = s.session_id)
+),
+first_purchases AS (
+    SELECT user_id, MIN(purchased_at) AS first_purchase_at
+    FROM orders
+    GROUP BY user_id
+)
+SELECT 
+    COUNT(DISTINCT s.session_id) AS signup_sessions,
+    COUNT(DISTINCT f.user_id) AS converted_users,
+    COUNT(DISTINCT f.user_id) * 100.0 / NULLIF(COUNT(DISTINCT s.session_id), 0) AS conversion_pct
+FROM sessions_with_signup s
+LEFT JOIN first_purchases f ON s.user_id = f.user_id 
+    AND f.first_purchase_at BETWEEN s.created_at AND s.created_at + INTERVAL '7 days';</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -789,6 +913,22 @@ SELECT customer_id FROM orders_2024;</code></pre>
                 <pre><code class="language-sql">SELECT customer_id FROM orders_2023
 EXCEPT
 SELECT customer_id FROM orders_2024;</code></pre>
+            </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Customer analytics — one list of all people who bought in 2023 or 2024 (UNION for distinct), and customers who bought in both years (INTERSECT) for loyalty analysis.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">-- All unique customers from either year
+SELECT customer_id FROM orders WHERE EXTRACT(YEAR FROM order_date) = 2023
+UNION
+SELECT customer_id FROM orders WHERE EXTRACT(YEAR FROM order_date) = 2024;
+
+-- Customers who bought in BOTH years (repeat buyers)
+SELECT customer_id FROM orders WHERE EXTRACT(YEAR FROM order_date) = 2023
+INTERSECT
+SELECT customer_id FROM orders WHERE EXTRACT(YEAR FROM order_date) = 2024;</code></pre>
+                </div>
             </div>
         </section>
 
@@ -865,6 +1005,21 @@ SELECT
 FROM orders
 GROUP BY EXTRACT(YEAR FROM order_date);</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Retention report — count how many users were active in each of the last 4 complete weeks (for a weekly retention dashboard).</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    DATE_TRUNC('week', activity_date)::date AS week_start,
+    COUNT(DISTINCT user_id) AS active_users
+FROM user_activity
+WHERE activity_date >= DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '4 weeks'
+  AND activity_date < DATE_TRUNC('week', CURRENT_DATE)
+GROUP BY DATE_TRUNC('week', activity_date)
+ORDER BY week_start;</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -934,6 +1089,19 @@ FROM employees;
 SELECT POSITION('@' IN email) AS at_position
 FROM users;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Data quality / CRM — standardize display names (trim, title case) and derive email domain for segmentation (e.g. free vs corporate).</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    user_id,
+    TRIM(INITCAP(first_name || ' ' || last_name)) AS display_name,
+    LOWER(email) AS email,
+    LOWER(SUBSTRING(email FROM POSITION('@' IN email) + 1)) AS email_domain
+FROM users;</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -1001,6 +1169,24 @@ FROM employees;
 SELECT IIF(salary > 50000, 'High', 'Low') AS category
 FROM employees;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Support triage — show ticket priority (High/Medium/Low) and a fallback contact (phone or email) when building a queue view.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    ticket_id,
+    subject,
+    CASE 
+        WHEN priority_score >= 80 THEN 'High'
+        WHEN priority_score >= 50 THEN 'Medium'
+        ELSE 'Low'
+    END AS priority_tier,
+    COALESCE(phone, email, 'No contact') AS contact
+FROM support_tickets
+WHERE status = 'open';</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -1055,6 +1241,25 @@ SELECT
     PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY salary) AS q1,
     PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY salary) AS q3
 FROM employees;</code></pre>
+            </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Sales leaderboard — top 3 sales reps per region by revenue this quarter, for bonus eligibility and regional dashboards.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">WITH ranked_reps AS (
+    SELECT 
+        rep_id, region, revenue,
+        ROW_NUMBER() OVER (PARTITION BY region ORDER BY revenue DESC) AS rn
+    FROM quarterly_sales
+    WHERE quarter = EXTRACT(QUARTER FROM CURRENT_DATE)
+      AND year = EXTRACT(YEAR FROM CURRENT_DATE)
+)
+SELECT rep_id, region, revenue, rn AS rank
+FROM ranked_reps
+WHERE rn <= 3
+ORDER BY region, rn;</code></pre>
+                </div>
             </div>
         </section>
 
@@ -1114,6 +1319,23 @@ FROM (
     GROUP BY department
 ) AS pivoted;</code></pre>
             </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> A/B test summary — one row per experiment with columns for count of users in control vs variant and their conversion rates (pivot from long-format results).</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">SELECT 
+    experiment_id,
+    SUM(CASE WHEN variant = 'control' THEN 1 ELSE 0 END) AS control_users,
+    SUM(CASE WHEN variant = 'treatment' THEN 1 ELSE 0 END) AS treatment_users,
+    SUM(CASE WHEN variant = 'control' AND converted THEN 1 ELSE 0 END) * 100.0 
+        / NULLIF(SUM(CASE WHEN variant = 'control' THEN 1 ELSE 0 END), 0) AS control_conv_pct,
+    SUM(CASE WHEN variant = 'treatment' AND converted THEN 1 ELSE 0 END) * 100.0 
+        / NULLIF(SUM(CASE WHEN variant = 'treatment' THEN 1 ELSE 0 END), 0) AS treatment_conv_pct
+FROM experiment_assignments
+GROUP BY experiment_id;</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -1156,6 +1378,27 @@ WITH RECURSIVE numbers AS (
     WHERE n < 100
 )
 SELECT * FROM numbers;</code></pre>
+            </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> Org chart / permissions — list every employee with their full reporting chain (e.g. "Alice → Bob → Carol → CEO") for access reviews or hierarchy reports.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">WITH RECURSIVE reporting_chain AS (
+    SELECT employee_id, name, manager_id, 1 AS level,
+           name::text AS path
+    FROM employees
+    WHERE manager_id IS NULL
+    UNION ALL
+    SELECT e.employee_id, e.name, e.manager_id, rc.level + 1,
+           rc.path || ' → ' || e.name
+    FROM employees e
+    JOIN reporting_chain rc ON e.manager_id = rc.employee_id
+)
+SELECT employee_id, name, level, path
+FROM reporting_chain
+ORDER BY path;</code></pre>
+                </div>
             </div>
         </section>
 
@@ -1240,6 +1483,22 @@ FROM employees</code></pre>
 FROM employees e
 LEFT JOIN orders o ON e.id = o.emp_id
 GROUP BY e.id, e.name</code></pre>
+                </div>
+            </div>
+
+            <div class="real-world">
+                <h4>🌐 Real-world example</h4>
+                <p><strong>Scenario:</strong> High-traffic reporting — your "revenue by day" report is slow. Add an index on <code>(tenant_id, date)</code> and query only the columns you need so the report uses the index and returns quickly.</p>
+                <div class="code-block">
+                    <pre><code class="language-sql">-- Index for tenant-scoped date range queries
+CREATE INDEX idx_events_tenant_date ON events(tenant_id, event_date);
+
+-- Report query: uses index, only needed columns
+SELECT event_date, SUM(revenue) AS daily_revenue
+FROM events
+WHERE tenant_id = :tenant_id
+  AND event_date >= :start_date AND event_date < :end_date
+GROUP BY event_date;</code></pre>
                 </div>
             </div>
         </section>
