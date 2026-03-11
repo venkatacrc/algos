@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pipelines – Pandas, PySpark &amp; Distributed Optimizations</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 32px; color: #24292f; }
+        h3 { margin-top: 20px; color: #34495e; font-size: 1.1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 6px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .feature-block { background: #f6f8fa; border-left: 4px solid #0366d6; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .feature-block h4 { margin-top: 0; margin-bottom: 8px; }
+        .feature-block ul { margin: 8px 0 0 20px; }
+        .feature-block li { margin-bottom: 4px; }
+        .code-block { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 14px; }
+        .code-block pre { margin: 0; padding: 16px; }
+        .code-block code { background: transparent; padding: 0; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        ul ul { margin: 6px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Data Pipelines – Pandas, PySpark &amp; Distributed Optimizations</h1>
+    <p><strong>Pandas</strong> for single-machine data handling; <strong>PySpark</strong> for distributed processing; and <strong>distributed data optimizations</strong> for large datasets (partitioning, file formats, broadcast, predicate pushdown).</p>
+
+    <div class="toc">
+        <strong>Table of contents</strong>
+        <ol>
+            <li><a href="#pandas-basics">Pandas: Series &amp; DataFrame, indexing</a></li>
+            <li><a href="#pandas-selection">Pandas: selection, filtering, sorting</a></li>
+            <li><a href="#pandas-missing">Pandas: missing data &amp; dtypes</a></li>
+            <li><a href="#pandas-stats">Pandas: summary statistics &amp; describe</a></li>
+            <li><a href="#pandas-groupby">Pandas: groupby, map, apply</a></li>
+            <li><a href="#pandas-merge">Pandas: merge, concat, combine</a></li>
+            <li><a href="#pandas-reshape">Pandas: pivot, melt, stack</a></li>
+            <li><a href="#pandas-strings-datetime">Pandas: strings &amp; datetime</a></li>
+            <li><a href="#pandas-io">Pandas: I/O &amp; chunking</a></li>
+            <li><a href="#pyspark-basics">PySpark: session, read, lazy evaluation</a></li>
+            <li><a href="#pyspark-columns">PySpark: columns, expressions, functions</a></li>
+            <li><a href="#pyspark-schema">PySpark: schema &amp; types</a></li>
+            <li><a href="#pyspark-joins">PySpark: joins, union, dedup</a></li>
+            <li><a href="#pyspark-windows-sql">PySpark: window functions &amp; SQL</a></li>
+            <li><a href="#pyspark-udf">PySpark: UDFs &amp; Pandas UDF</a></li>
+            <li><a href="#pyspark-persist">PySpark: cache &amp; persistence levels</a></li>
+            <li><a href="#pyspark-io">PySpark: read/write options &amp; streaming</a></li>
+            <li><a href="#distributed-optimizations">Distributed data optimizations</a></li>
+            <li><a href="#summary">Summary</a></li>
+        </ol>
+    </div>
+
+    <h2 id="pandas-basics">1. Pandas: Series &amp; DataFrame, indexing</h2>
+    <p>Core types: <strong>Series</strong> (1D, labeled) and <strong>DataFrame</strong> (2D, rows and columns). Both have an <strong>index</strong>; DataFrames also have column names.</p>
+    <p class="syntax-title">Creation</p>
+    <div class="code-block">
+<pre><code class="language-python">import pandas as pd
+import numpy as np
+
+# Series from list or dict
+s = pd.Series([1, 2, 3], index=['a', 'b', 'c'])
+s = pd.Series({'a': 1, 'b': 2})
+
+# DataFrame from dict of lists/arrays, or list of dicts
+df = pd.DataFrame({'A': [10, 20, 30], 'B': [40, 50, 60]}, index=['x', 'y', 'z'])
+df = pd.DataFrame([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}])</code></pre>
+    </div>
+    <p class="syntax-title">Indexing: loc vs iloc vs at/iat</p>
+    <ul>
+        <li><strong>loc</strong> – Label-based; <code>df.loc['x', 'B']</code>; slices are <strong>inclusive</strong> on both ends: <code>df.loc['x':'y']</code>.</li>
+        <li><strong>iloc</strong> – Integer position; <code>df.iloc[0, 1]</code>; slices are exclusive on end: <code>df.iloc[0:2]</code>.</li>
+        <li><strong>at / iat</strong> – Single scalar access (faster than loc/iloc for one cell): <code>df.at['x', 'B']</code>, <code>df.iat[0, 1]</code>.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">df = pd.DataFrame({'A': [10, 20, 30], 'B': [40, 50, 60]}, index=['x', 'y', 'z'])
+df.loc['x', 'B']    # 40
+df.loc['x':'y']     # rows x and y (inclusive)
+df.iloc[0:2]        # rows 0 and 1
+df.iloc[:, 1]       # column at position 1 (Series)</code></pre>
+    </div>
+    <p class="syntax-title">Index: set_index, reset_index, reindex</p>
+    <div class="code-block">
+<pre><code class="language-python">df.set_index('col_name')           # promote column to index
+df.reset_index(drop=True)        # index → default RangeIndex; drop=True discards old index
+df.reindex(['x', 'y', 'new'])    # align to new labels; missing → NaN</code></pre>
+    </div>
+
+    <h2 id="pandas-selection">2. Pandas: selection, filtering, sorting</h2>
+    <p class="syntax-title">Column and row selection</p>
+    <div class="code-block">
+<pre><code class="language-python">df['A']              # Series
+df[['A', 'B']]       # DataFrame
+df['new'] = ...      # or df.assign(new=...) for chaining
+df.rename(columns={'a': 'A'}); df.drop(columns=['x'], inplace=False)
+
+# Boolean indexing
+df[(df.A >= 20) & (df.B.notnull())]
+df[df.country.isin(['Italy', 'France'])]
+df.query('points >= 90 and price < 50')   # string expression</code></pre>
+    </div>
+    <p class="syntax-title">Sorting</p>
+    <div class="code-block">
+<pre><code class="language-python">df.sort_values(by='col', ascending=False, na_position='last')
+df.sort_values(by=['country', 'points'])
+df.sort_index(ascending=True)</code></pre>
+    </div>
+    <p class="syntax-title">Pipeline style (method chaining)</p>
+    <div class="code-block">
+<pre><code class="language-python">result = (
+    df.dropna(subset=['price'])
+      .assign(ratio=lambda x: x.points / x.price)
+      .sort_values('ratio', ascending=False)
+      .head(10)
+)</code></pre>
+    </div>
+
+    <h2 id="pandas-missing">3. Pandas: missing data &amp; dtypes</h2>
+    <p>Missing values are represented by <code>NaN</code> (float). Use <code>pd.NA</code> in nullable integer/string types.</p>
+    <p class="syntax-title">Detect and drop/fill</p>
+    <div class="code-block">
+<pre><code class="language-python">df.isna(); df.notna()
+df.dropna(how='any', subset=['col1'], thresh=2)   # drop rows with &lt; 2 non-NaN
+df.fillna(0)
+df.ffill(limit=2)
+df.interpolate(method='linear')</code></pre>
+    </div>
+    <p class="syntax-title">Dtypes and conversion</p>
+    <div class="code-block">
+<pre><code class="language-python">df.dtypes
+df.astype({'a': 'int32', 'b': 'category'})
+df.convert_dtypes()   # infer better dtypes (nullable Int64, string, etc.)</code></pre>
+    </div>
+
+    <h2 id="pandas-stats">4. Pandas: summary statistics &amp; describe</h2>
+    <p class="syntax-title">Describe and aggregates</p>
+    <div class="code-block">
+<pre><code class="language-python">df.describe()                    # mean, std, min, 25%, 50%, 75%, max
+df.describe(include='all')       # + unique, top, freq for objects
+s.mean(); s.median(); s.std(); s.var(); s.min(); s.max()
+s.quantile(0.5); s.nlargest(5); s.nsmallest(5)
+s.idxmax(); s.idxmin()</code></pre>
+    </div>
+    <p class="syntax-title">Counts and uniqueness</p>
+    <div class="code-block">
+<pre><code class="language-python">df.count()
+s.value_counts(normalize=True, dropna=False)
+s.unique(); s.nunique()</code></pre>
+    </div>
+
+    <h2 id="pandas-groupby">5. Pandas: groupby, map, apply</h2>
+    <p class="syntax-title">GroupBy &amp; aggregation</p>
+    <div class="code-block">
+<pre><code class="language-python">df.groupby('country').points.agg(['mean', 'min', 'max', 'count'])
+df.groupby(['country', 'province']).price.agg([len, min, max])
+df.groupby('country').agg({'points': 'mean', 'price': ['min', 'max']})
+df.groupby('winery').size()   # same as .count() on any column
+# Custom per-group: pick row with max points in each group
+df.groupby('winery').apply(lambda g: g.loc[g.points.idxmax()])</code></pre>
+    </div>
+    <p class="syntax-title">Map vs apply vs transform</p>
+    <ul>
+        <li><strong>map</strong> – Element-wise on a Series: <code>s.map(lambda x: x - s.mean())</code> or <code>s.map({old: new, ...})</code>.</li>
+        <li><strong>apply</strong> – Row or column: <code>df.apply(f, axis='columns')</code> (row-wise), <code>axis='index'</code> (column-wise).</li>
+        <li><strong>transform</strong> – Returns same shape as group; broadcast group aggregate to each row: <code>df.groupby('g')['x'].transform('mean')</code>.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">reviews.points.map(lambda p: p - reviews.points.mean())
+df.groupby('region')['sales'].transform('sum')   # same-length Series</code></pre>
+    </div>
+
+    <h2 id="pandas-merge">6. Pandas: merge, concat, combine</h2>
+    <p class="syntax-title">merge (SQL-like join)</p>
+    <div class="code-block">
+<pre><code class="language-python">pd.merge(left, right, on='key', how='inner')   # inner, left, right, outer, cross
+pd.merge(left, right, left_on='a', right_on='b', suffixes=('_l', '_r'))
+left.merge(right, on='key', how='left')</code></pre>
+    </div>
+    <p class="syntax-title">concat (stack rows or columns)</p>
+    <div class="code-block">
+<pre><code class="language-python">pd.concat([df1, df2], axis=0, ignore_index=True)   # stack rows
+pd.concat([df1, df2], axis=1, join='inner')         # stack columns
+pd.concat([df1, df2], keys=['a', 'b'])             # multi-index from keys</code></pre>
+    </div>
+    <p class="syntax-title">Duplicates</p>
+    <div class="code-block">
+<pre><code class="language-python">df.duplicated(subset=['col'], keep='first')
+df.drop_duplicates(subset=['col'], keep='last')</code></pre>
+    </div>
+
+    <h2 id="pandas-reshape">7. Pandas: pivot, melt, stack</h2>
+    <p class="syntax-title">pivot &amp; pivot_table</p>
+    <div class="code-block">
+<pre><code class="language-python"># pivot: index, columns, values (no aggregation)
+df.pivot(index='date', columns='symbol', values='price')
+# pivot_table: allows aggregation with aggfunc
+df.pivot_table(index='region', columns='year', values='sales', aggfunc='sum')</code></pre>
+    </div>
+    <p class="syntax-title">melt (wide → long)</p>
+    <div class="code-block">
+<pre><code class="language-python">pd.melt(df, id_vars=['id'], value_vars=['a', 'b'], var_name='variable', value_name='value')</code></pre>
+    </div>
+    <p class="syntax-title">stack / unstack (MultiIndex)</p>
+    <div class="code-block">
+<pre><code class="language-python">df.stack()    # column level → index (long)
+df.unstack()   # index level → columns (wide)</code></pre>
+    </div>
+
+    <h2 id="pandas-strings-datetime">8. Pandas: strings &amp; datetime</h2>
+    <p class="syntax-title">String methods (.str)</p>
+    <div class="code-block">
+<pre><code class="language-python">s.str.lower(); s.str.upper(); s.str.strip()
+s.str.contains('pat', na=False); s.str.replace('old', 'new', regex=False)
+s.str.split(','); s.str.get(0)
+s.str.extract(r'(?P&lt;name&gt;\w+)')
+s.str.len(); s.str[:5]</code></pre>
+    </div>
+    <p class="syntax-title">Datetime</p>
+    <div class="code-block">
+<pre><code class="language-python">pd.to_datetime(df['date'], format='%Y-%m-%d', errors='coerce')
+df['date'].dt.year; .dt.month; .dt.day; .dt.dayofweek
+df['date'].dt.to_period('M')
+pd.Timedelta(days=1); df['end'] - df['start']</code></pre>
+    </div>
+
+    <h2 id="pandas-io">9. Pandas: I/O &amp; chunking</h2>
+    <p class="syntax-title">Read/write</p>
+    <div class="code-block">
+<pre><code class="language-python">pd.read_csv('data.csv', usecols=['a', 'b'], dtype={'a': 'int32'}, nrows=1000)
+pd.read_csv('data.csv', parse_dates=['date'], index_col=0)
+df.to_csv('out.csv', index=False)
+df.to_parquet('data.parquet', index=False)
+df.to_sql('table', con=engine, if_exists='append', index=False)</code></pre>
+    </div>
+    <p class="syntax-title">Chunked read for large files</p>
+    <div class="code-block">
+<pre><code class="language-python">chunks = pd.read_csv('huge.csv', chunksize=100_000)
+results = []
+for chunk in chunks:
+    results.append(chunk.groupby('region').size())
+summary = pd.concat(results).groupby(level=0).sum()</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Pandas scale limits</h4>
+        <ul>
+            <li>Single machine, single process; data should fit in RAM (or use chunks).</li>
+            <li>For larger data, use PySpark, Dask, or Polars.</li>
+        </ul>
+    </div>
+
+    <h2 id="pyspark-basics">10. PySpark: session, read, lazy evaluation</h2>
+    <p>PySpark distributes work across a cluster. Operations are <strong>lazy</strong>: transformations build a DAG; <strong>actions</strong> (collect, count, write) trigger execution.</p>
+    <p class="syntax-title">Session &amp; reading data</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("pipeline").getOrCreate()
+df = spark.read.csv("s3://bucket/data/", header=True, inferSchema=True)
+df = spark.read.parquet("s3://bucket/data/")
+df = spark.read.json("s3://bucket/events/")</code></pre>
+    </div>
+    <p class="syntax-title">Transformations (lazy) vs actions</p>
+    <ul>
+        <li><strong>Transformations</strong> – <code>select</code>, <code>filter</code>, <code>withColumn</code>, <code>drop</code>, <code>groupBy</code>, <code>join</code>, <code>union</code>, <code>repartition</code>, <code>orderBy</code>. Return a new DataFrame; no work yet.</li>
+        <li><strong>Actions</strong> – <code>count</code>, <code>collect</code>, <code>show</code>, <code>take</code>, <code>write</code>, <code>foreach</code>. Trigger the full plan.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import year, sum
+out = (
+    df.filter(df.amount > 0)
+      .withColumn("year", year(df.date))
+      .groupBy("year", "region")
+      .agg(sum("amount").alias("total"))
+)
+out.write.mode("overwrite").parquet("s3://bucket/out/")  # action</code></pre>
+    </div>
+
+    <h2 id="pyspark-columns">11. PySpark: columns, expressions, functions</h2>
+    <p class="syntax-title">Column references and literals</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import col, lit, expr
+
+df.select(col("a"), col("b") + 1)
+df.select(df.a, df["b"])
+df.selectExpr("a", "b + 1 as b_plus_1", "upper(name) as name_upper")
+df.withColumn("const", lit(1))</code></pre>
+    </div>
+    <p class="syntax-title">Conditionals and null handling</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import when, otherwise, coalesce
+
+df.withColumn("tier", when(col("amount") >= 100, "high").otherwise("low"))
+df.withColumn("safe", coalesce(col("a"), col("b"), lit(0)))</code></pre>
+    </div>
+    <p class="syntax-title">Common built-in functions</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import (
+    lower, upper, trim, length, concat, concat_ws, split, substring,
+    sum, avg, min, max, count, countDistinct,
+    round, abs, sqrt,
+    to_date, to_timestamp, year, month, dayofmonth,
+    current_timestamp, datediff
+)
+df.select(lower(col("name")), concat_ws(" ", col("first"), col("last")))
+df.select(split(col("tags"), ",").alias("tag_list"))</code></pre>
+    </div>
+
+    <h2 id="pyspark-schema">12. PySpark: schema &amp; types</h2>
+    <p class="syntax-title">Schema and type casting</p>
+    <div class="code-block">
+<pre><code class="language-python">df.printSchema()
+df.schema
+
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
+schema = StructType([
+    StructField("id", IntegerType(), False),
+    StructField("name", StringType(), True),
+])
+df = spark.read.schema(schema).csv("path/")
+
+df.withColumn("amount_dbl", col("amount").cast("double"))</code></pre>
+    </div>
+
+    <h2 id="pyspark-joins">13. PySpark: joins, union, dedup</h2>
+    <p class="syntax-title">Joins</p>
+    <div class="code-block">
+<pre><code class="language-python">df1.join(df2, df1.id == df2.id, "inner")   # inner, left, right, full, cross, semi, anti
+df1.join(df2, "id")   # natural join on column "id"
+df1.join(df2, [df1.a == df2.a, df1.b == df2.b])
+
+from pyspark.sql.functions import broadcast
+df_large.join(broadcast(df_small), "key")</code></pre>
+    </div>
+    <p class="syntax-title">Union and deduplication</p>
+    <div class="code-block">
+<pre><code class="language-python">df1.union(df2)           # no dedup (like SQL UNION ALL)
+df1.union(df2).distinct()
+df1.unionByName(df2)    # match by name; allow missing columns with allowMissingColumns=True
+df.dropDuplicates(["col1", "col2"])</code></pre>
+    </div>
+
+    <h2 id="pyspark-windows-sql">14. PySpark: window functions &amp; SQL</h2>
+    <p class="syntax-title">Window functions</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql import Window
+from pyspark.sql.functions import row_number, rank, dense_rank, lag, lead, sum as spark_sum
+
+w = Window.partitionBy("user_id").orderBy(col("ts"))
+w_unbounded = Window.partitionBy("user_id").orderBy("ts").rowsBetween(Window.unboundedPreceding, Window.currentRow)
+
+df.withColumn("row_num", row_number().over(w))
+df.withColumn("prev_amt", lag("amount", 1).over(w))
+df.withColumn("running_total", spark_sum("amount").over(w_unbounded))</code></pre>
+    </div>
+    <p class="syntax-title">SQL</p>
+    <div class="code-block">
+<pre><code class="language-python">df.createOrReplaceTempView("events")
+spark.sql("SELECT region, SUM(amount) FROM events GROUP BY region").show()
+spark.sql("SELECT *, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY ts) AS rn FROM events")</code></pre>
+    </div>
+
+    <h2 id="pyspark-udf">15. PySpark: UDFs &amp; Pandas UDF</h2>
+    <p class="syntax-title">Row-at-a-time UDF (slower, serialization overhead)</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+@udf(returnType=StringType())
+def my_upper(s):
+    return s.upper() if s else None
+
+df.withColumn("name_upper", my_upper(col("name")))</code></pre>
+    </div>
+    <p class="syntax-title">Pandas UDF (vectorized, faster)</p>
+    <div class="code-block">
+<pre><code class="language-python">from pyspark.sql.functions import pandas_udf
+import pandas as pd
+
+@pandas_udf("double")
+def mean_udf(s: pd.Series) -> pd.Series:
+    return (s - s.mean())
+
+df.withColumn("centered", mean_udf(col("x")))</code></pre>
+    </div>
+
+    <h2 id="pyspark-persist">16. PySpark: cache &amp; persistence levels</h2>
+    <p class="syntax-title">Cache and persist</p>
+    <div class="code-block">
+<pre><code class="language-python">df.cache()   # same as persist(StorageLevel.MEMORY_AND_DISK)
+
+from pyspark import StorageLevel
+df.persist(StorageLevel.MEMORY_AND_DISK)
+df.persist(StorageLevel.DISK_ONLY)
+df.persist(StorageLevel.MEMORY_AND_DISK_SER)   # serialized (less memory, more CPU)
+df.unpersist()</code></pre>
+    </div>
+    <p>Use <code>cache()</code> or <code>persist()</code> when a DataFrame is reused across multiple actions. First action materializes the cache; later actions reuse it.</p>
+
+    <h2 id="pyspark-io">17. PySpark: read/write options &amp; streaming</h2>
+    <p class="syntax-title">Read options</p>
+    <div class="code-block">
+<pre><code class="language-python">spark.read.option("header", "true").option("delimiter", "|").csv("path/")
+spark.read.option("mergeSchema", "true").parquet("path/")
+spark.read.schema(my_schema).csv("path/")</code></pre>
+    </div>
+    <p class="syntax-title">Write options</p>
+    <div class="code-block">
+<pre><code class="language-python">df.write.mode("overwrite").parquet("path/")   # append, ignore, error
+df.write.partitionBy("date", "region").parquet("path/")
+df.write.bucketBy(32, "user_id").sortBy("ts").saveAsTable("events")</code></pre>
+    </div>
+    <p class="syntax-title">Structured Streaming (brief)</p>
+    <div class="code-block">
+<pre><code class="language-python">stream = spark.readStream.schema(schema).parquet("s3://bucket/stream/")
+stream.writeStream.outputMode("append").format("parquet").option("checkpointLocation", "...").start("s3://out/")</code></pre>
+    </div>
+
+    <h2 id="distributed-optimizations">18. Distributed data optimizations for large datasets</h2>
+    <p>When data is large or distributed, optimize for <strong>I/O</strong>, <strong>shuffles</strong>, and <strong>parallelism</strong>.</p>
+
+    <h3>Partitioning</h3>
+    <ul>
+        <li><strong>Input partitioning</strong> – Store data already partitioned by a key (e.g. <code>date=2024-01-01/</code>, <code>country=US/</code>). Reads can skip irrelevant partitions (partition pruning).</li>
+        <li><strong>Spark repartition vs coalesce</strong> – <code>repartition(n)</code> shuffles into <code>n</code> partitions (use before heavy aggregation or to increase parallelism). <code>coalesce(n)</code> merges to <code>n</code> without full shuffle (use to reduce partitions before write).</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python"># Write partitioned by column
+df.write.partitionBy("date", "region").parquet("s3://bucket/out/")
+
+# Read only some partitions
+spark.read.parquet("s3://bucket/out/").filter("date = '2024-01-01'")  # partition pruning
+
+# Repartition before wide transformation; coalesce before single-file write
+df.repartition(200, "user_id").groupBy("user_id").sum("amount")
+df.coalesce(1).write.csv("single_file.csv")  # fewer output files</code></pre>
+    </div>
+
+    <h3>File formats</h3>
+    <ul>
+        <li><strong>Parquet</strong> – Columnar; compression; predicate pushdown (skip row groups); good for analytics. Default choice in Spark.</li>
+        <li><strong>ORC</strong> – Also columnar; similar benefits; used in Hive.</li>
+        <li><strong>CSV</strong> – Row-based; no pushdown; avoid for very large distributed data.</li>
+    </ul>
+    <div class="feature-block">
+        <h4>Predicate pushdown</h4>
+        <p>Filters are pushed to the reader: only row groups (Parquet) or splits that can satisfy the filter are read. Use explicit filters: <code>df.filter("date = '2024-01-01'")</code> so the engine can push them down.</p>
+    </div>
+
+    <h3>Broadcast join</h3>
+    <p>When one side of a join is small, broadcast it to every executor so the join is local (no shuffle).</p>
+    <div class="code-block">
+<pre><code class="language-python"># Spark can auto-broadcast under spark.sql.autoBroadcastJoinThreshold
+df_large.join(broadcast(df_small), "key")</code></pre>
+    </div>
+
+    <h3>Caching</h3>
+    <p>Reused DataFrames: <code>df.cache()</code> or <code>df.persist(storageLevel)</code>. Data is kept in memory (or memory+disk) after the first action so subsequent actions don’t recompute. Use for iterative algorithms or when the same DF is read multiple times.</p>
+    <div class="code-block">
+<pre><code class="language-python">base = spark.read.parquet("s3://bucket/events/").filter("year = 2024").cache()
+base.count()  # materializes cache
+base.groupBy("region").count().show()
+base.join(other, "id").count()  # reuses cached base</code></pre>
+    </div>
+
+    <h3>Pandas on large data (single machine)</h3>
+    <ul>
+        <li><strong>Chunked reads</strong> – <code>pd.read_csv(..., chunksize=N)</code>; process and aggregate per chunk.</li>
+        <li><strong>Memory-mapped files</strong> – <code>np.memmap</code> or columnar formats so the OS pages in only what’s needed.</li>
+        <li><strong>Dask</strong> – Pandas-like API; runs on a single machine or cluster; lazy and partitioned. Alternative when you want “Pandas but bigger” without full Spark.</li>
+    </ul>
+
+    <h3>Summary: optimization checklist</h3>
+    <ul>
+        <li>Store data partitioned by common filter/join keys; use columnar formats (Parquet/ORC).</li>
+        <li>Apply filters early so predicate pushdown and partition pruning apply.</li>
+        <li>Broadcast small tables in joins; repartition for even parallelism; coalesce to limit output files.</li>
+        <li>Cache DataFrames that are reused; avoid unnecessary <code>collect()</code> of large results.</li>
+    </ul>
+
+    <h2 id="summary">19. Summary</h2>
+    <table style="width:100%; border-collapse: collapse; margin-top: 12px; font-size: 0.95em;">
+        <thead>
+            <tr style="background: #f6f8fa; text-align: left;">
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Topic</th>
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Concepts</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Pandas</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Series/DataFrame; loc/iloc/at/iat; set_index/reset_index; missing data; dtypes; describe, value_counts, groupby, map/apply/transform; merge/concat; pivot/melt/stack; strings (.str), datetime; I/O and chunking.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">PySpark</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Lazy DAG; col/lit/expr; when/coalesce; built-in functions; schema/StructType; joins, union, dropDuplicates; window functions; SQL; UDFs and Pandas UDF; cache/persist levels; read/write options; streaming.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Distributed</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Partitioning, Parquet/ORC, predicate pushdown, broadcast join, repartition/coalesce, cache.</td></tr>
+        </tbody>
+    </table>
+
+    <p style="margin-top: 32px;"><a href="index.html">← Back to Algos</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
