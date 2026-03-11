@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyTorch Tutorial – Karpathy Repos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 32px; color: #24292f; }
+        h3 { margin-top: 20px; color: #34495e; font-size: 1.1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .repo-list { list-style: none; padding: 0; border: 1px solid #e1e4e8; border-radius: 6px; margin: 16px 0; }
+        .repo-list li { border-bottom: 1px solid #e1e4e8; padding: 10px 14px; }
+        .repo-list li:last-child { border-bottom: none; }
+        .repo-list a { font-weight: 500; }
+        .repo-desc { font-size: 0.9em; color: #57606a; margin-top: 4px; }
+        .feature-block { background: #f6f8fa; border-left: 4px solid #0366d6; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .feature-block h4 { margin-top: 0; margin-bottom: 8px; }
+        .feature-block ul { margin: 8px 0 0 20px; }
+        .feature-block li { margin-bottom: 4px; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 6px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .badge { display: inline-block; background: #0969da; color: #fff; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+        .code-block { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 14px; }
+        .code-block pre { margin: 0; padding: 16px; }
+        .code-block code { background: transparent; padding: 0; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+    </style>
+</head>
+<body>
+    <h1>PyTorch Tutorial – From Karpathy’s Repos</h1>
+    <p>This page maps <strong>PyTorch concepts and features</strong> to implementations in <a href="https://github.com/karpathy" target="_blank" rel="noopener">Andrej Karpathy’s GitHub</a> repos. Use it as a guided tour: learn the concept, then see it in real code.</p>
+
+    <h2>Repos Covered (with GitHub links)</h2>
+    <ul class="repo-list">
+        <li>
+            <a href="https://github.com/karpathy/nanoGPT" target="_blank" rel="noopener">nanoGPT</a>
+            <div class="repo-desc">Simplest, fastest repo for training/finetuning medium-sized GPTs. PyTorch, DDP, mixed precision, torch.compile.</div>
+        </li>
+        <li>
+            <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a>
+            <div class="repo-desc">End-to-end ChatGPT-style pipeline; train in ~4 hours for ~$100. FP8, Muon optimizer, torchrun.</div>
+        </li>
+        <li>
+            <a href="https://github.com/karpathy/minGPT" target="_blank" rel="noopener">minGPT</a>
+            <div class="repo-desc">Minimal PyTorch re-implementation of OpenAI GPT. Educational: model.py, trainer.py, BPE.</div>
+        </li>
+        <li>
+            <a href="https://github.com/karpathy/micrograd" target="_blank" rel="noopener">micrograd</a>
+            <div class="repo-desc">Tiny autograd engine + neural net with PyTorch-like API. No PyTorch—learn backprop and autodiff.</div>
+        </li>
+        <li>
+            <a href="https://github.com/karpathy/llm.c" target="_blank" rel="noopener">llm.c</a>
+            <div class="repo-desc">LLM training in raw C/CUDA. Not PyTorch—included for contrast and “how it works at the metal.”</div>
+        </li>
+        <li>
+            <a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener">autoresearch</a>
+            <div class="repo-desc">AI agents running research on single-GPU nanochat training. Python/PyTorch automation.</div>
+        </li>
+    </ul>
+
+    <div class="toc">
+        <strong>Table of contents – PyTorch features by topic</strong>
+        <ol>
+            <li><a href="#autograd">Autograd &amp; backprop</a></li>
+            <li><a href="#tensors-modules">Tensors, nn.Module, parameters</a></li>
+            <li><a href="#transformer">Transformers: attention, blocks, GPT</a></li>
+            <li><a href="#training-loop">Training loop: loss, backward, optimizer</a></li>
+            <li><a href="#optimizers">Optimizers (AdamW, Muon)</a></li>
+            <li><a href="#distributed">Distributed &amp; multi-GPU (DDP, FSDP, torchrun)</a></li>
+            <li><a href="#dataloader-distributed">Distributed data loader &amp; optimization</a></li>
+            <li><a href="#precision">Mixed precision &amp; FP8</a></li>
+            <li><a href="#compilation">torch.compile &amp; speed</a></li>
+            <li><a href="#data-tokenization">Data loading &amp; tokenization</a></li>
+            <li><a href="#data-preparation">Data preparation</a></li>
+            <li><a href="#finetuning">Finetuning models</a></li>
+            <li><a href="#evaluation">Model evaluation</a></li>
+            <li><a href="#checkpoints-config">Checkpoints, config, and inference</a></li>
+            <li><a href="#rl-posttraining">Reinforcement learning (RL) post-training loop</a></li>
+            <li><a href="#ai-agents">AI agent inner workings</a></li>
+            <li><a href="#cuda-cpp">Low-level CUDA &amp; C++ optimizations</a></li>
+        </ol>
+    </div>
+
+    <h2 id="autograd">1. Autograd &amp; backprop</h2>
+    <p>PyTorch’s <code>autograd</code> records ops on tensors and computes gradients via backprop. Understanding this is easier if you see a minimal version first.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch
+
+# Tensors track ops when requires_grad=True
+x = torch.tensor([2.0], requires_grad=True)
+y = x ** 2 + 3 * x
+y.backward()          # compute gradients
+print(x.grad)         # dy/dx = 2*x + 3 → 7.0
+
+# In training: loss is a scalar; backward() fills .grad on all parameters
+loss = model(inputs).mean()
+loss.backward()       # populates parameter.grad
+optimizer.step()      # optimizer uses .grad to update parameters</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/micrograd/blob/master/micrograd/engine.py" target="_blank" rel="noopener">micrograd/engine.py</a></strong> – <code>Value</code> class and <code>backward()</code> (~100 lines). Builds intuition for <code>loss.backward()</code>.</li>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py" target="_blank" rel="noopener">minGPT mingpt/trainer.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py#L69" target="_blank" rel="noopener">loss.backward()</a>, <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py#L70" target="_blank" rel="noopener">gradient clipping</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L230" target="_blank" rel="noopener">loss.backward()</a>, gradient accumulation, scaler for mixed precision.</li>
+        </ul>
+    </div>
+
+    <h2 id="tensors-modules">2. Tensors, nn.Module, parameters</h2>
+    <p>Models in PyTorch are <code>nn.Module</code>s; parameters are <code>nn.Parameter</code> and get gradients. Submodules and parameters are registered automatically.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch
+import torch.nn as nn
+
+class MyModel(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super().__init__()
+        self.linear = nn.Linear(in_dim, out_dim)   # registered submodule
+        self.scale = nn.Parameter(torch.ones(1))  # registered parameter
+
+    def forward(self, x):
+        return self.scale * self.linear(x)
+
+model = MyModel(64, 10)
+list(model.parameters())   # all parameters (from linear + scale)
+model(x)                   # calls forward(x)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py" target="_blank" rel="noopener">minGPT mingpt/model.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py#L185" target="_blank" rel="noopener">GPT</a> as <code>nn.Module</code>, config-driven layers.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">nanoGPT model.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py#L1" target="_blank" rel="noopener">GPTConfig</a>, <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py#L180" target="_blank" rel="noopener">GPT nn.Module</a>, embed, blocks, lm_head.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Model defs and parameter groups: <a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">scripts/base_train.py</a>.</li>
+        </ul>
+    </div>
+
+    <h2 id="transformer">3. Transformers: attention, blocks, GPT</h2>
+    <p>Multi-head self-attention, layer norm, MLP blocks, causal masking—core of GPT-style models.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Causal self-attention: Q,K,V from one linear, then mask future positions
+B, T, C = batch, seq_len, n_embd
+qkv = self.c_attn(x)  # (B,T,3*C)
+q, k, v = qkv.split(n_embd, dim=2)
+att = (q @ k.transpose(-2, -1)) * (1.0 / (C ** 0.5))
+att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float('-inf'))
+att = F.softmax(att, dim=-1)
+out = att @ v
+
+# Pre-norm block: LayerNorm -> Attention -> residual; LayerNorm -> MLP -> residual
+x = x + self.attn(self.ln1(x))
+x = x + self.mlp(self.ln2(x))</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py" target="_blank" rel="noopener">minGPT mingpt/model.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py#L80" target="_blank" rel="noopener">Block</a>, <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py#L23" target="_blank" rel="noopener">CausalSelfAttention</a>, <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/model.py#L65" target="_blank" rel="noopener">MLP</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/model.py" target="_blank" rel="noopener">nanoGPT model.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py#L95" target="_blank" rel="noopener">CausalSelfAttention</a>, <a href="https://github.com/karpathy/nanoGPT/blob/master/model.py#L130" target="_blank" rel="noopener">Block</a>; single matmul for Q,K,V.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Transformer stack: <a href="https://github.com/karpathy/nanochat/blob/master/model.py" target="_blank" rel="noopener">model.py</a> (or equivalent in repo).</li>
+        </ul>
+    </div>
+
+    <h2 id="training-loop">4. Training loop: loss, backward, optimizer</h2>
+    <p>Standard pattern: forward → loss → backward → optimizer step (with optional gradient accumulation and clipping).</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">model.train()
+for batch in dataloader:
+    x, y = batch
+    logits = model(x)
+    loss = F.cross_entropy(logits, y)
+
+    optimizer.zero_grad(set_to_none=True)  # clear previous gradients
+    loss.backward()                         # compute gradients
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    optimizer.step()
+    scheduler.step()                        # optional: LR schedule</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># Gradient accumulation (effective batch = batch_size * accum_steps)
+optimizer.zero_grad(set_to_none=True)
+for i, batch in enumerate(dataloader):
+    loss = model(batch) / accum_steps
+    loss.backward()
+    if (i + 1) % accum_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py" target="_blank" rel="noopener">minGPT mingpt/trainer.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py#L54" target="_blank" rel="noopener">Training loop</a>: batch, model(x), loss.backward(), optimizer.step(), scheduler.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L200" target="_blank" rel="noopener">Main loop</a>, <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L220" target="_blank" rel="noopener">gradient accumulation</a>, scaler, logging.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">nanochat scripts/base_train.py</a></strong> – Pretrain/SFT loops, multi-stage training.</li>
+        </ul>
+    </div>
+
+    <h2 id="optimizers">5. Optimizers (AdamW, Muon)</h2>
+    <p>AdamW is the default for LLMs; nanochat adds Muon for main weights with Adam for embeddings.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch.optim as optim
+
+# AdamW: decoupled weight decay, standard for transformers
+optimizer = optim.AdamW(
+    model.parameters(),
+    lr=3e-4,
+    weight_decay=0.01,
+    betas=(0.9, 0.95)
+)
+
+# Learning rate scheduler (e.g. cosine decay with warmup)
+from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
+warmup = LinearLR(optimizer, start_factor=0.1, total_iters=warmup_iters)
+decay = CosineAnnealingLR(optimizer, T_max=total_iters)
+scheduler = SequentialLR(optimizer, [warmup, decay], [warmup_iters])</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L130" target="_blank" rel="noopener">AdamW</a>, weight decay, LR; <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L140" target="_blank" rel="noopener">scheduler</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py" target="_blank" rel="noopener">minGPT mingpt/trainer.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/trainer.py#L30" target="_blank" rel="noopener">AdamW config</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">nanochat scripts/base_train.py</a></strong> – Muon + Adam parameter groups (search for optimizer).</li>
+        </ul>
+    </div>
+
+    <h2 id="distributed">6. Distributed &amp; multi-GPU (DDP, FSDP, torchrun)</h2>
+    <p>Data-parallel training across GPUs/nodes: <strong>DDP</strong> replicates the model and syncs gradients each step; <strong>FSDP</strong> (Fully Sharded Data Parallel) shards parameters, gradients, and optimizer state across ranks so very large models can fit. Launchers like <code>torchrun</code> start one process per GPU.</p>
+    <p class="syntax-title">Concepts</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>DDP</strong> – Each rank holds a full copy of the model. After backward, gradients are all-reduced so all replicas stay in sync. Good when the model fits in one GPU’s memory.</li>
+        <li><strong>FSDP</strong> – Parameters, gradients, and optimizer states are sharded across ranks; each rank only keeps 1/world_size. During forward/backward, all-gather brings the full layer for that step, then you free the gathered copy. Reduces per-GPU memory so you can scale to larger models or larger batch sizes.</li>
+        <li><strong>Process group</strong> – <code>init_process_group(backend="nccl")</code> ties the processes together; <code>LOCAL_RANK</code> / <code>RANK</code> / <code>WORLD_SIZE</code> from the launcher.</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage (DDP)</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+# Initialize process group (each process runs this)
+dist.init_process_group(backend="nccl")  # or "gloo" for CPU
+local_rank = int(os.environ["LOCAL_RANK"])
+torch.cuda.set_device(local_rank)
+device = torch.device("cuda", local_rank)
+
+model = MyModel().to(device)
+model = DDP(model, device_ids=[local_rank])
+
+# Launch with: torchrun --nproc_per_node=8 train.py</code></pre>
+    </div>
+    <p class="syntax-title">PyTorch syntax &amp; usage (FSDP)</p>
+    <div class="code-block">
+<pre><code class="language-python">import torch.distributed as dist
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP, StateDictType
+from torch.distributed.fsdp import ShardingStrategy, MixedPrecision
+
+# After init_process_group, wrap model with FSDP
+# ShardingStrategy: FULL_SHARD (default, shard params/grads/optim state), SHARD_GRAD_OP, or NO_SHARD
+model = MyModel()
+model = FSDP(
+    model,
+    sharding_strategy=ShardingStrategy.FULL_SHARD,
+    device_id=local_rank,
+    mixed_precision=MixedPrecision(
+        param_dtype=torch.bfloat16,
+        reduce_dtype=torch.bfloat16,
+    ),
+)
+# Optimizer sees flattened parameter groups from FSDP
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+
+# Save/load: use state_dict_type and rank 0 for full state, or distributed checkpoint
+with FSDP.state_dict_type(model, StateDictType.FULL_STATE_DICT):
+    state = model.state_dict()
+    if dist.get_rank() == 0:
+        torch.save(state, "model.pt")</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L60" target="_blank" rel="noopener">DDP init</a>, <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L95" target="_blank" rel="noopener">DistributedDataParallel</a>; <a href="https://github.com/karpathy/nanoGPT/tree/master/config" target="_blank" rel="noopener">config/</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat/blob/master/speedrun.sh" target="_blank" rel="noopener">nanochat speedrun.sh</a></strong> – <code>torchrun</code> launch; <a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">scripts/base_train.py</a> for dist setup.</li>
+            <li><strong>PyTorch FSDP</strong> – <a href="https://pytorch.org/docs/stable/fsdp.html" target="_blank" rel="noopener">torch.distributed.fsdp</a>; <a href="https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html" target="_blank" rel="noopener">FSDP tutorial</a>.</li>
+        </ul>
+    </div>
+
+    <h2 id="dataloader-distributed">7. Distributed data loader &amp; optimization</h2>
+    <p>In multi-GPU training, each rank must see a <strong>different subset of the data</strong> (no duplicate batches). Use <code>DistributedSampler</code> so each rank gets non-overlapping indices. Then optimize the loader with <strong>memory</strong> (pinned memory, persistent workers) and <strong>cache layers</strong> (in-memory or memory-mapped data) so the GPU is not waiting on I/O.</p>
+    <p class="syntax-title">Concepts</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>DistributedSampler</strong> – Partitions dataset indices across ranks; each rank gets <code>len(dataset) // world_size</code> samples per epoch. Call <code>sampler.set_epoch(epoch)</code> so shuffling differs each epoch.</li>
+        <li><strong>Memory optimization</strong> – <code>pin_memory=True</code> uses pinned (page-locked) host memory so transfer to GPU is async and faster. <code>persistent_workers=True</code> keeps worker processes alive between epochs (avoids fork overhead). <code>prefetch_factor</code> controls how many batches each worker prefetches.</li>
+        <li><strong>Cache layers</strong> – Load the full dataset (or a shard) into RAM once and serve from memory; or use memory-mapped arrays (<code>np.memmap</code>, <code>torch.from_file</code>) so the OS pages in data on access. Reduces repeated disk reads and speeds up epoch start.</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">from torch.utils.data import DataLoader, DistributedSampler
+
+# Distributed sampler: each rank gets a unique subset
+sampler = DistributedSampler(
+    dataset,
+    num_replicas=dist.get_world_size(),
+    rank=dist.get_rank(),
+    shuffle=True,
+)
+dataloader = DataLoader(
+    dataset,
+    batch_size=per_device_batch,
+    sampler=sampler,  # do not pass shuffle=True when using sampler
+    num_workers=4,
+    pin_memory=True,
+    persistent_workers=True,
+    prefetch_factor=2,
+)
+
+# In training loop, set epoch for correct shuffling
+for epoch in range(epochs):
+    sampler.set_epoch(epoch)
+    for batch in dataloader:
+        batch = {k: v.to(device, non_blocking=True) for k, v in batch.items()}
+        ...</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># Cache layer: load dataset into RAM once (if it fits)
+class CachedDataset(torch.utils.data.Dataset):
+    def __init__(self, underlying, load_all=True):
+        self.underlying = underlying
+        self.cache = []
+        if load_all:
+            for i in range(len(underlying)):
+                self.cache.append(underlying[i])
+
+    def __len__(self):
+        return len(self.underlying)
+
+    def __getitem__(self, i):
+        if self.cache:
+            return self.cache[i]
+        return self.underlying[i]
+
+# Or memory-mapped: dataset lives on disk, OS pages it in
+import numpy as np
+data = np.memmap("train.bin", dtype=np.uint16, mode="r", shape=(N, block_size))
+# In Dataset.__getitem__, slice data[i] and convert to tensor; no full load</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L165" target="_blank" rel="noopener">DataLoader</a> with <code>sampler</code> in distributed mode; <a href="https://github.com/karpathy/nanoGPT/blob/master/data" target="_blank" rel="noopener">data/</a> uses memory-mapped .bin for large corpora.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Distributed data loading in training scripts.</li>
+            <li><strong>PyTorch</strong> – <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DistributedSampler" target="_blank" rel="noopener">DistributedSampler</a>; <a href="https://pytorch.org/docs/stable/data.html#memory-pinning" target="_blank" rel="noopener">pin_memory</a>; <a href="https://pytorch.org/docs/stable/data.html#single-and-multi-process-data-loading" target="_blank" rel="noopener">DataLoader workers</a>.</li>
+        </ul>
+    </div>
+
+    <h2 id="precision">8. Mixed precision &amp; FP8</h2>
+    <p>FP16/BF16 mixed precision with GradScaler; FP8 on H100+ for memory and speed.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">from torch.amp import autocast, GradScaler
+
+scaler = GradScaler('cuda')  # for float16; bfloat16 often doesn't need scaling
+
+for batch in dataloader:
+    optimizer.zero_grad(set_to_none=True)
+    with autocast(device_type='cuda', dtype=torch.bfloat16):  # or torch.float16
+        logits = model(batch)
+        loss = F.cross_entropy(logits, targets)
+    scaler.scale(loss).backward()
+    scaler.unscale_(optimizer)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    scaler.step(optimizer)
+    scaler.update()</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L265" target="_blank" rel="noopener">autocast</a>, bfloat16/float16, <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L235" target="_blank" rel="noopener">GradScaler</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">nanochat scripts/base_train.py</a></strong> – FP8 / autocast (search for amp or dtype).</li>
+        </ul>
+    </div>
+
+    <h2 id="compilation">9. torch.compile &amp; speed</h2>
+    <p>PyTorch 2.0+ <code>torch.compile</code> for faster training and inference.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python"># Wrap model for JIT compilation (PyTorch 2.0+)
+model = GPT(config).to(device)
+if compile_model:
+    model = torch.compile(model, mode="reduce-overhead")  # or mode="max-autotune"
+
+# First forward may be slow (compilation); later steps are faster
+logits = model(x)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L115" target="_blank" rel="noopener">torch.compile(model)</a> (optional wrap).</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat/blob/master/scripts/base_train.py" target="_blank" rel="noopener">nanochat scripts/base_train.py</a></strong> – compile / optimization (if used in script).</li>
+        </ul>
+    </div>
+
+    <h2 id="data-tokenization">10. Data loading &amp; tokenization</h2>
+    <p>Datasets, tokenizers (BPE, tiktoken), batching, and DataLoader.</p>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">from torch.utils.data import Dataset, DataLoader
+
+class TokenDataset(Dataset):
+    def __init__(self, tokens, block_size):
+        self.data = torch.tensor(tokens, dtype=torch.long)
+        self.block_size = block_size
+    def __len__(self):
+        return len(self.data) - self.block_size
+    def __getitem__(self, i):
+        x = self.data[i : i + self.block_size]
+        y = self.data[i + 1 : i + self.block_size + 1]
+        return x, y
+
+dataset = TokenDataset(encoded, block_size=128)
+dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># Tokenization: tiktoken (OpenAI) or Hugging Face
+import tiktoken
+enc = tiktoken.get_encoding("gpt2")
+tokens = enc.encode("Hello world")
+text = enc.decode(tokens)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/minGPT/blob/master/mingpt/bpe.py" target="_blank" rel="noopener">minGPT mingpt/bpe.py</a></strong> – <a href="https://github.com/karpathy/minGPT/blob/master/mingpt/bpe.py#L1" target="_blank" rel="noopener">BPE</a> (OpenAI-style); <a href="https://github.com/karpathy/minGPT/blob/master/demo.ipynb" target="_blank" rel="noopener">demo.ipynb</a> dataset usage.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L165" target="_blank" rel="noopener">DataLoader / batching</a>; <a href="https://github.com/karpathy/nanoGPT/tree/master/data" target="_blank" rel="noopener">data/</a> scripts, tiktoken.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – <a href="https://github.com/karpathy/nanochat/blob/master/scripts" target="_blank" rel="noopener">scripts/</a> for tokenization, pretrain/SFT data, eval.</li>
+        </ul>
+    </div>
+
+    <h2 id="data-preparation">11. Data preparation</h2>
+    <p>Before training, raw text or conversation data is turned into token IDs, chunked into fixed-length blocks, and split into train/val. For pretraining you often train a BPE tokenizer on the same corpus; for SFT you format instruction–response pairs and optionally pack multiple examples per sequence.</p>
+    <p class="syntax-title">Pipeline (concepts)</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Tokenizer</strong> – Train BPE (or use pretrained tiktoken/GPT-2). Vocabulary size and merge rules affect coverage and sequence length.</li>
+        <li><strong>Chunking</strong> – Concatenate documents, then split into non-overlapping blocks of <code>block_size</code> tokens (e.g. 1024). No document should span a chunk boundary if you want clean boundaries, or use sliding window with overlap for more data.</li>
+        <li><strong>Train/val split</strong> – Hold out a fraction (e.g. 5%) by time or by document; never mix val into train.</li>
+        <li><strong>Deduplication</strong> – Optional: remove near-duplicate documents (e.g. minhash) to reduce memorization and improve generalization.</li>
+        <li><strong>SFT/chat format</strong> – Each example: system + user + assistant messages. Tokenize with special tokens (e.g. &lt;|im_start|&gt;, &lt;|im_end|&gt;) and pack or pad to max length; mask loss on padding and sometimes on user turns (train only on assistant).</li>
+    </ul>
+    <p class="syntax-title">PyTorch / script pattern</p>
+    <div class="code-block">
+<pre><code class="language-python"># Pretrain data prep: one .bin file of token ids (uint16), one .meta with vocab size etc.
+import numpy as np
+import tiktoken
+enc = tiktoken.get_encoding("gpt2")
+with open("input.txt") as f:
+    text = f.read()
+tokens = enc.encode_ordinary(text)
+block_size = 1024
+# Chunk into blocks (drop last incomplete block)
+data = np.array(tokens[: len(tokens) // block_size * block_size], dtype=np.uint16)
+data = data.reshape(-1, block_size)
+np.save("train.npy", data[:int(0.95*len(data))])
+np.save("val.npy", data[int(0.95*len(data)):])
+
+# Or memory-map one big file for large corpora
+with open("train.bin", "wb") as f:
+    np.array(tokens, dtype=np.uint16).tofile(f)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/tree/master/data" target="_blank" rel="noopener">nanoGPT data/</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/data/shakespeare/prepare.py" target="_blank" rel="noopener">prepare.py</a> (tokenize, train/val split, .bin); <a href="https://github.com/karpathy/nanoGPT/blob/master/data/openwebtext" target="_blank" rel="noopener">openwebtext</a> for larger corpora.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Data prep for pretrain + SFT: <a href="https://github.com/karpathy/nanochat/blob/master/scripts" target="_blank" rel="noopener">scripts/</a> (tokenizer, chunking, chat format).</li>
+            <li><strong><a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener">autoresearch</a></strong> – <a href="https://github.com/karpathy/autoresearch/blob/master/prepare.py" target="_blank" rel="noopener">prepare.py</a>: BPE training, data prep, eval harness (fixed, agent does not edit).</li>
+        </ul>
+    </div>
+
+    <h2 id="finetuning">12. Finetuning models</h2>
+    <p><strong>Finetuning</strong> starts from a pretrained checkpoint and updates the model on a smaller, often task-specific dataset. <strong>Supervised finetuning (SFT)</strong> uses next-token (cross-entropy) loss on instruction–response or chat data. You can finetune all parameters or use parameter-efficient methods (LoRA, adapters).</p>
+    <p class="syntax-title">Concepts</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Load checkpoint</strong> – Restore state_dict from pretrained (e.g. OpenAI GPT-2 or your own pretrain run). Match model config (n_layer, n_head, etc.) or resize embeddings if vocab changed.</li>
+        <li><strong>Instruction / chat format</strong> – Examples are (system, user, assistant) or (prompt, completion). Tokenize with role tokens; often only the assistant part gets loss (mask user/system in the loss).</li>
+        <li><strong>Learning rate</strong> – Typically 1e-5 to 5e-5 for full finetune; 1e-4 to 3e-4 for LoRA. Lower than pretrain to avoid forgetting.</li>
+        <li><strong>LoRA (Low-Rank Adaptation)</strong> – Train small low-rank matrices that multiply the pretrained weights; only LoRA params are updated. Saves memory and speeds training; merge back for inference or keep separate.</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python"># Load pretrained checkpoint (e.g. GPT-2 124M)
+from transformers import GPT2LMHeadModel
+model = GPT2LMHeadModel.from_pretrained("gpt2")
+# Or from local .pt: model.load_state_dict(torch.load("ckpt.pt"))
+
+# SFT: forward on (prompt + response), loss only on response tokens
+def sft_loss(model, input_ids, response_mask):
+    logits = model(input_ids).logits
+    shift_logits = logits[:, :-1].contiguous().view(-1, logits.size(-1))
+    shift_labels = input_ids[:, 1:].contiguous().view(-1)
+    loss = F.cross_entropy(shift_logits, shift_labels, reduction="none")
+    loss = (loss.view(-1) * response_mask[:, 1:].reshape(-1)).sum() / response_mask[:, 1:].sum().clamp(min=1)
+    return loss
+
+# Train for a few epochs
+optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5)
+for batch in dataloader:
+    loss = sft_loss(model, batch["input_ids"], batch["response_mask"])
+    loss.backward()
+    optimizer.step()
+    optimizer.zero_grad(set_to_none=True)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT#finetuning" target="_blank" rel="noopener">Finetuning</a>: load from <code>init_from</code> (pretrain or resume); same training loop, smaller dataset.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Full pipeline: pretrain then <a href="https://github.com/karpathy/nanochat/blob/master/scripts" target="_blank" rel="noopener">SFT scripts</a> (instruction/chat data, loss masking).</li>
+        </ul>
+    </div>
+
+    <h2 id="evaluation">13. Model evaluation</h2>
+    <p>Evaluation measures how well the model has learned. During training you monitor <strong>validation loss</strong> (and optionally <strong>perplexity</strong>). For downstream quality you run <strong>benchmarks</strong> (e.g. accuracy on held-out tasks) or <strong>human eval</strong>.</p>
+    <p class="syntax-title">Concepts</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Validation loss</strong> – Forward on val set, no backward; average cross-entropy. Lower is better. Use for early stopping and hyperparameter choice.</li>
+        <li><strong>Perplexity</strong> – exp(mean cross-entropy). Interpretable as “effective branching factor”; lower is better.</li>
+        <li><strong>Bits per byte (bpb)</strong> – For raw bytes: (loss in nats) / ln(2) ≈ bits per character. Vocabulary-independent, good for comparing tokenizers.</li>
+        <li><strong>Benchmarks</strong> – Run model on fixed prompts (e.g. few-shot or zero-shot), parse answers, compare to gold. Examples: MMLU, GSM8K, HumanEval (code), DCLM CORE (nanochat leaderboard).</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python">@torch.no_grad()
+def evaluate(model, dataloader):
+    model.eval()
+    total_loss, total_tokens = 0.0, 0
+    for batch in dataloader:
+        input_ids = batch["input_ids"].to(model.device)
+        logits = model(input_ids).logits
+        loss = F.cross_entropy(
+            logits[:, :-1].reshape(-1, logits.size(-1)),
+            input_ids[:, 1:].reshape(-1),
+            ignore_index=pad_id,
+        )
+        n = (input_ids != pad_id).sum().item()
+        total_loss += loss.item() * n
+        total_tokens += n
+    return total_loss / total_tokens  # mean loss
+
+# Perplexity
+import math
+val_loss = evaluate(model, val_loader)
+ppl = math.exp(val_loss)
+# Bits per byte (if tokenizer is byte-level or you measure per byte)
+bpb = val_loss / math.log(2)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – Val loss logged during training; <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">eval loop</a> (no_grad, model.eval()).</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – <a href="https://github.com/karpathy/nanochat/discussions/481" target="_blank" rel="noopener">Evaluation</a> and <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">DCLM CORE / leaderboard</a>; scripts for running benchmarks.</li>
+            <li><strong><a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener">autoresearch</a></strong> – <a href="https://github.com/karpathy/autoresearch/blob/master/prepare.py" target="_blank" rel="noopener">prepare.py</a>: val <strong>bits-per-byte</strong> (val_bpb) as the metric the agent optimizes.</li>
+        </ul>
+    </div>
+
+    <h2 id="checkpoints-config">14. Checkpoints, config, and inference</h2>
+    <p><strong>Checkpointing</strong> saves model and optimizer state so you can resume training or load for inference. <strong>Config</strong> (YAML, dataclass, or CLI) keeps hyperparameters in one place. <strong>Inference</strong> runs the model without gradients, often with batching and KV-cache for generation.</p>
+    <p class="syntax-title">Concepts</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Save</strong> – <code>torch.save({"model": model.state_dict(), "optimizer": optimizer.state_dict(), "step": step}, path)</code>. Optionally save config and RNG state for exact resume.</li>
+        <li><strong>Load</strong> – <code>model.load_state_dict(ckpt["model"])</code>; match keys and shapes (strict=True). For inference, only model state is needed.</li>
+        <li><strong>Config</strong> – Single source of truth for batch size, LR, block size, n_layer, etc. nanoGPT uses a config dict / YAML; override via CLI (e.g. <code>--batch_size 32</code>).</li>
+        <li><strong>Inference</strong> – <code>model.eval(); torch.no_grad(); model.generate(...)</code>. KV-cache caches key/value for previous tokens to avoid recomputing; use for long generations.</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage</p>
+    <div class="code-block">
+<pre><code class="language-python"># Save checkpoint (training)
+ckpt = {"model": model.state_dict(), "optimizer": optimizer.state_dict(), "iter_num": iter_num, "best_val_loss": best_val_loss}
+torch.save(ckpt, out_dir / "ckpt.pt")
+
+# Load for resume or inference
+ckpt = torch.load("ckpt.pt", map_location="cpu")
+model.load_state_dict(ckpt["model"], strict=True)
+
+# Inference: no grad, generate with optional KV-cache
+model.eval()
+with torch.no_grad():
+    logits = model(input_ids)
+    # Or autoregressive generation
+    generated = model.generate(input_ids, max_new_tokens=100, do_sample=True, temperature=0.8)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">nanoGPT train.py</a></strong> – <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py" target="_blank" rel="noopener">Checkpoint save/load</a>, <a href="https://github.com/karpathy/nanoGPT#config" target="_blank" rel="noopener">config</a> (and <code>--config</code> override); <a href="https://github.com/karpathy/nanoGPT/blob/master/sample.py" target="_blank" rel="noopener">sample.py</a> for inference.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Scripts use config + checkpointing; inference via generation API.</li>
+        </ul>
+    </div>
+
+    <h2 id="rl-posttraining">15. Reinforcement learning (RL) post-training loop</h2>
+    <p>After pretraining and SFT, many LLM pipelines add an <strong>RL phase</strong>: the policy (current model) is updated to maximize a reward (e.g. from a reward model, or from preference data) while staying close to a reference policy via a KL penalty. The “inner” loop is: sample or load responses → get log probs from policy and reference → compute reward/advantage → form loss → backward.</p>
+    <p class="syntax-title">Inner workings (concepts)</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Policy π_θ</strong> – The model being trained; outputs logits over next tokens.</li>
+        <li><strong>Reference policy π_ref</strong> – Frozen copy of the model before RL; used to compute KL(π_θ ‖ π_ref) so the policy doesn’t drift too far.</li>
+        <li><strong>Reward</strong> – Scalar per response (e.g. from a reward model, or from preference data). Often normalized to advantage (reward minus baseline).</li>
+        <li><strong>Log probs</strong> – For each token in the response, log π(a_t | s_t). Sum over the response gives log π(response | prompt).</li>
+        <li><strong>PPO-style</strong> – Ratio r_t = π_θ(a_t|s_t) / π_ref(a_t|s_t). Loss uses clipped ratio × advantage plus KL penalty.</li>
+        <li><strong>DPO-style</strong> – No reward model. Preference pairs (y_w, y_l). Loss from log σ(β log(π_θ(y_w)/π_ref(y_w)) − β log(π_θ(y_l)/π_ref(y_l))).</li>
+    </ul>
+    <p class="syntax-title">PyTorch syntax &amp; usage (policy log probs, ref log probs, loss)</p>
+    <div class="code-block">
+<pre><code class="language-python"># Get log probs for a batch of (prompt, response) sequences
+def get_log_probs(model, input_ids, attention_mask):
+    logits = model(input_ids).logits
+    # logits: (B, T, V). Shift to get logits for next token at each position
+    log_probs = F.log_softmax(logits[:, :-1], dim=-1)
+    # Gather log prob of the actual next token
+    next_token_ids = input_ids[:, 1:]
+    token_log_probs = log_probs.gather(-1, next_token_ids.unsqueeze(-1)).squeeze(-1)
+    # Mask padding; sum over non-padding positions
+    mask = attention_mask[:, 1:].float()
+    return (token_log_probs * mask).sum(-1) / mask.sum(-1).clamp(min=1e-8)
+
+# RL step: policy vs reference, then loss
+policy_logps = get_log_probs(policy_model, input_ids, attention_mask)
+ref_logps = get_log_probs(ref_model, input_ids, attention_mask)  # no grad
+ratio = torch.exp(policy_logps - ref_logps)
+kl_penalty = (ref_logps - policy_logps).mean()
+# PPO-style clipped objective (advantage A from reward - baseline)
+advantage = rewards - baseline
+surr1 = ratio * advantage
+surr2 = torch.clamp(ratio, 0.8, 1.2) * advantage
+loss = -torch.min(surr1, surr2).mean() + beta * kl_penalty
+loss.backward()
+optimizer.step()</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># DPO-style: preference pairs (y_w preferred over y_l), no reward model
+# Concatenate prompt+response for chosen and rejected
+logps_chosen = get_log_probs(policy_model, chosen_ids, chosen_mask)
+logps_rejected = get_log_probs(policy_model, rejected_ids, rejected_mask)
+ref_logps_chosen = get_log_probs(ref_model, chosen_ids, chosen_mask)
+ref_logps_rejected = get_log_probs(ref_model, rejected_ids, rejected_mask)
+# DPO loss: -log sigma(beta * (log_ratio_chosen - log_ratio_rejected))
+log_ratio_chosen = logps_chosen - ref_logps_chosen
+log_ratio_rejected = logps_rejected - ref_logps_rejected
+loss = -F.logsigmoid(beta * (log_ratio_chosen - log_ratio_rejected)).mean()
+loss.backward()
+optimizer.step()</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Pipeline includes <a href="https://github.com/karpathy/nanochat/discussions/1" target="_blank" rel="noopener">optional RL</a> (e.g. on GSM8K); check <a href="https://github.com/karpathy/nanochat/blob/master/scripts" target="_blank" rel="noopener">scripts/</a> for RL training and <a href="https://github.com/karpathy/nanochat/discussions/481" target="_blank" rel="noopener">discussions</a>.</li>
+            <li><strong>trl</strong> – <a href="https://github.com/huggingface/trl" target="_blank" rel="noopener">Hugging Face TRL</a>: <code>PPOTrainer</code>, <code>DPOTrainer</code>; full PPO/DPO loops and reward handling.</li>
+        </ul>
+    </div>
+
+    <h2 id="ai-agents">16. AI agent inner workings</h2>
+    <p>An <strong>AI agent</strong> is a loop that repeatedly observes state, reasons (optionally with an LLM), takes an action (e.g. edit code, call a tool), and observes the outcome. Training runs or tool results become the next observation. The “inner” part is the control flow, how you call the model, and how you parse and execute actions.</p>
+    <p class="syntax-title">Inner workings (concepts)</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Observe</strong> – Current state: task description, conversation history, last tool output, file contents, or metrics (e.g. val loss).</li>
+        <li><strong>Reason / plan</strong> – LLM generates next step (natural language, or structured tool call). Can be one prompt per turn or multi-step (ReAct: Thought → Action → Observation).</li>
+        <li><strong>Act</strong> – Execute the action: run code, call an API, edit a file, run training for N minutes. Actions are often constrained by a schema or a fixed set of tools.</li>
+        <li><strong>Memory / context</strong> – Append only new content (e.g. tool result) to keep context under the model’s length limit; optionally summarize or truncate old turns.</li>
+        <li><strong>Termination</strong> – Stop when the model outputs “done”, or when a goal is met (e.g. metric improved), or when max steps are reached.</li>
+    </ul>
+    <p class="syntax-title">PyTorch / inference in the loop</p>
+    <p>The agent loop usually uses the model in <strong>inference</strong> (no backward). You build a prompt from state, call <code>model.generate()</code>, parse the output for tool calls or edits, run them, then feed the result back into the next prompt.</p>
+    <div class="code-block">
+<pre><code class="language-python"># Minimal agent loop: prompt → generate → parse → act → append result → repeat
+def agent_loop(model, tokenizer, system_prompt, tools, max_steps=10):
+    messages = [{"role": "system", "content": system_prompt}]
+    for step in range(max_steps):
+        prompt = format_messages(messages)
+        input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(model.device)
+        with torch.no_grad():
+            out_ids = model.generate(
+                input_ids,
+                max_new_tokens=512,
+                do_sample=True,
+                temperature=0.7,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+        response = tokenizer.decode(out_ids[0][input_ids.shape[1]:], skip_special_tokens=True)
+        messages.append({"role": "assistant", "content": response})
+
+        if is_done(response):
+            break
+        tool_name, tool_args = parse_tool_call(response)
+        result = tools[tool_name](**tool_args)
+        messages.append({"role": "user", "content": f"Tool result: {result}"})
+    return messages</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># Research agent pattern: read → propose edit → run experiment → measure → commit or rollback
+# (e.g. Karpathy autoresearch: modify train.py, run 5 min, compare val_bpb)
+def research_agent_loop(program_path, train_path, run_minutes=5, max_rounds=100):
+    program = open(program_path).read()
+    best_metric = float("inf")
+    for round in range(max_rounds):
+        current_code = open(train_path).read()
+        # LLM proposes edit given program + current_code + last run result
+        edit = llm.generate(f"{program}\n\nCurrent train.py:\n{current_code}\n\nPropose a small edit.")
+        new_code = apply_edit(current_code, edit)
+        write_file(train_path, new_code)
+        # Run training for fixed wall-clock time
+        run_training(minutes=run_minutes)
+        metric = evaluate()  # e.g. validation bits-per-byte
+        if metric < best_metric:
+            best_metric = metric
+            commit_changes()
+        else:
+            rollback_to_previous()
+        # Next round: state includes new current_code and metric for context</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener">karpathy/autoresearch</a></strong> – Minimal agent loop (~630 lines): <a href="https://github.com/karpathy/autoresearch/blob/master/README.md" target="_blank" rel="noopener">README</a>, <a href="https://github.com/karpathy/autoresearch/blob/master/train.py" target="_blank" rel="noopener">train.py</a> (agent-editable), <a href="https://github.com/karpathy/autoresearch/blob/master/prepare.py" target="_blank" rel="noopener">prepare.py</a> (fixed), <a href="https://github.com/karpathy/autoresearch/blob/master/program.md" target="_blank" rel="noopener">program.md</a> (instructions). Loop: read program + train.py → propose edit → run 5 min → measure val_bpb → commit or rollback.</li>
+            <li><strong>ReAct / tool use</strong> – <a href="https://github.com/facebookresearch/llama-recipes" target="_blank" rel="noopener">Llama recipes</a> or <a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener">transformers</a> agent examples: multi-turn <code>generate</code> with tool parsing and result injection.</li>
+        </ul>
+    </div>
+
+    <h2 id="cuda-cpp">17. Low-level CUDA and C++ optimizations</h2>
+    <p>Training and inference speed often come from <strong>CUDA kernels</strong> (custom or library), <strong>kernel fusion</strong>, <strong>efficient matmuls</strong>, and <strong>memory layout</strong>. PyTorch uses cuDNN/cuBLAS under the hood; you can add custom ops or drop to C/CUDA (e.g. <strong>llm.c</strong>) for full control.</p>
+    <p class="syntax-title">Concepts and techniques</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Matmul and cuBLAS/cuBLASLt</strong> – Most FLOPs are in matrix multiplies. cuBLASLt offers flexible matmul + fused bias/activation (e.g. matmul + bias + GELU in one pass). TF32 on Ampere+ gives near-FP32 precision with higher throughput.</li>
+        <li><strong>Kernel fusion</strong> – Combine several small kernels (e.g. softmax + mask + scale, or linear + GELU) into one to reduce global memory traffic and launch overhead. Flash Attention fuses attention score → softmax → × value and uses tiling to cut memory.</li>
+        <li><strong>CUDA graphs</strong> – Record a sequence of kernel launches and replay them with one CPU call. Cuts launch latency and improves GPU utilization; useful for fixed-shape training steps or inference.</li>
+        <li><strong>Custom CUDA kernels</strong> – Loop unrolling, coalesced memory access, warp-level primitives, and shared memory for hand-tuned ops (e.g. backward bias, softmax). Target high % of peak compute or memory bandwidth.</li>
+        <li><strong>Memory optimization</strong> – Activation checkpointing (recompute activations in backward to save memory); pinned host memory and async copies for data loading; avoiding unnecessary syncs.</li>
+        <li><strong>C++ / CUDA extensions in PyTorch</strong> – <code>torch.utils.cpp_extension</code> or <code>load_inline</code> to compile and load custom kernels; JIT or AOT.</li>
+    </ul>
+    <p class="syntax-title">Where these show up (PyTorch vs raw C/CUDA)</p>
+    <div class="code-block">
+<pre><code class="language-python"># PyTorch: use fused/custom kernels via libraries or torch.compile
+# Flash Attention (fused attention kernel) - often via optional dependency
+# pip install flash-attn; then in model use flash_attn_func or equivalent
+from flash_attn import flash_attn_func
+# q,k,v: (B, T, n_heads, head_dim); output replaces attn @ v with one fused kernel
+out = flash_attn_func(q, k, v, causal=True)
+
+# Activation checkpointing: trade compute for memory (recompute in backward)
+from torch.utils.checkpoint import checkpoint
+def forward(self, x):
+    x = self.attn(checkpoint(self.ln1, x))  # ln1 recomputed in backward
+    x = x + self.mlp(checkpoint(self.ln2, x))
+    return x
+
+# TF32 matmuls on Ampere+ (PyTorch)
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True</code></pre>
+    </div>
+    <div class="code-block">
+<pre><code class="language-c">// Raw C/CUDA (llm.c style): custom kernel for matmul + bias backward
+// Fused: one kernel does bias gradient from output gradient (no separate pass)
+__global__ void matmul_backward_bias_kernel(const float* dout, float* dbias, int M, int N) {
+    // Coalesced reads, warp reductions, minimal casts for 7–8% speedup
+    int row = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row < N) {
+        float sum = 0.0f;
+        for (int i = threadIdx.x; i < M; i += blockDim.x)
+            sum += dout[i * N + row];
+        dbias[row] = sum;
+    }
+}
+// cuBLASLt: matmul + fused bias + GELU in one call (llm.c PR ~2x perf)</code></pre>
+    </div>
+    <div class="feature-block">
+        <h4>Where to see it</h4>
+        <ul>
+            <li><strong><a href="https://github.com/karpathy/llm.c" target="_blank" rel="noopener">llm.c</a></strong> – Pure C/CUDA training: <a href="https://github.com/karpathy/llm.c/tree/master/dev/cuda" target="_blank" rel="noopener">dev/cuda</a> kernels, <a href="https://github.com/karpathy/llm.c/pull/89" target="_blank" rel="noopener">cuBLASLt, TF32, CUDA graphs, kernel fusion (~2×)</a>, <a href="https://github.com/karpathy/llm.c/pull/616" target="_blank" rel="noopener">matmul_backward_bias_kernel (7–8% speedup)</a>, <a href="https://github.com/karpathy/llm.c/pull/343" target="_blank" rel="noopener">fused classifier, streams</a>. <a href="https://github.com/karpathy/llm.c/discussions/331" target="_blank" rel="noopener">A100 perf analysis</a>.</li>
+            <li><strong><a href="https://github.com/karpathy/nanoGPT" target="_blank" rel="noopener">nanoGPT</a></strong> – Optional <a href="https://github.com/karpathy/nanoGPT#flash-attention" target="_blank" rel="noopener">Flash Attention</a>; relies on PyTorch/cuDNN for matmuls and fused ops.</li>
+            <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Uses <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">Flash Attention 3</a> and modern kernels where available.</li>
+            <li><strong>PyTorch custom ops</strong> – <a href="https://pytorch.org/tutorials/advanced/cpp_extension.html" target="_blank" rel="noopener">C++/CUDA extension tutorial</a>; <code>torch.utils.cpp_extension.load_inline</code> for JIT-compiled kernels.</li>
+        </ul>
+    </div>
+
+    <h2>Quick reference – repo → PyTorch features</h2>
+    <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
+        <thead>
+            <tr style="background: #f6f8fa; text-align: left;">
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Repo</th>
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">PyTorch features</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/nanoGPT" target="_blank" rel="noopener">nanoGPT</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">nn.Module, Transformer, DDP, mixed precision, torch.compile, AdamW, data prep, finetune, eval, checkpoints</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Full LLM pipeline, FP8, Muon + Adam, torchrun, data prep, SFT, eval, RL</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/minGPT" target="_blank" rel="noopener">minGPT</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">nn.Module, Transformer, Trainer, AdamW, BPE, clean educational code</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/micrograd" target="_blank" rel="noopener">micrograd</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Autograd concept (no PyTorch)—backprop, DAG, PyTorch-like API</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener">autoresearch</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">AI agent loop: propose edit → run training → measure → commit/rollback</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><a href="https://github.com/karpathy/llm.c" target="_blank" rel="noopener">llm.c</a></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">C/CUDA: cuBLASLt, TF32, CUDA graphs, fused kernels, custom matmul_backward_bias</td></tr>
+        </tbody>
+    </table>
+
+    <p style="margin-top: 24px;"><a href="index.html">← Back to Algos</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
