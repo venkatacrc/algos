@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Design – State-of-the-Art AI Agents</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 32px; color: #24292f; }
+        h3 { margin-top: 20px; color: #34495e; font-size: 1.1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 6px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .feature-block { background: #f6f8fa; border-left: 4px solid #0366d6; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .feature-block h4 { margin-top: 0; margin-bottom: 8px; }
+        .feature-block ul { margin: 8px 0 0 20px; }
+        .feature-block li { margin-bottom: 4px; }
+        .code-block { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 14px; }
+        .code-block pre { margin: 0; padding: 16px; }
+        .code-block code { background: transparent; padding: 0; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        .diagram { background: #f0f4f8; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; margin: 14px 0; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; }
+        .scale-badge { display: inline-block; background: #0969da; color: #fff; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+        ul ul { margin: 6px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>System Design – State-of-the-Art AI Agents</h1>
+    <p>A progression from <strong>basic single-user agents</strong> to <strong>production systems serving millions of users</strong>: architecture, scaling, reliability, and operational concerns.</p>
+
+    <div class="toc">
+        <strong>Table of contents</strong>
+        <ol>
+            <li><a href="#basic-agents">Basic agents (single user)</a></li>
+            <li><a href="#multi-user">Multi-user &amp; concurrency</a></li>
+            <li><a href="#reliability">Reliability &amp; production readiness</a></li>
+            <li><a href="#scale-thousands">Scale: thousands of users</a></li>
+            <li><a href="#scale-millions">Scale: millions of users</a></li>
+            <li><a href="#building-blocks">Key building blocks</a></li>
+            <li><a href="#summary">Summary &amp; checklist</a></li>
+        </ol>
+    </div>
+
+    <h2 id="basic-agents">1. Basic agents (single user)</h2>
+    <p>At the smallest scale, an agent is a <strong>loop</strong>: observe state → reason (LLM) → act (tools) → observe again. One process, one user, no persistence beyond the session.</p>
+    <p class="syntax-title">Core loop</p>
+    <ul>
+        <li><strong>Observe</strong> – Current context: user message, conversation history, tool results, or environment state.</li>
+        <li><strong>Reason</strong> – Call an LLM with a prompt (system + history + “what to do next”). Output may be a final answer or a tool call (name + arguments).</li>
+        <li><strong>Act</strong> – If the model requests a tool, execute it (API, DB, code). Append the result to context and loop.</li>
+        <li><strong>Terminate</strong> – Stop when the model returns a user-facing answer or when max steps/time is reached.</li>
+    </ul>
+    <p class="syntax-title">Minimal architecture</p>
+    <div class="diagram">
+Client → [Agent process: Loop → LLM API + Tool executor] → Tool services (optional)
+    </div>
+    <p>Components: one <strong>agent service</strong> (or script), an <strong>LLM provider</strong> (OpenAI, Anthropic, local), and optional <strong>tools</strong> (HTTP, DB, filesystem). State lives in memory for the duration of the request.</p>
+    <div class="feature-block">
+        <h4>When this is enough</h4>
+        <ul>
+            <li>Demos, internal tools, single-tenant apps.</li>
+            <li>Low QPS; no need for horizontal scaling or strict SLAs.</li>
+        </ul>
+    </div>
+
+    <h2 id="multi-user">2. Multi-user &amp; concurrency</h2>
+    <p>Multiple users hit the same agent. You need <strong>stateless design</strong>, <strong>per-user isolation</strong>, and <strong>resource limits</strong> so one user cannot starve others.</p>
+    <p class="syntax-title">Design choices</p>
+    <ul>
+        <li><strong>Stateless agent</strong> – No in-process memory of past sessions. Session state (conversation history, pending tool calls) is stored in a store (DB, Redis) keyed by <code>session_id</code> or <code>user_id</code>.</li>
+        <li><strong>Concurrency</strong> – Handle many requests in parallel: async I/O (e.g. async HTTP to LLM and tools), worker pool, or event loop. Each request gets its own context and timeout.</li>
+        <li><strong>Rate limiting</strong> – Per user or per API key: limit requests/minute and/or concurrent agent runs. Protects LLM quota and backend tools.</li>
+        <li><strong>Connection pooling</strong> – Reuse HTTP connections to the LLM API and to DBs; avoid opening a new connection per request.</li>
+    </ul>
+    <p class="syntax-title">Architecture</p>
+    <div class="diagram">
+[Users] → [API Gateway / LB] → [Agent pool: N instances]
+                                    ↓
+                    [Session store: Redis/DB]   [LLM API]   [Tools]
+    </div>
+    <div class="code-block">
+<pre><code class="language-python"># Pseudocode: stateless agent with session from store
+async def handle_request(session_id: str, user_message: str):
+    state = await session_store.get(session_id)  # history, etc.
+    state.append({"role": "user", "content": user_message})
+    response, state = await agent_run(state, tools, max_steps=10)
+    await session_store.set(session_id, state, ttl=3600)
+    return response</code></pre>
+    </div>
+
+    <h2 id="reliability">3. Reliability &amp; production readiness</h2>
+    <p>Agents call external LLMs and tools that can fail or be slow. Production systems need <strong>retries</strong>, <strong>queues</strong>, <strong>idempotency</strong>, and <strong>observability</strong>.</p>
+    <p class="syntax-title">Concepts</p>
+    <ul>
+        <li><strong>Retries with backoff</strong> – LLM and tool calls can timeout or return 5xx. Retry with exponential backoff and jitter; set max retries and circuit-break if the dependency is down.</li>
+        <li><strong>Request queue</strong> – Instead of processing every request immediately, enqueue it (e.g. Redis, SQS, Kafka). Workers pull from the queue. Smooths bursts and allows prioritization.</li>
+        <li><strong>Idempotency</strong> – For critical actions (e.g. payments, writes), use idempotency keys so duplicate requests do not apply the same action twice. Store “request_id → result” and return cached result on replay.</li>
+        <li><strong>Observability</strong> – Logs (request id, user, model, latency, token usage), metrics (latency p99, error rate, cost per request), and traces (full agent trace: LLM calls, tool calls, timings). Essential for debugging and cost control.</li>
+    </ul>
+    <div class="feature-block">
+        <h4>Production checklist</h4>
+        <ul>
+            <li>Structured logging with correlation IDs.</li>
+            <li>Timeouts on LLM and tool calls; graceful degradation or user-facing error.</li>
+            <li>Health checks for the agent and dependencies (LLM, DB, Redis).</li>
+        </ul>
+    </div>
+
+    <h2 id="scale-thousands">4. Scale: thousands of users</h2>
+    <p>At thousands of concurrent users you need <strong>horizontal scaling</strong>, <strong>caching</strong>, and <strong>efficient data access</strong>. The agent remains a central orchestrator, but supporting services are scaled and optimized.</p>
+    <p class="syntax-title">Architecture elements</p>
+    <ul>
+        <li><strong>Load balancing</strong> – Distribute traffic across multiple agent instances (round-robin, least connections, or consistent hash by session_id for stickiness).</li>
+        <li><strong>Caching</strong> – Cache LLM responses for identical or near-identical prompts (e.g. common system prompts, FAQ). Cache tool results where safe (e.g. read-only, short TTL). Use Redis or similar; watch invalidation and memory.</li>
+        <li><strong>Database design</strong> – Sessions and conversation history: partition by <code>user_id</code> or <code>session_id</code>; index for “last N messages for session.” Consider separate read replicas for history reads. For analytics, stream events to a data warehouse.</li>
+        <li><strong>Async and streaming</strong> – Stream LLM tokens to the client so the user sees progress; run tool execution in the background where possible. Use Server-Sent Events or WebSockets for real-time updates.</li>
+    </ul>
+    <div class="diagram">
+[CDN / LB] → [Agent fleet] ←→ [Redis cache] [Session DB + replicas]
+     ↓                ↓
+[LLM API]      [Tool services / APIs]
+    </div>
+
+    <h2 id="scale-millions">5. Scale: millions of users</h2>
+    <p>At millions of users, the system is <strong>distributed</strong>: many regions, dedicated pipelines for different workloads, strict cost and latency budgets, and <strong>agent orchestration</strong> that can route and scale independently.</p>
+    <p class="syntax-title">Architecture themes</p>
+    <ul>
+        <li><strong>Multi-region</strong> – Deploy agent and dependencies in several regions. Route users to the nearest region (latency-based DNS or global LB). Replicate session and config data; keep agent runs local to a region to avoid cross-region latency in the loop.</li>
+        <li><strong>Async job pipeline</strong> – For non–real-time workloads (e.g. “analyze this doc,” “summarize this thread”), accept the request, enqueue a job, return a job_id. Workers process the queue; clients poll or get webhooks. Decouples user-facing latency from agent run time.</li>
+        <li><strong>LLM routing &amp; fallbacks</strong> – Route by model (e.g. cheap model for simple intents, larger model for complex). Use fallbacks (e.g. primary provider → secondary) and load shedding (reject or queue when overloaded) to protect SLAs and cost.</li>
+        <li><strong>Cost control</strong> – Per-user or per-tenant limits (requests/day, tokens/month). Cache aggressively; use smaller/faster models where possible. Meter and bill by token or request; alert on anomalies.</li>
+        <li><strong>Agent orchestration layer</strong> – A dedicated service that: assigns a run to a worker pool (or serverless), manages long-running or multi-turn sessions, applies policies (rate limits, model choice, tool allowlists), and records traces. Agents become workers that the orchestrator invokes.</li>
+    </ul>
+    <p class="syntax-title">High-level diagram (millions)</p>
+    <div class="diagram">
+[Global LB] → [Region A: API → Orchestrator → Agent workers] ←→ [Region A: Redis, DB, Queue]
+[Region B: same]
+[Region C: same]
+     ↓
+[Central: config, analytics, billing; shared queue or partitioned by region]
+    </div>
+    <ul>
+        <li><strong>Orchestrator</strong> – Receives “start/continue agent” requests; enqueues work or invokes workers; tracks session state; returns stream or job_id.</li>
+        <li><strong>Worker pool</strong> – Stateless agent processes (or containers). Pull from a regional queue or get RPC from orchestrator. Scale based on queue depth and latency SLOs.</li>
+        <li><strong>Data</strong> – Sessions and history in a scalable DB (sharded by user/session). Events and logs to a stream (Kafka, Kinesis) for analytics and replay. Caches (e.g. Redis cluster) per region.</li>
+    </ul>
+    <div class="feature-block">
+        <h4>State of the art at scale</h4>
+        <ul>
+            <li>Separate paths for real-time (sync/streaming) vs batch (async jobs).</li>
+            <li>Strict rate limits and quotas; cost and quality monitored per tenant.</li>
+            <li>Orchestrator as the single place for routing, policy, and observability.</li>
+        </ul>
+    </div>
+
+    <h2 id="building-blocks">6. Key building blocks</h2>
+    <p>Regardless of scale, these components appear in most agent systems.</p>
+    <ul>
+        <li><strong>LLM gateway</strong> – Abstraction over one or more providers (OpenAI, Anthropic, etc.). Handles auth, retries, logging, and optional caching. Agent code calls “complete” or “chat” through the gateway.</li>
+        <li><strong>Tool execution</strong> – Sandboxed execution of tools (HTTP, DB, code). Validate inputs; enforce timeouts and allowlists; log inputs/outputs for safety and debugging.</li>
+        <li><strong>Memory / state</strong> – Short-term: conversation buffer (last K messages or tokens). Long-term: vector store or DB for “memories” or RAG. At scale, this is the session store and any user-scoped storage.</li>
+        <li><strong>Auth &amp; identity</strong> – Identify the user (or API key) for rate limits, quotas, and audit. Pass identity through the entire chain (agent, tools, logs).</li>
+    </ul>
+
+    <h2 id="summary">7. Summary &amp; checklist</h2>
+    <p>Progression from basic to millions:</p>
+    <table style="width:100%; border-collapse: collapse; margin-top: 12px; font-size: 0.95em;">
+        <thead>
+            <tr style="background: #f6f8fa; text-align: left;">
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Scale</th>
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Focus</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Basic</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Single loop: observe → reason → act; one process, in-memory state.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Multi-user</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Stateless agent; session store; rate limits; connection pooling.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Production</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Retries, queues, idempotency, logging, metrics, traces, health checks.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Thousands</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">LB, agent fleet, caching, DB design, streaming.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Millions</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Multi-region, async jobs, LLM routing/fallbacks, cost control, orchestrator + workers.</td></tr>
+        </tbody>
+    </table>
+    <p style="margin-top: 16px;">Use this as a checklist when designing or reviewing an AI agent system at a given scale.</p>
+
+    <p style="margin-top: 32px;"><a href="index.html">← Back to Algos</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
