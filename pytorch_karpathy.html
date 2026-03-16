@@ -31,6 +31,10 @@
         .code-block pre { margin: 0; padding: 16px; }
         .code-block code { background: transparent; padding: 0; }
         .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        .example-io { background: #f0f7ff; border-left: 4px solid #055a9e; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .example-io h4 { margin-top: 0; margin-bottom: 8px; color: #055a9e; }
+        .example-io pre { margin: 8px 0 0; font-size: 13px; background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .example-io code { background: #e8f0f8; }
     </style>
 </head>
 <body>
@@ -105,6 +109,12 @@ loss = model(inputs).mean()
 loss.backward()       # populates parameter.grad
 optimizer.step()      # optimizer uses .grad to update parameters</code></pre>
     </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>x = tensor([2.0], requires_grad=True)</code>. Expression: <code>y = x**2 + 3*x</code>.</p>
+        <p><strong>Forward:</strong> <code>y = 4 + 6 = 10.0</code>. Derivative dy/dx = 2x + 3 → at x=2: <code>2*2 + 3 = 7</code>.</p>
+        <p><strong>Output after <code>y.backward()</code>:</strong> <code>x.grad</code> is <code>tensor([7.0])</code>.</p>
+    </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
         <ul>
@@ -133,6 +143,11 @@ class MyModel(nn.Module):
 model = MyModel(64, 10)
 list(model.parameters())   # all parameters (from linear + scale)
 model(x)                   # calls forward(x)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>x</code> of shape <code>(batch_size, 64)</code>, e.g. <code>x = torch.randn(4, 64)</code>.</p>
+        <p><strong>Output:</strong> <code>model(x)</code> has shape <code>(4, 10)</code>. <code>list(model.parameters())</code> returns 3 tensors: linear weight <code>(10, 64)</code>, linear bias <code>(10,)</code>, and <code>scale</code> <code>(1,)</code>.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -164,6 +179,11 @@ out = att @ v
 x = x + self.attn(self.ln1(x))
 x = x + self.mlp(self.ln2(x))</code></pre>
     </div>
+    <div class="example-io">
+        <h4>Example: shapes</h4>
+        <p><strong>Input:</strong> <code>x</code> shape <code>(B, T, C)</code> e.g. <code>(2, 128, 768)</code> (batch=2, seq_len=128, n_embd=768).</p>
+        <p><strong>After <code>c_attn(x)</code>:</strong> <code>qkv</code> is <code>(2, 128, 3*768)</code>; split gives <code>q, k, v</code> each <code>(2, 128, 768)</code>. <code>att = q @ k.T</code> is <code>(2, 128, 128)</code>; causal mask sets future positions to <code>-inf</code> before softmax. <strong>Output:</strong> <code>out</code> same shape as <code>v</code>: <code>(2, 128, 768)</code>.</p>
+    </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
         <ul>
@@ -188,6 +208,12 @@ for batch in dataloader:
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
     optimizer.step()
     scheduler.step()                        # optional: LR schedule</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: one step</h4>
+        <p><strong>Input:</strong> <code>batch</code> = (x, y) with <code>x</code> shape <code>(32, 128)</code> (batch 32, seq 128), <code>y</code> shape <code>(32, 128)</code> (target next-token ids).</p>
+        <p><strong>Forward:</strong> <code>logits = model(x)</code> → shape <code>(32, 128, vocab_size)</code>. <code>loss = F.cross_entropy(logits.view(-1,V), y.view(-1))</code> → scalar, e.g. <code>3.45</code>.</p>
+        <p><strong>After <code>loss.backward()</code>:</strong> every <code>param.grad</code> is filled. <code>optimizer.step()</code> updates params using those grads; next iteration <code>zero_grad</code> clears them.</p>
     </div>
     <div class="code-block">
 <pre><code class="language-python"># Gradient accumulation (effective batch = batch_size * accum_steps)
@@ -227,6 +253,11 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 warmup = LinearLR(optimizer, start_factor=0.1, total_iters=warmup_iters)
 decay = CosineAnnealingLR(optimizer, T_max=total_iters)
 scheduler = SequentialLR(optimizer, [warmup, decay], [warmup_iters])</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: optimizer and scheduler</h4>
+        <p><strong>Input:</strong> <code>model.parameters()</code> (e.g. 124M params), <code>lr=3e-4</code>, <code>weight_decay=0.01</code>.</p>
+        <p><strong>After first <code>optimizer.step()</code>:</strong> params updated; <code>param.grad</code> still present until <code>zero_grad()</code>. With <code>LinearLR(start_factor=0.1, total_iters=100)</code>, step 0 gives effective lr <code>3e-5</code>; step 100 gives <code>3e-4</code>; then cosine decay reduces it toward 0.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -333,6 +364,11 @@ for epoch in range(epochs):
         batch = {k: v.to(device, non_blocking=True) for k, v in batch.items()}
         ...</code></pre>
     </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>dataset</code> with 80_000 samples, <code>world_size=4</code>, <code>batch_size=32</code>. <code>DistributedSampler</code> gives rank 0 indices 0,4,8,...; rank 1 indices 1,5,9,...; etc. (20_000 per rank).</p>
+        <p><strong>Output:</strong> Each rank’s dataloader yields 20_000/32 ≈ 625 batches per epoch. <code>set_epoch(epoch)</code> changes the shuffle seed so each epoch sees a different order. <code>batch.to(device, non_blocking=True)</code> keeps transfer async with compute.</p>
+    </div>
     <div class="code-block">
 <pre><code class="language-python"># Cache layer: load dataset into RAM once (if it fits)
 class CachedDataset(torch.utils.data.Dataset):
@@ -384,6 +420,11 @@ for batch in dataloader:
     scaler.step(optimizer)
     scaler.update()</code></pre>
     </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>batch</code> (e.g. input_ids on GPU), <code>model</code> in float32. Inside <code>autocast(dtype=torch.bfloat16)</code>, linear/matmul ops run in bfloat16; <code>logits</code> and <code>loss</code> may be bfloat16.</p>
+        <p><strong>Output:</strong> <code>scaler.scale(loss)</code> scales loss (e.g. 2^12) so backward produces finite gradients; <code>unscale_</code> undoes scale before <code>step()</code>; <code>scaler.update()</code> adjusts scale for next iteration. Effective behavior: same training as FP32 with lower memory and often higher throughput.</p>
+    </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
         <ul>
@@ -403,6 +444,11 @@ if compile_model:
 
 # First forward may be slow (compilation); later steps are faster
 logits = model(x)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>model</code> (e.g. GPT), <code>x</code> shape <code>(B, T)</code> (e.g. <code>(4, 512)</code>). <code>torch.compile(model, mode="reduce-overhead")</code> returns a compiled wrapper (same interface).</p>
+        <p><strong>Output:</strong> First call <code>model(x)</code> triggers JIT compilation (may take 30s–2min); returns same <code>logits</code> shape <code>(4, 512, V)</code>. Subsequent calls run the compiled graph: same output, lower latency and higher throughput.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -438,6 +484,12 @@ import tiktoken
 enc = tiktoken.get_encoding("gpt2")
 tokens = enc.encode("Hello world")
 text = enc.decode(tokens)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>TokenDataset:</strong> If <code>encoded</code> has length 10_000 and <code>block_size=128</code>, <code>len(dataset)</code> is <code>9872</code>. <code>dataset[i]</code> returns <code>(x, y)</code> where <code>x</code> and <code>y</code> are 1D tensors of length 128; <code>y</code> is <code>x</code> shifted by one position.</p>
+        <p><strong>DataLoader:</strong> One batch: <code>x</code> shape <code>(32, 128)</code>, <code>y</code> shape <code>(32, 128)</code> (batch_size=32).</p>
+        <p><strong>Tiktoken:</strong> <code>enc.encode("Hello world")</code> → e.g. <code>[15496, 995]</code> (GPT-2). <code>enc.decode([15496, 995])</code> → <code>"Hello world"</code>.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -477,6 +529,11 @@ np.save("val.npy", data[int(0.95*len(data)):])
 # Or memory-map one big file for large corpora
 with open("train.bin", "wb") as f:
     np.array(tokens, dtype=np.uint16).tofile(f)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>input.txt</code> with 50_000 characters; <code>block_size=1024</code>. After <code>enc.encode_ordinary(text)</code>, <code>tokens</code> might have ~12_500 ids (GPT-2 ~4 chars/token).</p>
+        <p><strong>Output:</strong> <code>data</code> shape <code>(12, 1024)</code> (12 blocks). <code>train.npy</code> shape <code>(11, 1024)</code>, <code>val.npy</code> shape <code>(1, 1024)</code> (95% / 5% split). <code>train.bin</code> is a raw binary file of 12_500 * 2 = 25_000 bytes.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -519,6 +576,11 @@ for batch in dataloader:
     loss.backward()
     optimizer.step()
     optimizer.zero_grad(set_to_none=True)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: SFT loss</h4>
+        <p><strong>Input:</strong> <code>input_ids</code> shape <code>(4, 256)</code> (batch 4, seq 256); <code>response_mask</code> shape <code>(4, 256)</code>, 1 on assistant tokens, 0 on prompt/padding.</p>
+        <p><strong>Forward:</strong> <code>logits</code> <code>(4, 256, V)</code>. Shifted logits/labels: only positions where <code>response_mask[:, 1:] == 1</code> contribute to loss. <strong>Output:</strong> scalar <code>loss</code>, e.g. <code>2.1</code>; <code>loss.backward()</code> fills grads on model parameters.</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -563,6 +625,11 @@ ppl = math.exp(val_loss)
 # Bits per byte (if tokenizer is byte-level or you measure per byte)
 bpb = val_loss / math.log(2)</code></pre>
     </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Input:</strong> <code>model</code>, <code>val_loader</code> yielding batches of <code>input_ids</code> (e.g. shape <code>(32, 128)</code>), <code>pad_id=0</code>.</p>
+        <p><strong>Output:</strong> <code>val_loss</code> = mean cross-entropy over non-padding positions, e.g. <code>3.2</code>. <code>ppl = exp(3.2) ≈ 24.5</code>. <code>bpb</code> (bits per byte) ≈ <code>3.2 / 0.693 ≈ 4.6</code> when measuring per-byte.</p>
+    </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
         <ul>
@@ -597,6 +664,11 @@ with torch.no_grad():
     logits = model(input_ids)
     # Or autoregressive generation
     generated = model.generate(input_ids, max_new_tokens=100, do_sample=True, temperature=0.8)</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: input and output</h4>
+        <p><strong>Save:</strong> <code>ckpt</code> dict with keys <code>"model"</code>, <code>"optimizer"</code>, <code>"iter_num"</code>, <code>"best_val_loss"</code>. <code>torch.save(ckpt, "ckpt.pt")</code> writes a single file.</p>
+        <p><strong>Load:</strong> <code>ckpt = torch.load("ckpt.pt", map_location="cpu")</code>; <code>ckpt["model"]</code> is a state_dict (ordered dict of param names → tensors). <code>model.load_state_dict(ckpt["model"], strict=True)</code> loads weights; inference: <code>input_ids</code> <code>(1, 20)</code> → <code>generated</code> <code>(1, 120)</code> (20 + 100 new tokens).</p>
     </div>
     <div class="feature-block">
         <h4>Where to see it</h4>
@@ -643,6 +715,11 @@ surr2 = torch.clamp(ratio, 0.8, 1.2) * advantage
 loss = -torch.min(surr1, surr2).mean() + beta * kl_penalty
 loss.backward()
 optimizer.step()</code></pre>
+    </div>
+    <div class="example-io">
+        <h4>Example: log probs and PPO loss</h4>
+        <p><strong>Input:</strong> <code>input_ids</code> <code>(B, T)</code> e.g. (8, 64), <code>attention_mask</code> (8, 64). <code>get_log_probs(policy_model, ...)</code> returns shape <code>(8,)</code>: mean log prob per sequence. <code>rewards</code> shape <code>(8,)</code>, <code>baseline</code> scalar.</p>
+        <p><strong>Output:</strong> <code>ratio = exp(policy_logps - ref_logps)</code> shape <code>(8,)</code>; <code>advantage = rewards - baseline</code>. <code>loss</code> is a scalar; after <code>backward()</code>, only <code>policy_model</code> parameters get gradients (ref_model is frozen).</p>
     </div>
     <div class="code-block">
 <pre><code class="language-python"># DPO-style: preference pairs (y_w preferred over y_l), no reward model
