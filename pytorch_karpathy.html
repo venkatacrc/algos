@@ -102,10 +102,20 @@
     </div>
 
     <h2 id="syntax-explained">PyTorch syntax explained (for novices)</h2>
-    <p>Short definitions of syntax that does non-obvious work. Refer back here when you see these in the tutorial.</p>
+    <p>Short definitions of syntax that does <strong>non-obvious</strong> work. This glossary does <strong>not</strong> list every symbol in the file: basics like <code>nn.Module</code>, <code>forward()</code>, and <code>.to(device)</code> are explained in their sections; vision/audio and problem-specific syntax (Conv2d, MSE, etc.) appear in <a href="#vision-audio-multimodal">§18</a> and <a href="#model-approaches">§19</a>. Refer back here when you see an unfamiliar call.</p>
     <div class="glossary">
         <h3>Model &amp; attention</h3>
         <dl>
+            <dt><code>model.train()</code> / <code>model.eval()</code></dt>
+            <dd>Switch training vs inference mode. <code>train()</code>: enables dropout, BatchNorm uses batch stats. <code>eval()</code>: disables dropout, BatchNorm uses running mean/var. Call <code>model.eval()</code> before validation or inference.</dd>
+            <dt><code>torch.no_grad()</code></dt>
+            <dd>Context manager: disables gradient tracking inside the block. Use during validation or inference to save memory and speed (no need to build the backward graph).</dd>
+            <dt><code>.to(device)</code> / <code>.to(device, non_blocking=True)</code></dt>
+            <dd>Moves a tensor or model to a device (<code>"cuda"</code>, <code>"cpu"</code>, or <code>torch.device("cuda", index)</code>). <code>non_blocking=True</code> allows async copy to GPU while CPU continues; use for data loading.</dd>
+            <dt><code>.split(size, dim)</code> / <code>.transpose(-2, -1)</code> / <code>@</code></dt>
+            <dd><strong>split</strong>: splits a tensor along <code>dim</code> into chunks of <code>size</code> (e.g. <code>qkv.split(n_embd, dim=2)</code> → three tensors). <strong>transpose</strong>: swaps two dimensions (e.g. <code>k.transpose(-2,-1)</code> for attention). <strong>@</strong>: matrix multiply (e.g. <code>q @ k.T</code> = attention scores).</dd>
+            <dt><code>F.softmax(x, dim=-1)</code></dt>
+            <dd>Turns logits into probabilities: exponentiates and normalizes so they sum to 1 along <code>dim</code>. In attention, applied to scores so each row is a probability distribution over keys.</dd>
             <dt><code>c_attn</code></dt>
             <dd>In GPT-style code, the name of a single linear layer that produces <strong>Q, K, V</strong> in one go: <code>c_attn(x)</code> is a linear map from hidden size to <code>3 * hidden_size</code>. The output is then <code>split</code> into three parts to get query, key, and value. “c” often means “combined” or “convolution” in older naming; here it’s just one big linear layer for efficiency.</dd>
             <dt><code>masked_fill(mask, value)</code></dt>
@@ -115,6 +125,10 @@
         <dl>
             <dt><code>F.cross_entropy(logits, targets)</code></dt>
             <dd>Computes the cross-entropy loss for classification. <strong>logits</strong>: raw scores per class, shape <code>(N, C)</code> or <code>(N, T, C)</code>. <strong>targets</strong>: integer class indices (e.g. next-token IDs), shape <code>(N,)</code> or <code>(N, T)</code>. Internally it applies log_softmax to logits then picks the log-prob of the target class and negates it. Returns a scalar by default (mean over all elements).</dd>
+            <dt><code>ignore_index=pad_id</code></dt>
+            <dd>In <code>F.cross_entropy</code>: target positions equal to <code>pad_id</code> are not counted in the loss (no gradient, not in the mean). Use for sequence loss when you pad to fixed length and only want to predict non-padding tokens.</dd>
+            <dt><code>optimizer.step()</code> / <code>scheduler.step()</code></dt>
+            <dd><strong>optimizer.step()</strong>: updates each parameter using its <code>.grad</code> (e.g. SGD: <code>param -= lr * param.grad</code>). Call after <code>backward()</code>. <strong>scheduler.step()</strong>: updates the learning rate (e.g. after each batch or epoch, depending on scheduler).</dd>
             <dt><code>clip_grad_norm_(parameters, max_norm)</code></dt>
             <dd>Rescales all gradients so that the <strong>total norm</strong> of the gradient vector (over all parameters) is at most <code>max_norm</code>. If the norm is already ≤ max_norm, nothing changes. This prevents huge gradient updates that can cause training to blow up; common in transformers (e.g. <code>max_norm=1.0</code>). The trailing underscore means it modifies tensors in place.</dd>
             <dt><code>zero_grad(set_to_none=True)</code></dt>
