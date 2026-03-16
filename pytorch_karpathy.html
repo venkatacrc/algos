@@ -35,6 +35,12 @@
         .example-io h4 { margin-top: 0; margin-bottom: 8px; color: #055a9e; }
         .example-io pre { margin: 8px 0 0; font-size: 13px; background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; }
         .example-io code { background: #e8f0f8; }
+        .glossary { background: #fffbf0; border: 1px solid #e6d9a8; border-radius: 6px; padding: 18px 22px; margin: 20px 0; }
+        .glossary h3 { margin-top: 0; color: #5a4a00; font-size: 1.05em; }
+        .glossary dl { margin: 0; }
+        .glossary dt { font-weight: 600; color: #24292f; margin-top: 12px; }
+        .glossary dt:first-of-type { margin-top: 0; }
+        .glossary dd { margin: 4px 0 0 16px; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -72,6 +78,7 @@
     <div class="toc">
         <strong>Table of contents – PyTorch features by topic</strong>
         <ol>
+            <li><a href="#syntax-explained">PyTorch syntax explained (novices)</a></li>
             <li><a href="#autograd">Autograd &amp; backprop</a></li>
             <li><a href="#tensors-modules">Tensors, nn.Module, parameters</a></li>
             <li><a href="#transformer">Transformers: attention, blocks, GPT</a></li>
@@ -89,7 +96,61 @@
             <li><a href="#rl-posttraining">Reinforcement learning (RL) post-training loop</a></li>
             <li><a href="#ai-agents">AI agent inner workings</a></li>
             <li><a href="#cuda-cpp">Low-level CUDA &amp; C++ optimizations</a></li>
+            <li><a href="#vision-audio-multimodal">Vision, audio, multimodal &amp; other models</a></li>
+            <li><a href="#model-approaches">Model approaches: modeling &amp; evaluating problems</a></li>
         </ol>
+    </div>
+
+    <h2 id="syntax-explained">PyTorch syntax explained (for novices)</h2>
+    <p>Short definitions of syntax that does non-obvious work. Refer back here when you see these in the tutorial.</p>
+    <div class="glossary">
+        <h3>Model &amp; attention</h3>
+        <dl>
+            <dt><code>c_attn</code></dt>
+            <dd>In GPT-style code, the name of a single linear layer that produces <strong>Q, K, V</strong> in one go: <code>c_attn(x)</code> is a linear map from hidden size to <code>3 * hidden_size</code>. The output is then <code>split</code> into three parts to get query, key, and value. “c” often means “combined” or “convolution” in older naming; here it’s just one big linear layer for efficiency.</dd>
+            <dt><code>masked_fill(mask, value)</code></dt>
+            <dd>Fills elements of the tensor <strong>where mask is True</strong> with <code>value</code>. In attention: <code>att.masked_fill(..., float('-inf'))</code> sets future positions to −∞ so that after <code>softmax</code> they become 0 (no attention to future tokens). That’s the “causal” mask: each position can only attend to itself and the past.</dd>
+        </dl>
+        <h3>Loss &amp; training</h3>
+        <dl>
+            <dt><code>F.cross_entropy(logits, targets)</code></dt>
+            <dd>Computes the cross-entropy loss for classification. <strong>logits</strong>: raw scores per class, shape <code>(N, C)</code> or <code>(N, T, C)</code>. <strong>targets</strong>: integer class indices (e.g. next-token IDs), shape <code>(N,)</code> or <code>(N, T)</code>. Internally it applies log_softmax to logits then picks the log-prob of the target class and negates it. Returns a scalar by default (mean over all elements).</dd>
+            <dt><code>clip_grad_norm_(parameters, max_norm)</code></dt>
+            <dd>Rescales all gradients so that the <strong>total norm</strong> of the gradient vector (over all parameters) is at most <code>max_norm</code>. If the norm is already ≤ max_norm, nothing changes. This prevents huge gradient updates that can cause training to blow up; common in transformers (e.g. <code>max_norm=1.0</code>). The trailing underscore means it modifies tensors in place.</dd>
+            <dt><code>zero_grad(set_to_none=True)</code></dt>
+            <dd>Clears the <code>.grad</code> attribute on all parameters. <code>set_to_none=True</code> sets <code>param.grad = None</code> instead of filling with zeros, which can save memory and is the recommended default in modern PyTorch.</dd>
+        </dl>
+        <h3>Finetuning &amp; SFT</h3>
+        <dl>
+            <dt><code>sft_loss</code></dt>
+            <dd>Supervised finetuning loss: the same as next-token prediction (cross-entropy), but <strong>only on the assistant’s reply</strong>. The prompt and padding positions are masked out so the model is not trained to predict them. So: forward on full sequence, compute per-token CE with <code>reduction="none"</code>, then multiply by <code>response_mask</code> and sum only over positions where the mask is 1, and divide by the number of those positions to get a scalar loss.</dd>
+        </dl>
+        <h3>Autograd basics</h3>
+        <dl>
+            <dt><code>requires_grad=True</code></dt>
+            <dd>On a tensor, enables gradient tracking: PyTorch will record every op that uses this tensor so it can compute gradients with respect to it. Parameters of <code>nn.Module</code> have this True by default.</dd>
+            <dt><code>loss.backward()</code></dt>
+            <dd>Fills the <code>.grad</code> of every tensor that took part in computing <code>loss</code> (and has <code>requires_grad=True</code>). Only call it once per forward (or use <code>retain_graph=True</code> in special cases). Must be called before <code>optimizer.step()</code> so the optimizer can use those gradients.</dd>
+            <dt><code>.grad</code></dt>
+            <dd>After <code>backward()</code>, each parameter’s <code>.grad</code> holds the gradient of the loss with respect to that parameter (same shape as the parameter). The optimizer uses these to update the weights.</dd>
+        </dl>
+        <h3>Other common bits</h3>
+        <dl>
+            <dt><code>reduction="none"</code></dt>
+            <dd>In <code>F.cross_entropy</code>: return a loss <strong>per element</strong> (same shape as targets) instead of averaging to a scalar. Lets you mask or weight certain positions (e.g. only assistant tokens) before summing.</dd>
+            <dt><code>.contiguous().view(...)</code></dt>
+            <dd><code>contiguous()</code> makes the tensor’s memory layout contiguous (no strides that “skip” elements). <code>view(...)</code> reshapes without copying when the tensor is contiguous. After slicing (e.g. <code>logits[:, :-1]</code>) the tensor might be non-contiguous; <code>view</code> then can fail, so we call <code>contiguous()</code> first.</dd>
+            <dt><code>state_dict</code></dt>
+            <dd>A Python dict mapping <strong>parameter names (strings)</strong> to <strong>tensors</strong>. <code>model.state_dict()</code> gives all weights and buffers; <code>load_state_dict(ckpt)</code> loads them back. Used for saving/loading checkpoints. <code>strict=True</code> means every key in the checkpoint must match a parameter in the model (and vice versa), or load raises an error.</dd>
+            <dt><code>map_location="cpu"</code></dt>
+            <dd>When loading with <code>torch.load(path, map_location="cpu")</code>, tensors are moved to CPU. Useful when the checkpoint was saved on GPU but you’re loading on a machine without that GPU (or before calling <code>.to(device)</code>).</dd>
+            <dt><code>autocast(device_type='cuda', dtype=torch.bfloat16)</code></dt>
+            <dd>Context manager: inside the block, eligible ops (matmuls, convolutions, etc.) run in <code>bfloat16</code> instead of float32. Speeds up training and reduces memory; the rest of the logic (e.g. loss scaling) is handled separately (e.g. GradScaler for float16).</dd>
+            <dt><code>scaler.scale(loss).backward()</code> / <code>unscale_</code> / <code>step</code> / <code>update</code></dt>
+            <dd>With float16, gradients can underflow. The scaler <strong>multiplies</strong> the loss by a factor before backward so gradients are in a representable range; <code>unscale_(optimizer)</code> divides the parameter gradients by that factor before the optimizer step; <code>step(optimizer)</code> then updates weights; <code>update()</code> adjusts the scale factor for the next iteration (e.g. if no inf/nan was seen, increase scale).</dd>
+            <dt><code>log_softmax</code> + <code>gather</code> (for log probs)</dt>
+            <dd>To get the log probability of the <strong>actual</strong> next token: apply <code>log_softmax</code> to logits (so each position has a distribution over vocab). Then <code>gather(dim, index)</code> picks the log-prob at the index of the true token. Sum over positions (with mask) gives the sequence log probability used in RL (e.g. PPO/DPO).</dd>
+        </dl>
     </div>
 
     <h2 id="autograd">1. Autograd &amp; backprop</h2>
@@ -864,6 +925,254 @@ __global__ void matmul_backward_bias_kernel(const float* dout, float* dbias, int
             <li><strong><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a></strong> – Uses <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">Flash Attention 3</a> and modern kernels where available.</li>
             <li><strong>PyTorch custom ops</strong> – <a href="https://pytorch.org/tutorials/advanced/cpp_extension.html" target="_blank" rel="noopener">C++/CUDA extension tutorial</a>; <code>torch.utils.cpp_extension.load_inline</code> for JIT-compiled kernels.</li>
         </ul>
+    </div>
+
+    <h2 id="vision-audio-multimodal">18. Vision, audio, multimodal &amp; other models</h2>
+    <p>PyTorch syntax commonly used for <strong>vision</strong> (CNNs, ViT), <strong>audio</strong>, <strong>multimodal</strong> (vision+language, etc.), and <strong>basic/advanced ML</strong> (MLPs, RNNs, embeddings). The Karpathy repos in this tutorial focus on LLMs; the building blocks below appear in torchvision, torchaudio, and multimodal codebases.</p>
+
+    <h3>Vision: convolutions, pooling, BatchNorm, pretrained</h3>
+    <p class="syntax-title">Core layers</p>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Conv2d(in_c, out_c, kernel_size, stride, padding)</strong> – 2D convolution over images. Input shape <code>(B, C, H, W)</code>; output <code>(B, out_c, H', W')</code>. <code>kernel_size=3</code>, <code>padding=1</code> keeps spatial size when <code>stride=1</code>.</li>
+        <li><strong>MaxPool2d(kernel_size, stride)</strong> – Downsamples by taking max in each window. Often <code>kernel_size=2, stride=2</code> → half H and W.</li>
+        <li><strong>BatchNorm2d(num_features)</strong> – Normalizes each channel across the batch (zero mean, unit var); stabilizes training. Use <code>model.eval()</code> at inference so it uses running stats.</li>
+        <li><strong>AdaptiveAvgPool2d(output_size)</strong> – Pools to a fixed size (e.g. <code>(1, 1)</code>) so you can flatten to a vector regardless of input resolution.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">import torch.nn as nn
+
+# Simple CNN: conv -> relu -> pool -> flatten -> linear
+class SmallCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)   # (B,3,H,W) -> (B,32,H,W)
+        self.pool = nn.MaxPool2d(2, 2)               # -> (B,32,H/2,W/2)
+        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
+        self.bn = nn.BatchNorm2d(64)
+        self.adapt = nn.AdaptiveAvgPool2d((1, 1))   # -> (B,64,1,1)
+        self.fc = nn.Linear(64, num_classes)
+
+    def forward(self, x):
+        x = self.pool(nn.functional.relu(self.conv1(x)))
+        x = self.adapt(nn.functional.relu(self.bn(self.conv2(x))))
+        return self.fc(x.flatten(1))</code></pre>
+    </div>
+    <p class="syntax-title">Transforms &amp; torchvision</p>
+    <div class="code-block">
+<pre><code class="language-python">from torchvision import transforms
+from torchvision.models import resnet18, ResNet18_Weights
+
+# Image preprocessing: resize, normalize to ImageNet stats
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+img_tensor = transform(pil_image)  # (3, 224, 224)
+
+# Pretrained ResNet: replace classifier head for your num_classes
+model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+model.fc = nn.Linear(model.fc.in_features, num_classes)</code></pre>
+    </div>
+
+    <h3>Audio: 1D conv, spectrograms, torchaudio</h3>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Conv1d</strong> – Convolution over time (or frequency). Input <code>(B, C, T)</code>; used for raw waveform or spectrogram frames.</li>
+        <li><strong>Spectrograms</strong> – Short-time Fourier transform (STFT) turns waveform into (time, freq) representation; often then mel filterbank → mel spectrogram. Models often take mel specs as input.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">import torchaudio
+import torchaudio.transforms as T
+
+# Waveform (B, 1, samples) -> mel spectrogram (B, n_mels, time)
+mel_spec = T.MelSpectrogram(sample_rate=16000, n_fft=400, hop_length=160, n_mels=80)
+mel = mel_spec(waveform)  # (B, 80, T)
+
+# Or load audio and resample
+waveform, sr = torchaudio.load("clip.wav")
+waveform = T.Resample(sr, 16000)(waveform)</code></pre>
+    </div>
+
+    <h3>Multimodal: two encoders, projection, fusion</h3>
+    <p>Combine vision and text (or audio and text): encode each modality, project to a shared dimension, then fuse (concat, add, or cross-attention).</p>
+    <div class="code-block">
+<pre><code class="language-python"># Minimal vision–language: image encoder -> vector; text encoder -> vector; fuse
+class VisionLanguageEncoder(nn.Module):
+    def __init__(self, vision_dim=512, text_dim=768, hidden_dim=256):
+        super().__init__()
+        self.vision_encoder = resnet18(weights=...)
+        self.vision_encoder.fc = nn.Linear(512, hidden_dim)
+        self.text_proj = nn.Linear(text_dim, hidden_dim)  # e.g. from transformer last hidden
+
+    def forward(self, image, text_embeds):
+        img_feat = self.vision_encoder(image)           # (B, hidden_dim)
+        text_feat = self.text_proj(text_embeds)         # (B, T, hidden_dim) or (B, hidden_dim)
+        # Fusion: concat and classify, or cosine similarity for retrieval
+        return img_feat, text_feat
+
+# Cross-attention: query from one modality, key/value from the other
+# q = text_proj(text_hidden); k, v = vision_proj(vision_patches); attn_out = attention(q, k, v)</code></pre>
+    </div>
+
+    <h3>Basic ML: Sequential, Dropout, activations, losses</h3>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>nn.Sequential</strong> – Stacks layers; <code>forward</code> is apply each in order. Good for simple feedforward stacks.</li>
+        <li><strong>nn.Dropout(p)</strong> – Randomly zeros elements with probability <code>p</code> (during train); scaled by 1/(1-p) so expectation unchanged. Disabled in <code>eval()</code>.</li>
+        <li><strong>Activations</strong> – <code>F.relu</code>, <code>F.gelu</code>, <code>F.silu</code> (Swish), <code>F.sigmoid</code> (0–1), <code>F.softmax(dim=-1)</code> for probabilities.</li>
+        <li><strong>Losses</strong> – <code>F.mse_loss(pred, target)</code> regression; <code>F.binary_cross_entropy_with_logits(pred, target)</code> binary classification (pred = logits, no sigmoid); <code>F.cross_entropy</code> multi-class (see glossary).</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">mlp = nn.Sequential(
+    nn.Linear(784, 256),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(256, 10),
+)
+loss = F.mse_loss(pred, target)   # regression
+loss = F.binary_cross_entropy_with_logits(logits, target.float())  # binary</code></pre>
+    </div>
+
+    <h3>Embeddings &amp; RNNs</h3>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>nn.Embedding(num_embeddings, embedding_dim)</strong> – Lookup table: integer indices → vectors. Input shape <code>(B, T)</code> of long indices; output <code>(B, T, embedding_dim)</code>. Used for token/word IDs.</li>
+        <li><strong>nn.LSTM / nn.GRU</strong> – Recurrent layers. Input <code>(T, B, C)</code> or <code>(B, T, C)</code> with <code>batch_first=True</code>; output hidden state and optionally cell (LSTM). Good for sequential data before transformers dominated.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python">embed = nn.Embedding(vocab_size, 256)
+lstm = nn.LSTM(256, 128, batch_first=True, bidirectional=False)
+x = embed(token_ids)    # (B, T, 256)
+out, (h_n, c_n) = lstm(x)  # out: (B, T, 128), h_n: (1, B, 128)</code></pre>
+    </div>
+
+    <h3>LayerNorm, residual, ViT-style patches</h3>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>nn.LayerNorm(normalized_shape)</strong> – Normalizes over last dimension(s). For <code>(B, T, C)</code> use <code>LayerNorm(C)</code>. Often used in transformer blocks (pre-norm).</li>
+        <li><strong>Residual</strong> – <code>x = x + sublayer(x)</code> or <code>x = x + sublayer(norm(x))</code>. Helps gradient flow in deep nets.</li>
+        <li><strong>ViT (Vision Transformer)</strong> – Split image into patches; flatten each patch to a vector; add position embeddings; feed to standard transformer. <code>nn.Conv2d(in_c, embed_dim, kernel_size=patch_size, stride=patch_size)</code> can create patch embeddings.</li>
+    </ul>
+    <div class="code-block">
+<pre><code class="language-python"># Patch embedding for ViT: (B, 3, 224, 224) -> (B, num_patches, embed_dim)
+patch_embed = nn.Conv2d(3, 768, kernel_size=16, stride=16)  # 224/16 = 14 -> 196 patches
+x = patch_embed(img).flatten(2).transpose(1, 2)  # (B, 196, 768)
+x = x + pos_embedding
+# Then transformer blocks (attention + MLP with LayerNorm and residual)</code></pre>
+    </div>
+
+    <div class="feature-block">
+        <h4>Where to look (outside Karpathy repos)</h4>
+        <ul>
+            <li><strong>Vision</strong> – <a href="https://pytorch.org/vision/stable/models.html" target="_blank" rel="noopener">torchvision models</a> (ResNet, ViT, etc.); <a href="https://pytorch.org/vision/stable/transforms.html" target="_blank" rel="noopener">transforms</a>.</li>
+            <li><strong>Audio</strong> – <a href="https://pytorch.org/audio/stable/index.html" target="_blank" rel="noopener">torchaudio</a> (transforms, models, datasets).</li>
+            <li><strong>Multimodal</strong> – Hugging Face <a href="https://github.com/huggingface/transformers" target="_blank" rel="noopener">transformers</a> (CLIP, LLaVA, etc.); OpenCLIP.</li>
+        </ul>
+    </div>
+
+    <h2 id="model-approaches">19. Model approaches: modeling and evaluating different problems</h2>
+    <p>Different problems need different <strong>outputs</strong>, <strong>losses</strong>, and <strong>evaluation metrics</strong>. This section maps problem types to modeling choices and how to evaluate them.</p>
+
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95em;">
+        <thead>
+            <tr style="background: #f6f8fa; text-align: left;">
+                <th style="padding: 10px 12px; border: 1px solid #e1e4e8;">Problem</th>
+                <th style="padding: 10px 12px; border: 1px solid #e1e4e8;">Model output</th>
+                <th style="padding: 10px 12px; border: 1px solid #e1e4e8;">Loss</th>
+                <th style="padding: 10px 12px; border: 1px solid #e1e4e8;">Evaluation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Multi-class classification</strong> (one label per example)</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Logits <code>(B, C)</code> or logits per token <code>(B, T, C)</code></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><code>F.cross_entropy(logits, targets)</code></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Accuracy, top-k accuracy; precision/recall/F1 per class; confusion matrix; ROC-AUC (if binary or one-vs-rest).</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Multi-label classification</strong> (multiple labels per example)</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Logits <code>(B, C)</code>; each position is independent binary</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><code>F.binary_cross_entropy_with_logits(logits, targets.float())</code> with targets <code>(B, C)</code> in {0,1}.</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Subset accuracy; macro/micro F1; precision@k; average precision per label.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Regression</strong></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Continuous <code>(B, out_dim)</code></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><code>F.mse_loss(pred, target)</code> or <code>F.l1_loss</code> (MAE); Huber for robustness.</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">MSE, RMSE, MAE; R²; MAPE if scale matters.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Sequence / language modeling</strong> (next-token prediction)</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Logits <code>(B, T, V)</code>; predict next token at each position</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><code>F.cross_entropy(logits.view(-1,V), labels.view(-1), ignore_index=pad_id)</code></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Perplexity (exp(mean CE)); bits per byte; downstream: accuracy on benchmarks (MMLU, GSM8K, etc.), human eval.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Retrieval / embedding similarity</strong></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Embeddings <code>(B, D)</code>; similarity = dot product or cosine</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Contrastive: InfoNCE / cross-entropy over batch (positive pair, negatives = rest of batch); triplet loss.</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Recall@k, MRR, NDCG; accuracy when retrieval is used for classification (e.g. k-NN).</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Ranking / learning to rank</strong></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Score per item <code>(B, n_items)</code> or per (query, doc) pair</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Pairwise: BCE on (score_i − score_j) vs label; listwise: ListNet, LambdaRank; pointwise: MSE/CE on relevance.</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">NDCG, MAP, MRR; precision/recall at k.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Reinforcement learning</strong> (policy learning)</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Logits over actions or log prob of chosen action; value head optional</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Policy gradient: −log_prob * advantage; PPO: clipped objective + KL; DPO: preference loss (no reward model).</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Average return, success rate; for LLM RL: reward model score, preference win rate, downstream task accuracy.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Segmentation</strong> (pixel-wise label)</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Logits <code>(B, C, H, W)</code> per pixel class</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><code>F.cross_entropy</code> over spatial dims (reshape to <code>(B*H*W, C)</code> and labels <code>(B*H*W)</code>); or dice / focal for imbalance.</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">mIoU (mean intersection over union), pixel accuracy, Dice; per-class IoU.</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;"><strong>Object detection</strong></td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Boxes (bbox) + class logits per proposal or per anchor</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">Classification (CE) + box regression (L1/smooth L1); matching (e.g. Hungarian) for set prediction (DETR).</td>
+                <td style="padding: 10px 12px; border: 1px solid #e1e4e8;">mAP (mean average precision) at IoU thresholds; COCO AP@.5, AP@.5:.95.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Choosing the right setup</h3>
+    <ul style="margin: 10px 0 10px 20px;">
+        <li><strong>Single label from fixed set</strong> → Multi-class: linear (or MLP) head with <code>num_classes</code> outputs, cross_entropy, accuracy.</li>
+        <li><strong>Multiple non-exclusive labels</strong> → Multi-label: same head but BCE per class; macro F1 if classes are imbalanced.</li>
+        <li><strong>Predict a number</strong> → Regression: linear head, MSE or MAE; eval with RMSE and R².</li>
+        <li><strong>Generate text / sequence</strong> → Next-token CE; eval with perplexity and task-specific benchmarks.</li>
+        <li><strong>Match or retrieve</strong> → Embeddings + contrastive loss; eval with Recall@k and NDCG.</li>
+        <li><strong>Order matters (search, recommendation)</strong> → Ranking loss (pairwise or listwise); NDCG/MAP.</li>
+        <li><strong>Agent / policy</strong> → RL loss (PPO, DPO, etc.); eval with return or downstream success.</li>
+    </ul>
+
+    <h3>PyTorch snippets for evaluation</h3>
+    <div class="code-block">
+<pre><code class="language-python"># Accuracy (multi-class)
+pred = logits.argmax(dim=-1)
+acc = (pred == targets).float().mean().item()
+
+# Precision / recall / F1 (binary or per-class)
+from sklearn.metrics import precision_recall_fscore_support, confusion_matrix
+p, r, f1, _ = precision_recall_fscore_support(y_true, y_pred, average="macro")
+
+# Regression: RMSE, R²
+rmse = torch.sqrt(F.mse_loss(pred, target)).item()
+# R² = 1 - SS_res / SS_tot
+
+# Retrieval: recall@k (for each query, is the true item in top k?)
+# sim = embeddings @ embeddings.T; for each row, argsort desc; check if gt in top k
+
+# Perplexity (language)
+mean_ce = total_loss / total_tokens
+perplexity = math.exp(mean_ce)</code></pre>
+    </div>
+
+    <div class="feature-block">
+        <h4>Summary</h4>
+        <p>Match the <strong>output shape and loss</strong> to the problem (classification → CE; regression → MSE; multi-label → BCE; sequence → CE with ignore_index). Then choose <strong>metrics</strong> that reflect your goal (accuracy, F1, NDCG, perplexity, mAP, etc.) and compute them on a held-out set or benchmark.</p>
     </div>
 
     <h2>Quick reference – repo → PyTorch features</h2>
