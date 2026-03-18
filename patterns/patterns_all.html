@@ -1,0 +1,3683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Patterns – All-in-One (Print / PDF)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.5; color: #333; margin: 0; padding: 20px; max-width: 900px; margin-left: auto; margin-right: auto; }
+        .pattern-chapter { margin-bottom: 2em; }
+        .container { margin-bottom: 30px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 8px; margin-bottom: 20px; font-size: 1.8em; }
+        .pattern { margin-bottom: 25px; padding: 20px; background: #fafafa; border-left: 5px solid #3498db; border-radius: 5px; }
+        .pattern h2 { color: #2c3e50; margin-bottom: 12px; font-size: 1.4em; }
+        .section { margin-bottom: 16px; }
+        .section h3 { color: #34495e; margin-bottom: 8px; font-size: 1.1em; border-bottom: 2px solid #ecf0f1; padding-bottom: 4px; }
+        .concept, .techniques, .complexity, .problem { padding: 12px; border-radius: 5px; margin-bottom: 12px; }
+        .concept { background: #e8f4f8; }
+        .techniques { background: #fff9e6; }
+        .techniques ul { margin-left: 20px; margin-top: 8px; }
+        .techniques li { margin-bottom: 6px; }
+        .complexity { background: #e8f5e9; }
+        .complexity table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .complexity th, .complexity td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+        .complexity th { background: #4caf50; color: white; }
+        .problem { background: #f0f0f0; }
+        .problem h4 { color: #e74c3c; margin-bottom: 8px; }
+        .code-block { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; overflow-x: auto; margin: 12px 0; font-size: 13px; }
+        .code-block pre { margin: 0; padding: 16px; font-family: 'JetBrains Mono', Consolas, monospace; white-space: pre; }
+        .code-block code { font-family: 'JetBrains Mono', Consolas, monospace; }
+    
+        
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .pattern-chapter { page-break-before: always; }
+            .pattern-chapter:first-of-type { page-break-before: avoid; }
+            .container { max-width: 100%; padding: 10px; box-shadow: none; }
+            .pattern, .section { page-break-inside: avoid; }
+            .code-block { page-break-inside: avoid; font-size: 11px; background: #f5f5f5 !important; border: 1px solid #ccc; }
+            .concept, .techniques, .complexity, .problem { page-break-inside: avoid; background: #fafafa !important; border: 1px solid #ddd; }
+            h1, h2, h3, h4 { page-break-after: avoid; color: #000 !important; }
+            .complexity th { background: #e0e0e0 !important; color: #000 !important; }
+            a { color: #000; text-decoration: underline; }
+        }
+    
+    </style>
+</head>
+<body>
+    <p style="text-align:center; font-size:0.9em; color:#666; margin-bottom:24px;">
+        Algorithm Patterns – All 18 patterns. Print or Save as PDF from the browser (Ctrl+P / Cmd+P).
+    </p>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Sliding Window Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Sliding Window</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Sliding Window pattern is used to solve problems involving subarrays or substrings of a fixed or variable size. Instead of recalculating everything for each window, we efficiently slide the window by adding one element and removing another.</p>
+                    <p><strong>Key Idea:</strong> Maintain a window that slides through the array/string, updating the window state incrementally rather than recalculating from scratch.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Fixed Size Window:</strong> Window size is constant (e.g., find max sum of k consecutive elements)</li>
+                        <li><strong>Variable Size Window:</strong> Window size changes based on conditions (e.g., smallest subarray with sum ≥ target)</li>
+                        <li><strong>Two Pointers:</strong> Use left and right pointers to expand/contract the window</li>
+                        <li><strong>Hash Map Tracking:</strong> Use hash maps to track character/element frequencies in the window</li>
+                        <li><strong>Window State:</strong> Maintain running sum, count, or other metrics as the window moves</li>
+                        <li><strong>Expansion Strategy:</strong> Expand right pointer until condition met, then contract left pointer</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is visited at most twice (once by left pointer, once by right pointer)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(k) or O(1)</td>
+                            <td>O(k) if using hash map for window tracking, O(1) for simple sum/count tracking</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Fixed Size Window:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def fixed_window(arr, k):
+    """
+    Find maximum sum of subarray of size k
+    """
+    if len(arr) < k:
+        return 0
+    
+    # Calculate sum of first window
+    window_sum = sum(arr[:k])
+    max_sum = window_sum
+    
+    # Slide the window
+    for i in range(k, len(arr)):
+        # Remove leftmost element, add rightmost element
+        window_sum = window_sum - arr[i - k] + arr[i]
+        max_sum = max(max_sum, window_sum)
+    
+    return max_sum
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Variable Size Window:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def variable_window(arr, target):
+    """
+    Find minimum length subarray with sum >= target
+    """
+    left = 0
+    window_sum = 0
+    min_len = float('inf')
+    
+    for right in range(len(arr)):
+        # Expand window
+        window_sum += arr[right]
+        
+        # Contract window while condition is met
+        while window_sum >= target:
+            min_len = min(min_len, right - left + 1)
+            window_sum -= arr[left]
+            left += 1
+    
+    return min_len if min_len != float('inf') else 0
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Sliding Window with Hash Map:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def longest_substring_k_distinct(s, k):
+    """
+    Find longest substring with at most k distinct characters
+    """
+    char_count = {}
+    left = 0
+    max_len = 0
+    
+    for right in range(len(s)):
+        # Add character to window
+        char_count[s[right]] = char_count.get(s[right], 0) + 1
+        
+        # Shrink window if more than k distinct chars
+        while len(char_count) > k:
+            char_count[s[left]] -= 1
+            if char_count[s[left]] == 0:
+                del char_count[s[left]]
+            left += 1
+        
+        max_len = max(max_len, right - left + 1)
+    
+    return max_len
+
+# TC: O(n)
+# SC: O(k)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Maximum Sum Subarray of Size K</h4>
+                    <p><strong>Description:</strong> Given an array of integers and a number k, find the maximum sum of any contiguous subarray of size k.</p>
+                    <p><strong>Example:</strong> arr = [2, 1, 5, 1, 3, 2], k = 3 → Output: 9 (subarray [5, 1, 3])</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_sum_subarray(arr, k):
+    if len(arr) < k:
+        return 0
+    
+    window_sum = sum(arr[:k])
+    max_sum = window_sum
+    
+    for i in range(k, len(arr)):
+        window_sum = window_sum - arr[i - k] + arr[i]
+        max_sum = max(max_sum, window_sum)
+    
+    return max_sum</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Longest Substring Without Repeating Characters</h4>
+                    <p><strong>Description:</strong> Find the length of the longest substring without repeating characters.</p>
+                    <p><strong>Example:</strong> "abcabcbb" → Output: 3 ("abc")</p>
+                    <div class="code-block">
+<pre><code class="language-python">def length_of_longest_substring(s):
+    char_index = {}
+    left = 0
+    max_len = 0
+    
+    for right in range(len(s)):
+        # If character seen and within current window
+        if s[right] in char_index and char_index[s[right]] >= left:
+            left = char_index[s[right]] + 1
+        
+        char_index[s[right]] = right
+        max_len = max(max_len, right - left + 1)
+    
+    return max_len</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Minimum Window Substring</h4>
+                    <p><strong>Description:</strong> Find the minimum window in string s that contains all characters of string t.</p>
+                    <p><strong>Example:</strong> s = "ADOBECODEBANC", t = "ABC" → Output: "BANC"</p>
+                    <div class="code-block">
+<pre><code class="language-python">def min_window(s, t):
+    if not s or not t:
+        return ""
+    
+    # Count characters in t
+    need = {}
+    for char in t:
+        need[char] = need.get(char, 0) + 1
+    
+    left = 0
+    valid = 0  # Number of unique characters in current window matching t
+    window = {}
+    start = 0
+    min_len = float('inf')
+    
+    for right in range(len(s)):
+        c = s[right]
+        if c in need:
+            window[c] = window.get(c, 0) + 1
+            if window[c] == need[c]:
+                valid += 1
+        
+        # Try to shrink window
+        while valid == len(need):
+            if right - left + 1 < min_len:
+                start = left
+                min_len = right - left + 1
+            
+            d = s[left]
+            if d in need:
+                if window[d] == need[d]:
+                    valid -= 1
+                window[d] -= 1
+            left += 1
+    
+    return "" if min_len == float('inf') else s[start:start + min_len]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Two Pointers Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Two Pointers</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Two Pointers pattern uses two pointers that traverse the data structure in a coordinated way. This pattern is highly efficient for solving problems involving arrays, strings, or linked lists.</p>
+                    <p><strong>Key Idea:</strong> Use two pointers moving at different speeds or from different directions to efficiently solve problems without nested loops.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Opposite Ends:</strong> Start pointers at opposite ends and move them toward each other</li>
+                        <li><strong>Fast & Slow:</strong> Use two pointers moving at different speeds (Floyd's cycle detection)</li>
+                        <li><strong>Same Direction:</strong> Both pointers move in the same direction at different speeds</li>
+                        <li><strong>Sliding Window:</strong> Two pointers define a window that slides through the array</li>
+                        <li><strong>Partitioning:</strong> Use pointers to partition array into sections</li>
+                        <li><strong>Cycle Detection:</strong> Fast pointer catches slow pointer if cycle exists</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is visited at most once by each pointer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Only using a constant amount of extra space for pointers</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Opposite Ends (Two Sum in Sorted Array):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def two_sum_sorted(arr, target):
+    """
+    Find two numbers that add up to target in sorted array
+    """
+    left, right = 0, len(arr) - 1
+    
+    while left < right:
+        current_sum = arr[left] + arr[right]
+        if current_sum == target:
+            return [left, right]
+        elif current_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Fast & Slow (Cycle Detection):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def has_cycle(head):
+    """
+    Detect cycle in linked list using Floyd's algorithm
+    """
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Same Direction (Remove Duplicates):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def remove_duplicates(arr):
+    """
+    Remove duplicates in-place from sorted array
+    """
+    if not arr:
+        return 0
+    
+    write_ptr = 1
+    
+    for read_ptr in range(1, len(arr)):
+        if arr[read_ptr] != arr[read_ptr - 1]:
+            arr[write_ptr] = arr[read_ptr]
+            write_ptr += 1
+    
+    return write_ptr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Two Sum II - Input Array Is Sorted</h4>
+                    <p><strong>Description:</strong> Given a sorted array, find two numbers that add up to a specific target.</p>
+                    <p><strong>Example:</strong> numbers = [2, 7, 11, 15], target = 9 → Output: [1, 2]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def two_sum(numbers, target):
+    left, right = 0, len(numbers) - 1
+    
+    while left < right:
+        current_sum = numbers[left] + numbers[right]
+        if current_sum == target:
+            return [left + 1, right + 1]  # 1-indexed
+        elif current_sum < target:
+            left += 1
+        else:
+            right -= 1
+    
+    return []</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Linked List Cycle</h4>
+                    <p><strong>Description:</strong> Determine if a linked list has a cycle using O(1) space.</p>
+                    <p><strong>Example:</strong> head = [3,2,0,-4], pos = 1 → Output: True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def has_cycle(head):
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Container With Most Water</h4>
+                    <p><strong>Description:</strong> Find two lines that together with the x-axis forms a container that holds the most water.</p>
+                    <p><strong>Example:</strong> height = [1,8,6,2,5,4,8,3,7] → Output: 49</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_area(height):
+    left, right = 0, len(height) - 1
+    max_water = 0
+    
+    while left < right:
+        width = right - left
+        current_area = min(height[left], height[right]) * width
+        max_water = max(max_water, current_area)
+        
+        # Move pointer with smaller height
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    
+    return max_water</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Merge Intervals Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Merge Intervals</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Merge Intervals pattern is used to solve problems involving overlapping intervals. The key is to sort intervals by their start time and then merge or find relationships between them.</p>
+                    <p><strong>Key Idea:</strong> Sort intervals by start time, then iterate through them, merging overlapping intervals or finding gaps/conflicts.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Sort First:</strong> Always sort intervals by start time (or end time for specific problems)</li>
+                        <li><strong>Overlap Detection:</strong> Two intervals overlap if start[i] <= end[j] and start[j] <= end[i]</li>
+                        <li><strong>Merge Strategy:</strong> Compare current interval with last merged interval</li>
+                        <li><strong>Gap Finding:</strong> Identify gaps between non-overlapping intervals</li>
+                        <li><strong>Conflict Detection:</strong> Find intervals that conflict with each other</li>
+                        <li><strong>Insert Intervals:</strong> Insert new interval and merge if necessary</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n log n)</td>
+                            <td>Sorting takes O(n log n), merging takes O(n)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Space needed for storing merged intervals</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Basic Merge Intervals:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def merge_intervals(intervals):
+    """
+    Merge overlapping intervals
+    """
+    if not intervals:
+        return []
+    
+    # Sort by start time
+    intervals.sort(key=lambda x: x[0])
+    merged = [intervals[0]]
+    
+    for current in intervals[1:]:
+        last = merged[-1]
+        # If current overlaps with last, merge them
+        if current[0] <= last[1]:
+            merged[-1] = [last[0], max(last[1], current[1])]
+        else:
+            merged.append(current)
+    
+    return merged
+
+# TC: O(n log n)
+# SC: O(n)</code></pre>
+                </div>
+                
+                <h4>Insert Interval:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def insert_interval(intervals, new_interval):
+    """
+    Insert new interval and merge if necessary
+    """
+    result = []
+    i = 0
+    
+    # Add all intervals before new_interval
+    while i < len(intervals) and intervals[i][1] < new_interval[0]:
+        result.append(intervals[i])
+        i += 1
+    
+    # Merge overlapping intervals
+    while i < len(intervals) and intervals[i][0] <= new_interval[1]:
+        new_interval[0] = min(new_interval[0], intervals[i][0])
+        new_interval[1] = max(new_interval[1], intervals[i][1])
+        i += 1
+    
+    result.append(new_interval)
+    
+    # Add remaining intervals
+    result.extend(intervals[i:])
+    return result
+
+# TC: O(n)
+# SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Merge Intervals</h4>
+                    <p><strong>Description:</strong> Given an array of intervals, merge all overlapping intervals.</p>
+                    <p><strong>Example:</strong> intervals = [[1,3],[2,6],[8,10],[15,18]] → Output: [[1,6],[8,10],[15,18]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def merge(intervals):
+    if not intervals:
+        return []
+    
+    intervals.sort(key=lambda x: x[0])
+    merged = [intervals[0]]
+    
+    for current in intervals[1:]:
+        last = merged[-1]
+        if current[0] <= last[1]:
+            merged[-1] = [last[0], max(last[1], current[1])]
+        else:
+            merged.append(current)
+    
+    return merged</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Insert Interval</h4>
+                    <p><strong>Description:</strong> Insert a new interval into a sorted list of non-overlapping intervals and merge if necessary.</p>
+                    <p><strong>Example:</strong> intervals = [[1,3],[6,9]], newInterval = [2,5] → Output: [[1,5],[6,9]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def insert(intervals, new_interval):
+    result = []
+    i = 0
+    
+    while i < len(intervals) and intervals[i][1] < new_interval[0]:
+        result.append(intervals[i])
+        i += 1
+    
+    while i < len(intervals) and intervals[i][0] <= new_interval[1]:
+        new_interval[0] = min(new_interval[0], intervals[i][0])
+        new_interval[1] = max(new_interval[1], intervals[i][1])
+        i += 1
+    
+    result.append(new_interval)
+    result.extend(intervals[i:])
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Meeting Rooms II</h4>
+                    <p><strong>Description:</strong> Find the minimum number of conference rooms required.</p>
+                    <p><strong>Example:</strong> intervals = [[0,30],[5,10],[15,20]] → Output: 2</p>
+                    <div class="code-block">
+<pre><code class="language-python">def min_meeting_rooms(intervals):
+    if not intervals:
+        return 0
+    
+    start_times = sorted([i[0] for i in intervals])
+    end_times = sorted([i[1] for i in intervals])
+    
+    start_ptr = end_ptr = 0
+    rooms = 0
+    max_rooms = 0
+    
+    while start_ptr < len(intervals):
+        if start_times[start_ptr] < end_times[end_ptr]:
+            rooms += 1
+            start_ptr += 1
+        else:
+            rooms -= 1
+            end_ptr += 1
+        max_rooms = max(max_rooms, rooms)
+    
+    return max_rooms</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Cyclic Sort Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Cyclic Sort</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Cyclic Sort is an in-place sorting algorithm that works well when dealing with arrays containing numbers in a given range. It places each number at its correct index.</p>
+                    <p><strong>Key Idea:</strong> For an array of n elements with values in range [0, n-1] or [1, n], each value should be at index equal to its value. We swap elements to their correct positions.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Range-Based Sorting:</strong> Works best when numbers are in a known range</li>
+                        <li><strong>Index Mapping:</strong> Value at index i should be i (or i+1 for 1-based)</li>
+                        <li><strong>Swap Strategy:</strong> Swap current element to its correct position</li>
+                        <li><strong>Missing Number Detection:</strong> After sorting, find index where value != index</li>
+                        <li><strong>Duplicate Detection:</strong> Identify duplicates during sorting process</li>
+                        <li><strong>Boundary Checks:</strong> Ensure indices are within valid range before swapping</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Each element is swapped at most once to its correct position</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Sorting is done in-place, only using constant extra space</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Basic Cyclic Sort (0 to n-1):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def cyclic_sort(arr):
+    """
+    Sort array where numbers are in range [0, n-1]
+    """
+    i = 0
+    while i < len(arr):
+        # If number is at correct position, move to next
+        if arr[i] == i:
+            i += 1
+        else:
+            # Swap to correct position
+            arr[i], arr[arr[i]] = arr[arr[i]], arr[i]
+    
+    return arr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Cyclic Sort (1 to n):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def cyclic_sort_1_to_n(arr):
+    """
+    Sort array where numbers are in range [1, n]
+    """
+    i = 0
+    while i < len(arr):
+        correct_pos = arr[i] - 1
+        if arr[i] != arr[correct_pos]:
+            arr[i], arr[correct_pos] = arr[correct_pos], arr[i]
+        else:
+            i += 1
+    
+    return arr
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Find Missing Number:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def find_missing_number(arr):
+    """
+    Find missing number in array containing n distinct numbers from range [0, n]
+    """
+    i = 0
+    while i < len(arr):
+        if arr[i] < len(arr) and arr[i] != i:
+            arr[i], arr[arr[i]] = arr[arr[i]], arr[i]
+        else:
+            i += 1
+    
+    # Find first index where value != index
+    for i in range(len(arr)):
+        if arr[i] != i:
+            return i
+    
+    return len(arr)  # n is missing
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Find Missing Number</h4>
+                    <p><strong>Description:</strong> Given an array containing n distinct numbers from range [0, n], find the missing number.</p>
+                    <p><strong>Example:</strong> nums = [3, 0, 1] → Output: 2</p>
+                    <div class="code-block">
+<pre><code class="language-python">def missing_number(nums):
+    i = 0
+    while i < len(nums):
+        if nums[i] < len(nums) and nums[i] != i:
+            nums[i], nums[nums[i]] = nums[nums[i]], nums[i]
+        else:
+            i += 1
+    
+    for i in range(len(nums)):
+        if nums[i] != i:
+            return i
+    
+    return len(nums)</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Find All Duplicates</h4>
+                    <p><strong>Description:</strong> Find all duplicates in an array where numbers are in range [1, n].</p>
+                    <p><strong>Example:</strong> nums = [4,3,2,7,8,2,3,1] → Output: [2,3]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_duplicates(nums):
+    i = 0
+    while i < len(nums):
+        correct_pos = nums[i] - 1
+        if nums[i] != nums[correct_pos]:
+            nums[i], nums[correct_pos] = nums[correct_pos], nums[i]
+        else:
+            i += 1
+    
+    duplicates = []
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            duplicates.append(nums[i])
+    
+    return duplicates</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Find All Missing Numbers</h4>
+                    <p><strong>Description:</strong> Find all numbers missing from an array containing n numbers from range [1, n].</p>
+                    <p><strong>Example:</strong> nums = [4,3,2,7,8,2,3,1] → Output: [5,6]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_missing_numbers(nums):
+    i = 0
+    while i < len(nums):
+        correct_pos = nums[i] - 1
+        if nums[i] != nums[correct_pos]:
+            nums[i], nums[correct_pos] = nums[correct_pos], nums[i]
+        else:
+            i += 1
+    
+    missing = []
+    for i in range(len(nums)):
+        if nums[i] != i + 1:
+            missing.append(i + 1)
+    
+    return missing</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Linked List Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Linked List</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Linked List problems involve manipulating nodes connected via pointers. Common operations include reversal, cycle detection, finding middle node, and merging lists.</p>
+                    <p><strong>Key Idea:</strong> Use pointer manipulation to traverse, modify, or restructure linked lists without using extra space for arrays.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Two Pointers:</strong> Fast & slow pointers for cycle detection, finding middle</li>
+                        <li><strong>In-place Reversal:</strong> Reverse linked list by changing pointers</li>
+                        <li><strong>Dummy Head:</strong> Use dummy node to simplify edge cases</li>
+                        <li><strong>Pointer Manipulation:</strong> Carefully update next pointers to avoid losing references</li>
+                        <li><strong>Cycle Detection:</strong> Floyd's algorithm (tortoise and hare)</li>
+                        <li><strong>Merge Lists:</strong> Combine two sorted lists efficiently</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Most operations require single pass through the list</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>In-place operations use only constant extra space</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Reverse Linked List:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def reverse_list(head):
+    """
+    Reverse a linked list in-place
+    """
+    prev = None
+    current = head
+    
+    while current:
+        next_node = current.next
+        current.next = prev
+        prev = current
+        current = next_node
+    
+    return prev
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Find Middle Node:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def find_middle(head):
+    """
+    Find middle node using fast and slow pointers
+    """
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    
+    return slow
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Cycle Detection:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def has_cycle(head):
+    """
+    Detect cycle using Floyd's algorithm
+    """
+    if not head or not head.next:
+        return False
+    
+    slow = fast = head
+    
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            return True
+    
+    return False
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Reverse Linked List</h4>
+                    <p><strong>Description:</strong> Reverse a singly linked list.</p>
+                    <p><strong>Example:</strong> 1->2->3->4->5 → 5->4->3->2->1</p>
+                    <div class="code-block">
+<pre><code class="language-python">def reverse_list(head):
+    prev = None
+    current = head
+    
+    while current:
+        next_node = current.next
+        current.next = prev
+        prev = current
+        current = next_node
+    
+    return prev</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Remove Nth Node From End</h4>
+                    <p><strong>Description:</strong> Remove the nth node from the end of the list.</p>
+                    <p><strong>Example:</strong> head = [1,2,3,4,5], n = 2 → [1,2,3,5]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def remove_nth_from_end(head, n):
+    dummy = ListNode(0)
+    dummy.next = head
+    
+    first = second = dummy
+    
+    # Move first pointer n+1 steps ahead
+    for _ in range(n + 1):
+        first = first.next
+    
+    # Move both pointers until first reaches end
+    while first:
+        first = first.next
+        second = second.next
+    
+    # Remove the node
+    second.next = second.next.next
+    
+    return dummy.next</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Merge Two Sorted Lists</h4>
+                    <p><strong>Description:</strong> Merge two sorted linked lists into one sorted list.</p>
+                    <p><strong>Example:</strong> list1 = [1,2,4], list2 = [1,3,4] → [1,1,2,3,4,4]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def merge_two_lists(list1, list2):
+    dummy = ListNode(0)
+    current = dummy
+    
+    while list1 and list2:
+        if list1.val <= list2.val:
+            current.next = list1
+            list1 = list1.next
+        else:
+            current.next = list2
+            list2 = list2.next
+        current = current.next
+    
+    # Attach remaining nodes
+    current.next = list1 if list1 else list2
+    
+    return dummy.next</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Tree BFS Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Tree BFS (Breadth-First Search)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>BFS traverses a tree level by level, visiting all nodes at the current depth before moving to the next level. It uses a queue to process nodes.</p>
+                    <p><strong>Key Idea:</strong> Process nodes level by level using a queue. Start with root, add children to queue, process each level completely before moving to next.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Queue-Based:</strong> Use queue (deque) to maintain nodes at current level</li>
+                        <li><strong>Level Tracking:</strong> Process all nodes at current level before moving to next</li>
+                        <li><strong>Level Order Traversal:</strong> Return nodes grouped by level</li>
+                        <li><strong>Zigzag Traversal:</strong> Alternate direction at each level</li>
+                        <li><strong>Right Side View:</strong> Track last node at each level</li>
+                        <li><strong>Level Size:</strong> Track number of nodes at each level for processing</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Visit each node exactly once</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(w)</td>
+                            <td>w is maximum width of tree (queue size at widest level)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Basic BFS:</h4>
+                <div class="code-block">
+<pre><code class="language-python">from collections import deque
+
+def bfs(root):
+    """
+    Basic BFS traversal
+    """
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node.val)
+        
+        if node.left:
+            queue.append(node.left)
+        if node.right:
+            queue.append(node.right)
+    
+    return result
+
+# TC: O(n)
+# SC: O(w)</code></pre>
+                </div>
+                
+                <h4>Level Order Traversal:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def level_order(root):
+    """
+    Return nodes grouped by level
+    """
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result
+
+# TC: O(n)
+# SC: O(w)</code></pre>
+                </div>
+                
+                <h4>Zigzag Level Order:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def zigzag_level_order(root):
+    """
+    Traverse tree in zigzag pattern
+    """
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    left_to_right = True
+    
+    while queue:
+        level_size = len(queue)
+        level = deque()
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            
+            if left_to_right:
+                level.append(node.val)
+            else:
+                level.appendleft(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(list(level))
+        left_to_right = not left_to_right
+    
+    return result
+
+# TC: O(n)
+# SC: O(w)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Binary Tree Level Order Traversal</h4>
+                    <p><strong>Description:</strong> Return the level order traversal of a binary tree.</p>
+                    <p><strong>Example:</strong> [3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def level_order(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        level = []
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level)
+    
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Binary Tree Right Side View</h4>
+                    <p><strong>Description:</strong> Return the values of nodes visible from the right side.</p>
+                    <p><strong>Example:</strong> [1,2,3,null,5,null,4] → [1,3,4]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def right_side_view(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        
+        for i in range(level_size):
+            node = queue.popleft()
+            
+            # Last node at this level
+            if i == level_size - 1:
+                result.append(node.val)
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+    
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Average of Levels in Binary Tree</h4>
+                    <p><strong>Description:</strong> Return the average value of nodes at each level.</p>
+                    <p><strong>Example:</strong> [3,9,20,null,null,15,7] → [3.0, 14.5, 11.0]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def average_of_levels(root):
+    if not root:
+        return []
+    
+    result = []
+    queue = deque([root])
+    
+    while queue:
+        level_size = len(queue)
+        level_sum = 0
+        
+        for _ in range(level_size):
+            node = queue.popleft()
+            level_sum += node.val
+            
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        
+        result.append(level_sum / level_size)
+    
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Tree DFS Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Tree DFS (Depth-First Search)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>DFS traverses a tree by going as deep as possible before backtracking. It uses recursion or a stack to explore paths.</p>
+                    <p><strong>Key Idea:</strong> Explore one path completely before backtracking. Three main orders: Pre-order (root-left-right), In-order (left-root-right), Post-order (left-right-root).</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Recursive DFS:</strong> Use function calls to naturally traverse depth-first</li>
+                        <li><strong>Iterative DFS:</strong> Use stack to simulate recursion</li>
+                        <li><strong>Pre-order:</strong> Process root before children (root-left-right)</li>
+                        <li><strong>In-order:</strong> Process left, then root, then right (for BST gives sorted order)</li>
+                        <li><strong>Post-order:</strong> Process children before root (left-right-root)</li>
+                        <li><strong>Path Tracking:</strong> Maintain current path while traversing</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Visit each node exactly once</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(h)</td>
+                            <td>h is height of tree (recursion stack or explicit stack)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Pre-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def preorder_traversal(root):
+    """
+    Pre-order: root -> left -> right
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        result.append(node.val)
+        dfs(node.left)
+        dfs(node.right)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>In-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def inorder_traversal(root):
+    """
+    In-order: left -> root -> right
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        dfs(node.left)
+        result.append(node.val)
+        dfs(node.right)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Post-order Traversal (Recursive):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def postorder_traversal(root):
+    """
+    Post-order: left -> right -> root
+    """
+    result = []
+    
+    def dfs(node):
+        if not node:
+            return
+        dfs(node.left)
+        dfs(node.right)
+        result.append(node.val)
+    
+    dfs(root)
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Iterative DFS (Pre-order):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def preorder_iterative(root):
+    """
+    Pre-order using stack
+    """
+    if not root:
+        return []
+    
+    result = []
+    stack = [root]
+    
+    while stack:
+        node = stack.pop()
+        result.append(node.val)
+        
+        # Push right first, then left (so left is processed first)
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+    
+    return result
+
+# TC: O(n)
+# SC: O(h)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Maximum Depth of Binary Tree</h4>
+                    <p><strong>Description:</strong> Find the maximum depth of a binary tree.</p>
+                    <p><strong>Example:</strong> [3,9,20,null,null,15,7] → 3</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_depth(root):
+    if not root:
+        return 0
+    
+    left_depth = max_depth(root.left)
+    right_depth = max_depth(root.right)
+    
+    return 1 + max(left_depth, right_depth)</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Path Sum</h4>
+                    <p><strong>Description:</strong> Check if there exists a root-to-leaf path with given sum.</p>
+                    <p><strong>Example:</strong> root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22 → True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def has_path_sum(root, target_sum):
+    if not root:
+        return False
+    
+    if not root.left and not root.right:
+        return root.val == target_sum
+    
+    remaining = target_sum - root.val
+    return (has_path_sum(root.left, remaining) or 
+            has_path_sum(root.right, remaining))</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Binary Tree Maximum Path Sum</h4>
+                    <p><strong>Description:</strong> Find the maximum path sum (path can start and end at any node).</p>
+                    <p><strong>Example:</strong> [-10,9,20,null,null,15,7] → 42</p>
+                    <div class="code-block">
+<pre><code class="language-python">def max_path_sum(root):
+    max_sum = float('-inf')
+    
+    def dfs(node):
+        nonlocal max_sum
+        if not node:
+            return 0
+        
+        left_sum = max(0, dfs(node.left))
+        right_sum = max(0, dfs(node.right))
+        
+        # Path through current node
+        current_path = node.val + left_sum + right_sum
+        max_sum = max(max_sum, current_path)
+        
+        # Return max path from this node (can only use one branch)
+        return node.val + max(left_sum, right_sum)
+    
+    dfs(root)
+    return max_sum</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Topological Sort Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Topological Sort</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Topological Sort orders nodes in a directed acyclic graph (DAG) such that for every edge (u, v), u appears before v in the ordering.</p>
+                    <p><strong>Key Idea:</strong> Process nodes with no incoming edges first, then remove their outgoing edges and repeat. Used for dependency resolution, course scheduling, build systems.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Kahn's Algorithm:</strong> Use in-degree counting and queue</li>
+                        <li><strong>DFS-based:</strong> Use DFS with post-order processing</li>
+                        <li><strong>In-degree Tracking:</strong> Count incoming edges for each node</li>
+                        <li><strong>Cycle Detection:</strong> Detect if graph has cycles (no valid topological order)</li>
+                        <li><strong>Dependency Resolution:</strong> Process dependencies before dependents</li>
+                        <li><strong>Queue Management:</strong> Process nodes with zero in-degree</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(V + E)</td>
+                            <td>V = vertices, E = edges. Visit each node and edge once</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(V)</td>
+                            <td>Space for in-degree array, queue, and result</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Kahn's Algorithm (BFS-based):</h4>
+                <div class="code-block">
+<pre><code class="language-python">from collections import deque
+
+def topological_sort(num_courses, prerequisites):
+    """
+    Kahn's algorithm using in-degree counting
+    """
+    # Build graph and in-degree count
+    graph = [[] for _ in range(num_courses)]
+    in_degree = [0] * num_courses
+    
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    # Start with nodes having no incoming edges
+    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])
+    result = []
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        
+        # Remove edges and update in-degrees
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    # Check if all courses were processed (no cycle)
+    return result if len(result) == num_courses else []
+
+# TC: O(V + E)
+# SC: O(V)</code></pre>
+                </div>
+                
+                <h4>DFS-based Topological Sort:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def topological_sort_dfs(num_courses, prerequisites):
+    """
+    DFS-based topological sort
+    """
+    graph = [[] for _ in range(num_courses)]
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+    
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = [WHITE] * num_courses
+    result = []
+    
+    def dfs(node):
+        if color[node] == GRAY:  # Cycle detected
+            return False
+        if color[node] == BLACK:  # Already processed
+            return True
+        
+        color[node] = GRAY
+        for neighbor in graph[node]:
+            if not dfs(neighbor):
+                return False
+        
+        color[node] = BLACK
+        result.append(node)
+        return True
+    
+    for i in range(num_courses):
+        if color[i] == WHITE:
+            if not dfs(i):
+                return []  # Cycle found
+    
+    return result[::-1]  # Reverse for correct order
+
+# TC: O(V + E)
+# SC: O(V)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Course Schedule</h4>
+                    <p><strong>Description:</strong> Determine if you can finish all courses given prerequisites.</p>
+                    <p><strong>Example:</strong> numCourses = 2, prerequisites = [[1,0]] → True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def can_finish(num_courses, prerequisites):
+    graph = [[] for _ in range(num_courses)]
+    in_degree = [0] * num_courses
+    
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])
+    count = 0
+    
+    while queue:
+        node = queue.popleft()
+        count += 1
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return count == num_courses</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Course Schedule II</h4>
+                    <p><strong>Description:</strong> Find the order of courses to finish all courses.</p>
+                    <p><strong>Example:</strong> numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]] → [0,2,1,3]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_order(num_courses, prerequisites):
+    graph = [[] for _ in range(num_courses)]
+    in_degree = [0] * num_courses
+    
+    for course, prereq in prerequisites:
+        graph[prereq].append(course)
+        in_degree[course] += 1
+    
+    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])
+    result = []
+    
+    while queue:
+        node = queue.popleft()
+        result.append(node)
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+    
+    return result if len(result) == num_courses else []</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Union Find Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Union Find (Disjoint Set Union)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Union Find (Disjoint Set Union) is a data structure that tracks elements partitioned into disjoint sets. It supports efficient union and find operations.</p>
+                    <p><strong>Key Idea:</strong> Use path compression and union by rank to achieve near-constant time operations. Perfect for connectivity problems, cycle detection, and grouping elements.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Path Compression:</strong> Flatten tree during find operation for efficiency</li>
+                        <li><strong>Union by Rank:</strong> Always attach smaller tree to larger tree</li>
+                        <li><strong>Find Operation:</strong> Find root of element's set with path compression</li>
+                        <li><strong>Union Operation:</strong> Merge two sets by connecting their roots</li>
+                        <li><strong>Connected Check:</strong> Check if two elements are in same set</li>
+                        <li><strong>Count Components:</strong> Track number of disjoint sets</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(α(n))</td>
+                            <td>α is inverse Ackermann function, effectively O(1) for practical purposes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Space for parent and rank arrays</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Union Find with Path Compression and Union by Rank:</h4>
+                <div class="code-block">
+<pre><code class="language-python">class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+        self.components = n
+    
+    def find(self, x):
+        """
+        Find root with path compression
+        """
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+    
+    def union(self, x, y):
+        """
+        Union by rank
+        """
+        root_x = self.find(x)
+        root_y = self.find(y)
+        
+        if root_x == root_y:
+            return False  # Already connected
+        
+        # Union by rank
+        if self.rank[root_x] < self.rank[root_y]:
+            self.parent[root_x] = root_y
+        elif self.rank[root_x] > self.rank[root_y]:
+            self.parent[root_y] = root_x
+        else:
+            self.parent[root_y] = root_x
+            self.rank[root_x] += 1
+        
+        self.components -= 1
+        return True
+    
+    def connected(self, x, y):
+        """
+        Check if two elements are connected
+        """
+        return self.find(x) == self.find(y)
+
+# TC: O(α(n)) per operation
+# SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Number of Connected Components</h4>
+                    <p><strong>Description:</strong> Find number of connected components in an undirected graph.</p>
+                    <p><strong>Example:</strong> n = 5, edges = [[0,1],[1,2],[3,4]] → 2 components</p>
+                    <div class="code-block">
+<pre><code class="language-python">def count_components(n, edges):
+    uf = UnionFind(n)
+    
+    for u, v in edges:
+        uf.union(u, v)
+    
+    return uf.components</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Redundant Connection</h4>
+                    <p><strong>Description:</strong> Find redundant edge that forms a cycle in a tree.</p>
+                    <p><strong>Example:</strong> edges = [[1,2],[1,3],[2,3]] → [2,3]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_redundant_connection(edges):
+    n = len(edges)
+    uf = UnionFind(n + 1)
+    
+    for u, v in edges:
+        if not uf.union(u, v):
+            return [u, v]  # Cycle detected
+    
+    return []</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Number of Islands II</h4>
+                    <p><strong>Description:</strong> Count islands after each land addition operation.</p>
+                    <p><strong>Example:</strong> m=3, n=3, positions=[[0,0],[0,1],[1,2],[2,1]] → [1,1,2,3]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def num_islands_2(m, n, positions):
+    uf = UnionFind(m * n)
+    result = []
+    grid = [[0] * n for _ in range(m)]
+    directions = [(0,1), (1,0), (0,-1), (-1,0)]
+    
+    for r, c in positions:
+        if grid[r][c] == 1:
+            result.append(uf.components)
+            continue
+        
+        grid[r][c] = 1
+        uf.components += 1
+        idx = r * n + c
+        
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < m and 0 <= nc < n and grid[nr][nc] == 1:
+                neighbor_idx = nr * n + nc
+                uf.union(idx, neighbor_idx)
+        
+        result.append(uf.components)
+    
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Two Heaps Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Two Heaps</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Two Heaps pattern uses a min-heap and max-heap to maintain elements in two halves, allowing efficient access to median, finding smallest/largest elements, or maintaining balanced partitions.</p>
+                    <p><strong>Key Idea:</strong> Use min-heap for larger half and max-heap for smaller half. Keep heaps balanced (size difference ≤ 1) for efficient median finding.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Min-Heap for Larger Half:</strong> Store larger elements in min-heap</li>
+                        <li><strong>Max-Heap for Smaller Half:</strong> Store smaller elements in max-heap (use negative values)</li>
+                        <li><strong>Balance Maintenance:</strong> Keep heap sizes balanced (difference ≤ 1)</li>
+                        <li><strong>Median Finding:</strong> Top of heaps give median when balanced</li>
+                        <li><strong>Re-balancing:</strong> Move elements between heaps to maintain balance</li>
+                        <li><strong>Python heapq:</strong> Use heapq (min-heap) with negatives for max-heap</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(log n)</td>
+                            <td>Insert and rebalance operations take O(log n)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Store all elements in two heaps</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Find Median from Data Stream:</h4>
+                <div class="code-block">
+<pre><code class="language-python">import heapq
+
+class MedianFinder:
+    def __init__(self):
+        # Max heap (smaller half) - use negative values
+        self.small = []
+        # Min heap (larger half)
+        self.large = []
+    
+    def add_num(self, num):
+        # Add to appropriate heap
+        if not self.small or num <= -self.small[0]:
+            heapq.heappush(self.small, -num)
+        else:
+            heapq.heappush(self.large, num)
+        
+        # Balance heaps
+        if len(self.small) > len(self.large) + 1:
+            val = -heapq.heappop(self.small)
+            heapq.heappush(self.large, val)
+        elif len(self.large) > len(self.small) + 1:
+            val = heapq.heappop(self.large)
+            heapq.heappush(self.small, -val)
+    
+    def find_median(self):
+        if len(self.small) > len(self.large):
+            return -self.small[0]
+        elif len(self.large) > len(self.small):
+            return self.large[0]
+        else:
+            return (-self.small[0] + self.large[0]) / 2.0
+
+# TC: O(log n) per operation
+# SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Find Median from Data Stream</h4>
+                    <p><strong>Description:</strong> Design a data structure that supports adding numbers and finding the median.</p>
+                    <p><strong>Example:</strong> addNum(1), addNum(2), findMedian() → 1.5, addNum(3), findMedian() → 2</p>
+                    <div class="code-block">
+<pre><code class="language-python">class MedianFinder:
+    def __init__(self):
+        self.small = []  # Max heap (smaller half)
+        self.large = []  # Min heap (larger half)
+    
+    def add_num(self, num):
+        if not self.small or num <= -self.small[0]:
+            heapq.heappush(self.small, -num)
+        else:
+            heapq.heappush(self.large, num)
+        
+        # Balance
+        if len(self.small) > len(self.large) + 1:
+            heapq.heappush(self.large, -heapq.heappop(self.small))
+        elif len(self.large) > len(self.small) + 1:
+            heapq.heappush(self.small, -heapq.heappop(self.large))
+    
+    def find_median(self):
+        if len(self.small) == len(self.large):
+            return (-self.small[0] + self.large[0]) / 2.0
+        return -self.small[0] if len(self.small) > len(self.large) else self.large[0]</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Sliding Window Median</h4>
+                    <p><strong>Description:</strong> Find median for each window of size k in an array.</p>
+                    <p><strong>Example:</strong> nums = [1,3,-1,-3,5,3,6,7], k = 3 → [1.0,-1.0,-1.0,3.0,5.0,6.0]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def median_sliding_window(nums, k):
+    def get_median():
+        if k % 2 == 1:
+            return float(small[0][0] if len(small) > len(large) else -large[0][0])
+        return (small[0][0] - large[0][0]) / 2.0
+    
+    small, large = [], []
+    result = []
+    
+    # Initialize first window
+    for i in range(k):
+        heapq.heappush(small, (-nums[i], i))
+    
+    for i in range(k // 2):
+        val, idx = heapq.heappop(small)
+        heapq.heappush(large, (-val, idx))
+    
+    result.append(get_median())
+    
+    # Slide window
+    for i in range(k, len(nums)):
+        # Remove out-of-window elements
+        while small and small[0][1] <= i - k:
+            heapq.heappop(small)
+        while large and large[0][1] <= i - k:
+            heapq.heappop(large)
+        
+        # Add new element and balance
+        if nums[i] <= -small[0][0] if small else True:
+            heapq.heappush(small, (-nums[i], i))
+        else:
+            heapq.heappush(large, (nums[i], i))
+        
+        # Rebalance
+        while len(small) > len(large) + 1:
+            val, idx = heapq.heappop(small)
+            heapq.heappush(large, (-val, idx))
+        while len(large) > len(small) + 1:
+            val, idx = heapq.heappop(large)
+            heapq.heappush(small, (-val, idx))
+        
+        result.append(get_median())
+    
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Top K Elements Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Top K Elements</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Top K Elements pattern finds the K largest, smallest, or most frequent elements efficiently using heaps or quickselect.</p>
+                    <p><strong>Key Idea:</strong> Use min-heap of size K for largest elements, or max-heap for smallest elements. Alternatively, use quickselect for O(n) average case.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Min-Heap for K Largest:</strong> Keep heap size K, pop smallest when full</li>
+                        <li><strong>Max-Heap for K Smallest:</strong> Use negative values with min-heap</li>
+                        <li><strong>Frequency Counting:</strong> Use Counter to track element frequencies</li>
+                        <li><strong>Quickselect:</strong> Use partition algorithm for O(n) average case</li>
+                        <li><strong>Heap Size Management:</strong> Maintain exactly K elements in heap</li>
+                        <li><strong>Custom Comparators:</strong> Sort by frequency, value, or custom criteria</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n log k)</td>
+                            <td>Heap approach: n elements, heap size k</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(k)</td>
+                            <td>Heap stores at most k elements</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Top K Largest Elements (Min-Heap):</h4>
+                <div class="code-block">
+<pre><code class="language-python">import heapq
+
+def top_k_largest(nums, k):
+    """
+    Find k largest elements using min-heap
+    """
+    heap = []
+    
+    for num in nums:
+        heapq.heappush(heap, num)
+        if len(heap) > k:
+            heapq.heappop(heap)  # Remove smallest
+    
+    return heap
+
+# TC: O(n log k)
+# SC: O(k)</code></pre>
+                </div>
+                
+                <h4>Top K Frequent Elements:</h4>
+                <div class="code-block">
+<pre><code class="language-python">from collections import Counter
+
+def top_k_frequent(nums, k):
+    """
+    Find k most frequent elements
+    """
+    count = Counter(nums)
+    
+    # Min-heap of size k
+    heap = []
+    for num, freq in count.items():
+        heapq.heappush(heap, (freq, num))
+        if len(heap) > k:
+            heapq.heappop(heap)
+    
+    return [num for freq, num in heap]
+
+# TC: O(n log k)
+# SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Kth Largest Element</h4>
+                    <p><strong>Description:</strong> Find the kth largest element in an array.</p>
+                    <p><strong>Example:</strong> nums = [3,2,1,5,6,4], k = 2 → 5</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_kth_largest(nums, k):
+    heap = []
+    
+    for num in nums:
+        heapq.heappush(heap, num)
+        if len(heap) > k:
+            heapq.heappop(heap)
+    
+    return heap[0]</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Top K Frequent Elements</h4>
+                    <p><strong>Description:</strong> Return k most frequent elements.</p>
+                    <p><strong>Example:</strong> nums = [1,1,1,2,2,3], k = 2 → [1,2]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def top_k_frequent(nums, k):
+    count = Counter(nums)
+    heap = []
+    
+    for num, freq in count.items():
+        heapq.heappush(heap, (freq, num))
+        if len(heap) > k:
+            heapq.heappop(heap)
+    
+    return [num for freq, num in heap]</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Top K Frequent Words</h4>
+                    <p><strong>Description:</strong> Return k most frequent words, sorted by frequency then lexicographically.</p>
+                    <p><strong>Example:</strong> words = ["i","love","leetcode","i","love","coding"], k = 2 → ["i","love"]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def top_k_frequent_words(words, k):
+    count = Counter(words)
+    
+    # Custom comparator: (-freq, word) for min-heap
+    heap = []
+    for word, freq in count.items():
+        heapq.heappush(heap, (-freq, word))
+        if len(heap) > k:
+            heapq.heappop(heap)
+    
+    # Sort by frequency (desc) then word (asc)
+    result = sorted(heap, key=lambda x: (x[0], x[1]))
+    return [word for freq, word in result]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>K-way Merge Pattern</h1>
+        
+        <div class="pattern">
+            <h2>K-way Merge</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>K-way Merge combines K sorted arrays/lists into one sorted array efficiently using a min-heap to track the smallest element from each array.</p>
+                    <p><strong>Key Idea:</strong> Use a min-heap to always get the smallest element across all K arrays. Pop smallest, add next element from same array, repeat until all arrays are exhausted.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Min-Heap Approach:</strong> Store (value, array_index, element_index) tuples</li>
+                        <li><strong>Pointer Tracking:</strong> Track current position in each array</li>
+                        <li><strong>Heap Initialization:</strong> Add first element from each array</li>
+                        <li><strong>Merge Process:</strong> Pop smallest, add next from same array</li>
+                        <li><strong>Array Exhaustion:</strong> Handle when an array is fully processed</li>
+                        <li><strong>Divide and Conquer:</strong> Merge pairs recursively for large K</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n log k)</td>
+                            <td>n = total elements, k = number of arrays. Each element processed once, heap operations O(log k)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(k)</td>
+                            <td>Heap stores at most k elements (one from each array)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Merge K Sorted Lists:</h4>
+                <div class="code-block">
+<pre><code class="language-python">import heapq
+
+def merge_k_lists(lists):
+    """
+    Merge k sorted linked lists
+    """
+    heap = []
+    
+    # Initialize heap with first node from each list
+    for i, lst in enumerate(lists):
+        if lst:
+            heapq.heappush(heap, (lst.val, i, lst))
+    
+    dummy = ListNode(0)
+    current = dummy
+    
+    while heap:
+        val, list_idx, node = heapq.heappop(heap)
+        current.next = node
+        current = current.next
+        
+        # Add next node from same list
+        if node.next:
+            heapq.heappush(heap, (node.next.val, list_idx, node.next))
+    
+    return dummy.next
+
+# TC: O(n log k)
+# SC: O(k)</code></pre>
+                </div>
+                
+                <h4>Merge K Sorted Arrays:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def merge_k_arrays(arrays):
+    """
+    Merge k sorted arrays
+    """
+    heap = []
+    result = []
+    
+    # Initialize: (value, array_index, element_index)
+    for i, arr in enumerate(arrays):
+        if arr:
+            heapq.heappush(heap, (arr[0], i, 0))
+    
+    while heap:
+        val, arr_idx, elem_idx = heapq.heappop(heap)
+        result.append(val)
+        
+        # Add next element from same array
+        if elem_idx + 1 < len(arrays[arr_idx]):
+            next_val = arrays[arr_idx][elem_idx + 1]
+            heapq.heappush(heap, (next_val, arr_idx, elem_idx + 1))
+    
+    return result
+
+# TC: O(n log k)
+# SC: O(k)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Merge K Sorted Lists</h4>
+                    <p><strong>Description:</strong> Merge k sorted linked lists into one sorted list.</p>
+                    <p><strong>Example:</strong> lists = [[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def merge_k_lists(lists):
+    heap = []
+    
+    for i, lst in enumerate(lists):
+        if lst:
+            heapq.heappush(heap, (lst.val, i, lst))
+    
+    dummy = ListNode(0)
+    current = dummy
+    
+    while heap:
+        val, idx, node = heapq.heappop(heap)
+        current.next = node
+        current = current.next
+        
+        if node.next:
+            heapq.heappush(heap, (node.next.val, idx, node.next))
+    
+    return dummy.next</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Kth Smallest in Sorted Matrix</h4>
+                    <p><strong>Description:</strong> Find kth smallest element in a sorted matrix.</p>
+                    <p><strong>Example:</strong> matrix = [[1,5,9],[10,11,13],[12,13,15]], k = 8 → 13</p>
+                    <div class="code-block">
+<pre><code class="language-python">def kth_smallest(matrix, k):
+    heap = []
+    n = len(matrix)
+    
+    # Add first element of each row
+    for i in range(n):
+        heapq.heappush(heap, (matrix[i][0], i, 0))
+    
+    for _ in range(k - 1):
+        val, row, col = heapq.heappop(heap)
+        if col + 1 < n:
+            heapq.heappush(heap, (matrix[row][col + 1], row, col + 1))
+    
+    return heap[0][0]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Trie Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Trie (Prefix Tree)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>A Trie (prefix tree) is a tree-like data structure for storing strings. Each node represents a character, and paths from root to nodes represent words.</p>
+                    <p><strong>Key Idea:</strong> Share common prefixes among words. Efficient for prefix matching, autocomplete, word search, and dictionary operations.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Node Structure:</strong> Each node has children (dict) and is_end flag</li>
+                        <li><strong>Insert Operation:</strong> Traverse/create path character by character</li>
+                        <li><strong>Search Operation:</strong> Check if word exists in trie</li>
+                        <li><strong>Prefix Search:</strong> Check if prefix exists</li>
+                        <li><strong>DFS Traversal:</strong> Find all words with given prefix</li>
+                        <li><strong>Space Optimization:</strong> Use array of size 26 for lowercase letters</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(m)</td>
+                            <td>m = length of word. Each operation traverses word length</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(ALPHABET_SIZE * N * M)</td>
+                            <td>N = number of words, M = average length. Can be optimized</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Basic Trie Implementation:</h4>
+                <div class="code-block">
+<pre><code class="language-python">class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+
+class Trie:
+    def __init__(self):
+        self.root = TrieNode()
+    
+    def insert(self, word):
+        """
+        Insert word into trie
+        """
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end = True
+    
+    def search(self, word):
+        """
+        Check if word exists in trie
+        """
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+        return node.is_end
+    
+    def starts_with(self, prefix):
+        """
+        Check if prefix exists
+        """
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+        return True
+
+# TC: O(m) per operation
+# SC: O(ALPHABET_SIZE * N * M)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Implement Trie</h4>
+                    <p><strong>Description:</strong> Implement a trie with insert, search, and startsWith methods.</p>
+                    <p><strong>Example:</strong> insert("apple"), search("apple") → True, startsWith("app") → True</p>
+                    <div class="code-block">
+<pre><code class="language-python">class Trie:
+    def __init__(self):
+        self.root = {}
+    
+    def insert(self, word):
+        node = self.root
+        for char in word:
+            if char not in node:
+                node[char] = {}
+            node = node[char]
+        node['#'] = True  # Mark end of word
+    
+    def search(self, word):
+        node = self.root
+        for char in word:
+            if char not in node:
+                return False
+            node = node[char]
+        return '#' in node
+    
+    def starts_with(self, prefix):
+        node = self.root
+        for char in prefix:
+            if char not in node:
+                return False
+            node = node[char]
+        return True</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Word Search II</h4>
+                    <p><strong>Description:</strong> Find all words from dictionary that exist in the board.</p>
+                    <p><strong>Example:</strong> board = [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]], words = ["oath","pea","eat","rain"] → ["eat","oath"]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_words(board, words):
+    trie = {}
+    for word in words:
+        node = trie
+        for char in word:
+            node = node.setdefault(char, {})
+        node['#'] = word
+    
+    result = []
+    
+    def dfs(r, c, node):
+        char = board[r][c]
+        curr_node = node[char]
+        
+        word_match = curr_node.pop('#', False)
+        if word_match:
+            result.append(word_match)
+        
+        board[r][c] = '#'
+        for dr, dc in [(0,1), (1,0), (0,-1), (-1,0)]:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < len(board) and 0 <= nc < len(board[0]) and board[nr][nc] in curr_node:
+                dfs(nr, nc, curr_node)
+        board[r][c] = char
+        
+        if not curr_node:
+            node.pop(char)
+    
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] in trie:
+                dfs(i, j, trie)
+    
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Modified Binary Search Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Modified Binary Search</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Modified Binary Search adapts the classic binary search for problems like finding boundaries, searching in rotated arrays, or finding optimal values.</p>
+                    <p><strong>Key Idea:</strong> Instead of searching for exact match, search for first/last occurrence, boundary conditions, or optimal value using binary search on answer space.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Search Space Reduction:</strong> Narrow down search space based on conditions</li>
+                        <li><strong>Boundary Finding:</strong> Find first/last position where condition is true</li>
+                        <li><strong>Rotated Array Search:</strong> Determine which half is sorted</li>
+                        <li><strong>Binary Search on Answer:</strong> Search for optimal value in answer space</li>
+                        <li><strong>Condition Functions:</strong> Define clear true/false conditions</li>
+                        <li><strong>Left/Right Boundaries:</strong> Use left <= right vs left < right appropriately</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(log n)</td>
+                            <td>Each iteration eliminates half of search space</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Only using constant extra space</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Find First True (Lower Bound):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def find_first_true(arr, condition):
+    """
+    Find first index where condition is true
+    """
+    left, right = 0, len(arr)
+    
+    while left < right:
+        mid = (left + right) // 2
+        if condition(arr[mid]):
+            right = mid
+        else:
+            left = mid + 1
+    
+    return left
+
+# TC: O(log n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Search in Rotated Sorted Array:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def search_rotated(nums, target):
+    """
+    Search in rotated sorted array
+    """
+    left, right = 0, len(nums) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        
+        if nums[mid] == target:
+            return mid
+        
+        # Left half is sorted
+        if nums[left] <= nums[mid]:
+            if nums[left] <= target < nums[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        # Right half is sorted
+        else:
+            if nums[mid] < target <= nums[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+    
+    return -1
+
+# TC: O(log n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Binary Search on Answer:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def binary_search_answer(min_val, max_val, condition):
+    """
+    Binary search on answer space
+    """
+    left, right = min_val, max_val
+    result = -1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        if condition(mid):
+            result = mid
+            right = mid - 1  # or left = mid + 1 depending on problem
+        else:
+            left = mid + 1  # or right = mid - 1
+    
+    return result
+
+# TC: O(log(max_val - min_val))
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Search in Rotated Sorted Array</h4>
+                    <p><strong>Description:</strong> Search target in rotated sorted array with no duplicates.</p>
+                    <p><strong>Example:</strong> nums = [4,5,6,7,0,1,2], target = 0 → 4</p>
+                    <div class="code-block">
+<pre><code class="language-python">def search(nums, target):
+    left, right = 0, len(nums) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2
+        
+        if nums[mid] == target:
+            return mid
+        
+        if nums[left] <= nums[mid]:
+            if nums[left] <= target < nums[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        else:
+            if nums[mid] < target <= nums[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+    
+    return -1</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Find Peak Element</h4>
+                    <p><strong>Description:</strong> Find peak element (greater than neighbors) in array.</p>
+                    <p><strong>Example:</strong> nums = [1,2,3,1] → 2 (index of 3)</p>
+                    <div class="code-block">
+<pre><code class="language-python">def find_peak_element(nums):
+    left, right = 0, len(nums) - 1
+    
+    while left < right:
+        mid = (left + right) // 2
+        if nums[mid] > nums[mid + 1]:
+            right = mid
+        else:
+            left = mid + 1
+    
+    return left</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Search a 2D Matrix</h4>
+                    <p><strong>Description:</strong> Search target in 2D matrix where each row and column is sorted.</p>
+                    <p><strong>Example:</strong> matrix = [[1,4,7,11],[2,5,8,12],[3,6,9,16],[10,13,14,17]], target = 5 → True</p>
+                    <div class="code-block">
+<pre><code class="language-python">def search_matrix(matrix, target):
+    if not matrix:
+        return False
+    
+    row, col = 0, len(matrix[0]) - 1
+    
+    while row < len(matrix) and col >= 0:
+        if matrix[row][col] == target:
+            return True
+        elif matrix[row][col] > target:
+            col -= 1
+        else:
+            row += 1
+    
+    return False</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Subsets Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Subsets (Backtracking)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>The Subsets pattern generates all possible subsets/combinations/permutations using backtracking. Each element can be included or excluded.</p>
+                    <p><strong>Key Idea:</strong> Use recursion to explore all possibilities. At each step, make a choice (include/exclude), recurse, then backtrack to try other choices.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Backtracking Template:</strong> Choose, explore, unchoose pattern</li>
+                        <li><strong>Include/Exclude:</strong> Two choices at each step</li>
+                        <li><strong>Duplicate Handling:</strong> Sort and skip duplicates</li>
+                        <li><strong>Path Tracking:</strong> Maintain current path/combination</li>
+                        <li><strong>Base Case:</strong> When to add current path to result</li>
+                        <li><strong>Pruning:</strong> Skip invalid paths early</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(2^n)</td>
+                            <td>For subsets: 2^n possible subsets (each element included/excluded)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Recursion stack depth and path storage</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Generate All Subsets:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def subsets(nums):
+    """
+    Generate all subsets
+    """
+    result = []
+    
+    def backtrack(start, path):
+        # Add current path to result
+        result.append(path[:])
+        
+        # Try each remaining element
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            backtrack(i + 1, path)
+            path.pop()  # Backtrack
+    
+    backtrack(0, [])
+    return result
+
+# TC: O(2^n)
+# SC: O(n)</code></pre>
+                </div>
+                
+                <h4>Subsets with Duplicates:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def subsets_with_dup(nums):
+    """
+    Generate subsets, skip duplicates
+    """
+    nums.sort()
+    result = []
+    
+    def backtrack(start, path):
+        result.append(path[:])
+        
+        for i in range(start, len(nums)):
+            # Skip duplicates
+            if i > start and nums[i] == nums[i - 1]:
+                continue
+            
+            path.append(nums[i])
+            backtrack(i + 1, path)
+            path.pop()
+    
+    backtrack(0, [])
+    return result
+
+# TC: O(2^n)
+# SC: O(n)</code></pre>
+                </div>
+                
+                <h4>Combinations:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def combine(n, k):
+    """
+    Generate all combinations of k numbers from [1, n]
+    """
+    result = []
+    
+    def backtrack(start, path):
+        if len(path) == k:
+            result.append(path[:])
+            return
+        
+        for i in range(start, n + 1):
+            path.append(i)
+            backtrack(i + 1, path)
+            path.pop()
+    
+    backtrack(1, [])
+    return result
+
+# TC: O(C(n,k))
+# SC: O(k)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Subsets</h4>
+                    <p><strong>Description:</strong> Return all possible subsets of an array.</p>
+                    <p><strong>Example:</strong> nums = [1,2,3] → [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def subsets(nums):
+    result = []
+    
+    def backtrack(start, path):
+        result.append(path[:])
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            backtrack(i + 1, path)
+            path.pop()
+    
+    backtrack(0, [])
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Subsets II</h4>
+                    <p><strong>Description:</strong> Generate subsets with duplicates, no duplicate subsets.</p>
+                    <p><strong>Example:</strong> nums = [1,2,2] → [[],[1],[1,2],[1,2,2],[2],[2,2]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def subsets_with_dup(nums):
+    nums.sort()
+    result = []
+    
+    def backtrack(start, path):
+        result.append(path[:])
+        for i in range(start, len(nums)):
+            if i > start and nums[i] == nums[i - 1]:
+                continue
+            path.append(nums[i])
+            backtrack(i + 1, path)
+            path.pop()
+    
+    backtrack(0, [])
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Combination Sum</h4>
+                    <p><strong>Description:</strong> Find all unique combinations that sum to target (can reuse elements).</p>
+                    <p><strong>Example:</strong> candidates = [2,3,6,7], target = 7 → [[2,2,3],[7]]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def combination_sum(candidates, target):
+    result = []
+    
+    def backtrack(start, path, remaining):
+        if remaining == 0:
+            result.append(path[:])
+            return
+        if remaining < 0:
+            return
+        
+        for i in range(start, len(candidates)):
+            path.append(candidates[i])
+            backtrack(i, path, remaining - candidates[i])
+            path.pop()
+    
+    backtrack(0, [], target)
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Bitwise XOR Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Bitwise XOR</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Bitwise XOR (^) has unique properties that make it useful for solving problems involving finding unique elements, swapping without temp, or detecting differences.</p>
+                    <p><strong>Key Properties:</strong> a ^ a = 0, a ^ 0 = a, a ^ b = b ^ a, (a ^ b) ^ c = a ^ (b ^ c). XOR of all elements cancels pairs.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Find Single Number:</strong> XOR all numbers, pairs cancel out</li>
+                        <li><strong>Swap Without Temp:</strong> a ^= b; b ^= a; a ^= b</li>
+                        <li><strong>Find Missing Number:</strong> XOR all numbers with range</li>
+                        <li><strong>Find Two Unique Numbers:</strong> XOR all, find rightmost set bit, partition</li>
+                        <li><strong>Complement Property:</strong> Use XOR with mask to flip bits</li>
+                        <li><strong>Parity Checking:</strong> XOR to check if count is odd/even</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n)</td>
+                            <td>Single pass through array</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(1)</td>
+                            <td>Only using constant extra space</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>Find Single Number:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def single_number(nums):
+    """
+    Find single number in array where all others appear twice
+    """
+    result = 0
+    for num in nums:
+        result ^= num
+    return result
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Find Two Single Numbers:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def single_numbers(nums):
+    """
+    Find two numbers that appear once, others appear twice
+    """
+    # XOR all numbers
+    xor_all = 0
+    for num in nums:
+        xor_all ^= num
+    
+    # Find rightmost set bit
+    rightmost_bit = xor_all & -xor_all
+    
+    # Partition into two groups
+    num1 = num2 = 0
+    for num in nums:
+        if num & rightmost_bit:
+            num1 ^= num
+        else:
+            num2 ^= num
+    
+    return [num1, num2]
+
+# TC: O(n)
+# SC: O(1)</code></pre>
+                </div>
+                
+                <h4>Swap Without Temporary Variable:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def swap(a, b):
+    """
+    Swap two numbers using XOR
+    """
+    a ^= b
+    b ^= a
+    a ^= b
+    return a, b
+
+# TC: O(1)
+# SC: O(1)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Single Number</h4>
+                    <p><strong>Description:</strong> Find the single number that appears once, others appear twice.</p>
+                    <p><strong>Example:</strong> nums = [2,2,1] → 1</p>
+                    <div class="code-block">
+<pre><code class="language-python">def single_number(nums):
+    result = 0
+    for num in nums:
+        result ^= num
+    return result</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Single Number III</h4>
+                    <p><strong>Description:</strong> Find two numbers that appear once, others appear twice.</p>
+                    <p><strong>Example:</strong> nums = [1,2,1,3,2,5] → [3,5]</p>
+                    <div class="code-block">
+<pre><code class="language-python">def single_number_3(nums):
+    xor_all = 0
+    for num in nums:
+        xor_all ^= num
+    
+    # Get rightmost set bit
+    diff = xor_all & -xor_all
+    
+    num1 = num2 = 0
+    for num in nums:
+        if num & diff:
+            num1 ^= num
+        else:
+            num2 ^= num
+    
+    return [num1, num2]</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Missing Number</h4>
+                    <p><strong>Description:</strong> Find missing number in array containing n distinct numbers from [0, n].</p>
+                    <p><strong>Example:</strong> nums = [3,0,1] → 2</p>
+                    <div class="code-block">
+<pre><code class="language-python">def missing_number(nums):
+    result = len(nums)
+    for i, num in enumerate(nums):
+        result ^= i ^ num
+    return result</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>Dynamic Programming Pattern</h1>
+        
+        <div class="pattern">
+            <h2>Dynamic Programming</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>Dynamic Programming solves complex problems by breaking them into simpler subproblems and storing results to avoid recomputation. It optimizes recursive solutions with overlapping subproblems.</p>
+                    <p><strong>Key Idea:</strong> Identify optimal substructure (optimal solution contains optimal solutions to subproblems) and overlapping subproblems. Use memoization (top-down) or tabulation (bottom-up).</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Memoization (Top-Down):</strong> Cache results of recursive calls</li>
+                        <li><strong>Tabulation (Bottom-Up):</strong> Build solution iteratively from base cases</li>
+                        <li><strong>1D DP:</strong> dp[i] represents state at position i</li>
+                        <li><strong>2D DP:</strong> dp[i][j] represents state with two dimensions</li>
+                        <li><strong>State Transition:</strong> Define how to compute current state from previous states</li>
+                        <li><strong>Space Optimization:</strong> Reduce space by reusing arrays</li>
+                        <li><strong>Pattern Recognition:</strong> Identify DP patterns (knapsack, LIS, edit distance, etc.)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity</h3>
+                <div class="complexity">
+                    <table>
+                        <tr>
+                            <th>Complexity Type</th>
+                            <th>Value</th>
+                            <th>Explanation</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Time Complexity</strong></td>
+                            <td>O(n) to O(n²)</td>
+                            <td>Depends on problem. Typically O(states × transitions)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Space Complexity</strong></td>
+                            <td>O(n) to O(n²)</td>
+                            <td>Space for DP table. Can often be optimized to O(1) or O(n)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 Boilerplate Code</h3>
+                
+                <h4>1D DP (Fibonacci):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def fibonacci(n):
+    """
+    Bottom-up DP approach
+    """
+    if n <= 1:
+        return n
+    
+    dp = [0] * (n + 1)
+    dp[1] = 1
+    
+    for i in range(2, n + 1):
+        dp[i] = dp[i - 1] + dp[i - 2]
+    
+    return dp[n]
+
+# Space optimized
+def fibonacci_optimized(n):
+    if n <= 1:
+        return n
+    
+    prev2, prev1 = 0, 1
+    for i in range(2, n + 1):
+        curr = prev1 + prev2
+        prev2, prev1 = prev1, curr
+    
+    return prev1
+
+# TC: O(n)
+# SC: O(1) optimized</code></pre>
+                </div>
+                
+                <h4>2D DP (Unique Paths):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def unique_paths(m, n):
+    """
+    Number of unique paths from top-left to bottom-right
+    """
+    dp = [[1] * n for _ in range(m)]
+    
+    for i in range(1, m):
+        for j in range(1, n):
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    
+    return dp[m - 1][n - 1]
+
+# Space optimized
+def unique_paths_optimized(m, n):
+    prev = [1] * n
+    
+    for i in range(1, m):
+        curr = [1] * n
+        for j in range(1, n):
+            curr[j] = prev[j] + curr[j - 1]
+        prev = curr
+    
+    return prev[n - 1]
+
+# TC: O(m * n)
+# SC: O(n) optimized</code></pre>
+                </div>
+                
+                <h4>Memoization (Top-Down):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def coin_change_memo(coins, amount):
+    """
+    Minimum coins to make amount (memoization)
+    """
+    memo = {}
+    
+    def dp(remaining):
+        if remaining == 0:
+            return 0
+        if remaining < 0:
+            return float('inf')
+        if remaining in memo:
+            return memo[remaining]
+        
+        min_coins = float('inf')
+        for coin in coins:
+            result = dp(remaining - coin)
+            if result != float('inf'):
+                min_coins = min(min_coins, 1 + result)
+        
+        memo[remaining] = min_coins
+        return min_coins
+    
+    result = dp(amount)
+    return result if result != float('inf') else -1
+
+# TC: O(amount * len(coins))
+# SC: O(amount)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Demonstrative Problems</h3>
+                
+                <div class="problem">
+                    <h4>Problem 1: Climbing Stairs</h4>
+                    <p><strong>Description:</strong> Find number of ways to climb n stairs (1 or 2 steps at a time).</p>
+                    <p><strong>Example:</strong> n = 3 → 3 ways (1+1+1, 1+2, 2+1)</p>
+                    <div class="code-block">
+<pre><code class="language-python">def climb_stairs(n):
+    if n <= 2:
+        return n
+    
+    prev2, prev1 = 1, 2
+    for i in range(3, n + 1):
+        curr = prev1 + prev2
+        prev2, prev1 = prev1, curr
+    
+    return prev1</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 2: Coin Change</h4>
+                    <p><strong>Description:</strong> Find minimum coins to make amount.</p>
+                    <p><strong>Example:</strong> coins = [1,2,5], amount = 11 → 3 (5+5+1)</p>
+                    <div class="code-block">
+<pre><code class="language-python">def coin_change(coins, amount):
+    dp = [float('inf')] * (amount + 1)
+    dp[0] = 0
+    
+    for i in range(1, amount + 1):
+        for coin in coins:
+            if i >= coin:
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+    
+    return dp[amount] if dp[amount] != float('inf') else -1</code></pre>
+                    </div>
+                </div>
+                
+                <div class="problem">
+                    <h4>Problem 3: Longest Increasing Subsequence</h4>
+                    <p><strong>Description:</strong> Find length of longest strictly increasing subsequence.</p>
+                    <p><strong>Example:</strong> nums = [10,9,2,5,3,7,101,18] → 4 ([2,3,7,101])</p>
+                    <div class="code-block">
+<pre><code class="language-python">def length_of_lis(nums):
+    dp = [1] * len(nums)
+    
+    for i in range(1, len(nums)):
+        for j in range(i):
+            if nums[j] < nums[i]:
+                dp[i] = max(dp[i], dp[j] + 1)
+    
+    return max(dp)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+<section class="pattern-chapter">
+<div class="container">
+<h1>BST & Spatial Trees (KD-Tree) Pattern</h1>
+        
+        <!-- ========== BINARY SEARCH TREE ========== -->
+        <div class="pattern">
+            <h2>Binary Search Tree (BST)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>A Binary Search Tree is a binary tree where for every node: <strong>left subtree &lt; root &lt; right subtree</strong>. In-order traversal yields sorted order. Used for fast search, insert, delete (average O(log n)) and range/successor queries.</p>
+                    <p><strong>Key Idea:</strong> Use the ordering property to discard one subtree per step. Validate by passing (min, max) bounds down. Kth smallest = in-order with a counter.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Search:</strong> Compare with root, recurse left or right</li>
+                        <li><strong>Insert:</strong> Find leaf position by comparing, then attach</li>
+                        <li><strong>Delete:</strong> 0 children → remove; 1 child → bypass; 2 children → replace with inorder successor/predecessor</li>
+                        <li><strong>Validate BST:</strong> Pass (min, max) bounds; left must be in (min, root.val), right in (root.val, max)</li>
+                        <li><strong>Kth smallest:</strong> In-order traversal with counter; return when count == k</li>
+                        <li><strong>BST from sorted array:</strong> Mid as root, recurse left/right on halves</li>
+                        <li><strong>Successor / Predecessor:</strong> Use parent pointers or in-order stack</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space Complexity (BST)</h3>
+                <div class="complexity">
+                    <table>
+                        <tr><th>Operation</th><th>Time (avg)</th><th>Time (worst)</th><th>Space</th></tr>
+                        <tr><td>Search / Insert / Delete</td><td>O(log n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td>In-order (sorted)</td><td>O(n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td>Validate / Kth smallest</td><td>O(n)</td><td>O(n)</td><td>O(h)</td></tr>
+                        <tr><td colspan="4">h = height; balanced BST gives h = O(log n)</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 BST Boilerplate</h3>
+                
+                <h4>Search & Validate BST:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def search_bst(root, target):
+    if not root or root.val == target:
+        return root
+    if target < root.val:
+        return search_bst(root.left, target)
+    return search_bst(root.right, target)
+
+def is_valid_bst(root, lo=float('-inf'), hi=float('inf')):
+    if not root:
+        return True
+    if not (lo < root.val < hi):
+        return False
+    return is_valid_bst(root.left, lo, root.val) and is_valid_bst(root.right, root.val, hi)
+
+# TC: Search O(h), Validate O(n). SC: O(h)</code></pre>
+                </div>
+                
+                <h4>Kth Smallest (in-order):</h4>
+                <div class="code-block">
+<pre><code class="language-python">def kth_smallest(root, k):
+    def inorder(node):
+        nonlocal k, ans
+        if not node or ans is not None:
+            return
+        inorder(node.left)
+        k -= 1
+        if k == 0:
+            ans = node.val
+            return
+        inorder(node.right)
+    ans = None
+    inorder(root)
+    return ans
+
+# TC: O(k) to O(n). SC: O(h)</code></pre>
+                </div>
+                
+                <h4>BST from Sorted Array:</h4>
+                <div class="code-block">
+<pre><code class="language-python">def sorted_array_to_bst(nums):
+    def build(l, r):
+        if l > r:
+            return None
+        mid = (l + r) // 2
+        node = TreeNode(nums[mid])
+        node.left = build(l, mid - 1)
+        node.right = build(mid + 1, r)
+        return node
+    return build(0, len(nums) - 1)
+
+# TC: O(n). SC: O(log n) recursion</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 BST Problems</h3>
+                <div class="problem">
+                    <h4>Problem 1: Validate BST</h4>
+                    <p><strong>Description:</strong> Check if binary tree is a valid BST (strict min/max per node).</p>
+                    <div class="code-block">
+<pre><code class="language-python">def isValidBST(root):
+    def valid(node, lo, hi):
+        if not node: return True
+        if not (lo < node.val < hi): return False
+        return valid(node.left, lo, node.val) and valid(node.right, node.val, hi)
+    return valid(root, float('-inf'), float('inf'))</code></pre>
+                    </div>
+                </div>
+                <div class="problem">
+                    <h4>Problem 2: Kth Smallest in BST</h4>
+                    <p><strong>Description:</strong> Return the kth smallest value (1-indexed) using in-order.</p>
+                    <div class="code-block">
+<pre><code class="language-python">def kthSmallest(root, k):
+    stack = []
+    while root or stack:
+        while root:
+            stack.append(root)
+            root = root.left
+        root = stack.pop()
+        k -= 1
+        if k == 0:
+            return root.val
+        root = root.right</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== KD-TREE ========== -->
+        <div class="pattern">
+            <h2>KD-Tree (K-Dimensional Tree)</h2>
+            
+            <div class="section">
+                <h3>📖 Concept</h3>
+                <div class="concept">
+                    <p>A KD-tree is a space-partitioning tree for organizing points in <strong>k-dimensional</strong> space. Each level splits along one dimension (cycling through dimensions). Used for <strong>nearest neighbor search</strong>, range queries, and spatial indexing.</p>
+                    <p><strong>Key Idea:</strong> Build by repeatedly splitting on median along alternating axes. Search: traverse like BST (compare on current axis), then possibly check the other subtree if the splitting hyperplane is within the search radius.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎯 Techniques to Master</h3>
+                <div class="techniques">
+                    <ul>
+                        <li><strong>Build:</strong> Choose dimension (e.g. depth % k), find median, split into left/right; recurse</li>
+                        <li><strong>Nearest Neighbor:</strong> Go toward query point first; then backtrack to the "other side" if the hyperplane is closer than best so far</li>
+                        <li><strong>Range Query:</strong> Check if node's point in range; recurse left/right if the splitting plane intersects the range</li>
+                        <li><strong>Dimension cycling:</strong> Level 0 → axis 0, level 1 → axis 1, … level k → axis 0 again</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>⏱️ Time & Space (KD-Tree)</h3>
+                <div class="complexity">
+                    <table>
+                        <tr><th>Operation</th><th>Time (avg)</th><th>Time (worst)</th><th>Space</th></tr>
+                        <tr><td>Build (n points)</td><td>O(n log n)</td><td>O(n²)</td><td>O(n)</td></tr>
+                        <tr><td>Nearest neighbor</td><td>O(log n)</td><td>O(n)</td><td>O(log n)</td></tr>
+                        <tr><td>Range query</td><td>O(√n + k)</td><td>O(n)</td><td>O(log n)</td></tr>
+                        <tr><td colspan="4">k = number of points in range; worst case in high dimensions</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>💻 KD-Tree Boilerplate (2D)</h3>
+                <div class="code-block">
+<pre><code class="language-python">class KDNode:
+    def __init__(self, point, left=None, right=None):
+        self.point = point
+        self.left = left
+        self.right = right
+
+def build_kdtree(points, depth=0):
+    if not points:
+        return None
+    k = len(points[0])
+    axis = depth % k
+    points_sorted = sorted(points, key=lambda p: p[axis])
+    mid = len(points_sorted) // 2
+    return KDNode(
+        points_sorted[mid],
+        build_kdtree(points_sorted[:mid], depth + 1),
+        build_kdtree(points_sorted[mid + 1:], depth + 1)
+    )
+
+def dist_sq(p, q):
+    return sum((a - b) ** 2 for a, b in zip(p, q))
+
+def nearest(node, query, depth=0, best=None):
+    if not node:
+        return best
+    k = len(query)
+    axis = depth % k
+    d = dist_sq(node.point, query)
+    if best is None or d < dist_sq(best, query):
+        best = node.point
+    if query[axis] < node.point[axis]:
+        near, far = node.left, node.right
+    else:
+        near, far = node.right, node.left
+    best = nearest(near, query, depth + 1, best)
+    # Check other side if hyperplane is within current best distance
+    if far and (query[axis] - node.point[axis]) ** 2 < dist_sq(best, query):
+        best = nearest(far, query, depth + 1, best)
+    return best
+
+# Build: O(n log n). Nearest: O(log n) average. SC: O(n)</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 KD-Tree Problem</h3>
+                <div class="problem">
+                    <h4>Problem: K Nearest Neighbors (KNN) with KD-Tree</h4>
+                    <p><strong>Description:</strong> Given points and a query, find K nearest points. Maintain a max-heap of size K (or collect and sort) while doing nearest-neighbor-style traversal.</p>
+                    <div class="code-block">
+<pre><code class="language-python">import heapq
+def k_nearest_kdtree(root, query, k):
+    heap = []  # max-heap by negative distance
+    def search(node, depth=0):
+        if not node:
+            return
+        axis = depth % len(query)
+        d = dist_sq(node.point, query)
+        if len(heap) < k:
+            heapq.heappush(heap, (-d, node.point))
+        elif d < -heap[0][0]:
+            heapq.heapreplace(heap, (-d, node.point))
+        if query[axis] < node.point[axis]:
+            search(node.left, depth + 1)
+            if len(heap) < k or (node.point[axis] - query[axis])**2 <= -heap[0][0]:
+                search(node.right, depth + 1)
+        else:
+            search(node.right, depth + 1)
+            if len(heap) < k or (query[axis] - node.point[axis])**2 <= -heap[0][0]:
+                search(node.left, depth + 1)
+    search(root)
+    return [p for _, p in heap]
+
+# TC: O(log n + k) average. SC: O(k + log n)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ========== OTHER SPATIAL TREES ========== -->
+        <div class="pattern">
+            <h2>Other Spatial / Partitioning Trees</h2>
+            
+            <div class="section">
+                <h3>📖 Overview</h3>
+                <div class="concept">
+                    <p><strong>R-tree:</strong> B-tree-like structure for rectangles (bounding boxes). Good for geographic data, "find all objects in this region." Insert/search by merging/splitting bounding boxes.</p>
+                    <p><strong>BSP (Binary Space Partitioning):</strong> Recursively split space with hyperplanes. Used in graphics (visibility) and collision detection.</p>
+                    <p><strong>Quadtree / Octree:</strong> Split 2D/3D space into 4/8 children at each node. Good for grid-like data, collision, LOD. Simpler than KD-tree for axis-aligned subdivisions.</p>
+                    <p><strong>When to use:</strong> KD-tree → nearest neighbor in moderate dimensions; R-tree → range queries on rectangles; Quadtree → 2D grids and games.</p>
+                </div>
+            </div>
+        </div>
+</div></section>
+
+</body>
+</html>
