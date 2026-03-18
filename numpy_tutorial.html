@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumPy Tutorial – Arrays, Broadcasting &amp; Linear Algebra</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 32px; color: #24292f; }
+        h3 { margin-top: 20px; color: #34495e; font-size: 1.1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 6px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .feature-block { background: #f6f8fa; border-left: 4px solid #0366d6; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .feature-block h4 { margin-top: 0; margin-bottom: 8px; }
+        .code-block { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 14px; }
+        .code-block pre { margin: 0; padding: 16px; }
+        .code-block code { background: transparent; padding: 0; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        .example-io { background: #f0f7ff; border-left: 4px solid #055a9e; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .example-io h4 { margin-top: 0; margin-bottom: 8px; color: #055a9e; }
+        .example-io pre { margin: 8px 0 0; font-size: 13px; background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        ul ul { margin: 6px 0; }
+        .tip { background: #fffbf0; border: 1px solid #e6d9a8; border-radius: 6px; padding: 14px 18px; margin: 14px 0; }
+        .tip strong { color: #5a4a00; }
+    </style>
+</head>
+<body>
+
+    <h1>NumPy Tutorial – Arrays, Broadcasting &amp; Linear Algebra</h1>
+    <p><strong>NumPy</strong> is the fundamental library for numerical computing in Python. It provides <strong>ndarray</strong> (n-dimensional arrays), fast element-wise and array operations, broadcasting, linear algebra, and random number generation. Pandas, SciPy, and most ML frameworks build on NumPy.</p>
+
+    <div class="toc">
+        <strong>Table of contents</strong>
+        <ol>
+            <li><a href="#intro">Installation &amp; import</a></li>
+            <li><a href="#creation">Creating arrays</a></li>
+            <li><a href="#dtypes-shape">dtype, shape, strides</a></li>
+            <li><a href="#indexing">Indexing and slicing</a></li>
+            <li><a href="#reshape">Reshaping and stacking</a></li>
+            <li><a href="#broadcasting">Broadcasting</a></li>
+            <li><a href="#ufuncs">Universal functions (ufuncs)</a></li>
+            <li><a href="#aggregations">Aggregations and reductions</a></li>
+            <li><a href="#linear-algebra">Linear algebra</a></li>
+            <li><a href="#random">Random numbers</a></li>
+            <li><a href="#io">I/O: save/load arrays</a></li>
+            <li><a href="#copy-view">Copy vs view</a></li>
+            <li><a href="#summary">Summary</a></li>
+        </ol>
+    </div>
+
+    <h2 id="intro">1. Installation &amp; import</h2>
+    <p>Install with <code>pip install numpy</code>. Convention: <code>import numpy as np</code>.</p>
+    <div class="code-block">
+<pre><code class="language-python">import numpy as np
+print(np.__version__)   # e.g. 1.24.0</code></pre>
+    </div>
+
+    <h2 id="creation">2. Creating arrays</h2>
+    <p>An <strong>ndarray</strong> is a homogeneous, multi-dimensional container of fixed-size items (usually numbers).</p>
+    <p class="syntax-title">From lists and sequences</p>
+    <div class="code-block">
+<pre><code class="language-python">np.array([1, 2, 3])                    # 1D from list
+np.array([[1, 2], [3, 4]])            # 2D
+np.array([1, 2, 3], dtype=np.float64) # explicit dtype</code></pre>
+    </div>
+    <p class="syntax-title">Initializers</p>
+    <div class="code-block">
+<pre><code class="language-python">np.zeros((3, 4))       # 3×4 of 0.0
+np.ones((2, 3))        # 2×3 of 1.0
+np.full((2, 2), 7)     # 2×2 filled with 7
+np.empty((2, 3))       # uninitialized (fast; fill before use)
+np.eye(3)              # 3×3 identity
+np.identity(3)         # same as eye(3)</code></pre>
+    </div>
+    <p class="syntax-title">Ranges and sequences</p>
+    <div class="code-block">
+<pre><code class="language-python">np.arange(0, 10, 2)    # [0, 2, 4, 6, 8] (start, stop, step)
+np.linspace(0, 1, 5)   # 5 values from 0 to 1 inclusive: [0, 0.25, 0.5, 0.75, 1]
+np.logspace(0, 2, 3)   # 3 values log-spaced: 10^0, 10^1, 10^2</code></pre>
+    </div>
+
+    <h2 id="dtypes-shape">3. dtype, shape, strides</h2>
+    <p>Every array has a <strong>dtype</strong> (element type), <strong>shape</strong> (tuple of sizes per axis), and <strong>strides</strong> (bytes to step per axis).</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([[1, 2, 3], [4, 5, 6]])
+a.dtype    # dtype('int64') or int32 on some systems
+a.shape    # (2, 3)
+a.ndim     # 2
+a.size     # 6 (total elements)
+a.strides  # e.g. (24, 8) — bytes per row, per element</code></pre>
+    </div>
+    <p>Common dtypes: <code>np.int32</code>, <code>np.int64</code>, <code>np.float32</code>, <code>np.float64</code>, <code>np.bool_</code>, <code>np.complex128</code>. Cast with <code>.astype(dtype)</code> (returns new array).</p>
+    <div class="code-block">
+<pre><code class="language-python">a.astype(np.float32)
+a.astype('float32')   # string alias also works</code></pre>
+    </div>
+
+    <h2 id="indexing">4. Indexing and slicing</h2>
+    <p>Indexing is <strong>zero-based</strong>. Slices are <code>start:stop:step</code>; <code>stop</code> is exclusive. Negative indices count from the end.</p>
+    <p class="syntax-title">1D</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([10, 20, 30, 40, 50])
+a[0]        # 10
+a[-1]       # 50
+a[1:4]      # [20, 30, 40]
+a[::2]      # [10, 30, 50]
+a[::-1]     # reversed</code></pre>
+    </div>
+    <p class="syntax-title">2D and multi-axis</p>
+    <div class="code-block">
+<pre><code class="language-python">b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+b[1, 2]     # 6 (row 1, col 2)
+b[1][2]     # same
+b[0:2, 1]   # 1D: [2, 5] (rows 0–1, column 1)
+b[:, 2]     # last column: [3, 6, 9]
+b[1, :]     # second row: [4, 5, 6]</code></pre>
+    </div>
+    <p class="syntax-title">Boolean (fancy) indexing</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([1, 2, 3, 4, 5])
+mask = a >= 3
+a[mask]     # [3, 4, 5]
+a[a % 2 == 0]  # [2, 4]</code></pre>
+    </div>
+    <p class="syntax-title">Integer array indexing</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([10, 20, 30, 40])
+a[[0, 2, 3]]   # [10, 30, 40]
+# 2D: row and column index arrays
+b = np.arange(12).reshape(3, 4)
+b[[0, 1, 2], [0, 1, 2]]   # [0, 5, 10] (diagonal)</code></pre>
+    </div>
+
+    <h2 id="reshape">5. Reshaping and stacking</h2>
+    <p><code>reshape</code> returns a <strong>view</strong> when the total size is unchanged; otherwise it raises. Use <code>-1</code> for “infer this dimension”.</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.arange(12)
+a.reshape(3, 4)     # 3×4
+a.reshape(2, -1)   # 2×6 (-1 inferred)
+a.reshape(-1)      # 1D (ravel)
+a.ravel()          # 1D view when possible
+a.flatten()        # 1D copy</code></pre>
+    </div>
+    <p class="syntax-title">Stacking</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+np.stack([a, b])           # 2×3 (new axis 0)
+np.stack([a, b], axis=1)   # 3×2 (new axis 1)
+np.vstack([a, b])          # vertical: 2×3
+np.hstack([a, b])          # horizontal: (6,)
+np.concatenate([a, b])     # (6,) along existing axis
+np.concatenate([A, B], axis=0)  # stack rows; axis=1 stack cols</code></pre>
+    </div>
+    <p class="syntax-title">New axis and squeeze</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([1, 2, 3])
+a[np.newaxis, :]   # shape (1, 3)
+np.expand_dims(a, axis=0)  # (1, 3)
+np.squeeze(arr)    # remove axes of size 1</code></pre>
+    </div>
+
+    <h2 id="broadcasting">6. Broadcasting</h2>
+    <p>Broadcasting lets you do operations on arrays with different shapes without copying. Rules: (1) align dimensions from the <strong>right</strong>; (2) dimensions are compatible if they are equal or one of them is 1; (3) missing dimensions are treated as 1.</p>
+    <div class="code-block">
+<pre><code class="language-python"># (3, 4) + (4,) → (3, 4) + (1, 4) → (3, 4)
+a = np.ones((3, 4))
+b = np.array([1, 2, 3, 4])
+a + b   # each row of a gets [1,2,3,4] added
+
+# (3, 1) + (1, 4) → (3, 4)
+c = np.array([[1], [2], [3]])
+d = np.array([[10, 20, 30, 40]])
+c + d   # outer-sum style</code></pre>
+    </div>
+    <div class="tip"><strong>Tip:</strong> <code>np.newaxis</code> (or <code>None</code>) adds a length-1 axis so small arrays can broadcast correctly, e.g. <code>col[:, np.newaxis] + row</code>.</div>
+
+    <h2 id="ufuncs">7. Universal functions (ufuncs)</h2>
+    <p>Ufuncs operate element-wise and support broadcasting. They are implemented in C and are fast.</p>
+    <p class="syntax-title">Math and comparison</p>
+    <div class="code-block">
+<pre><code class="language-python">np.abs, np.sqrt, np.square
+np.exp, np.log, np.log10, np.log2
+np.sin, np.cos, np.tan
+np.sign, np.ceil, np.floor, np.round
+np.add, np.subtract, np.multiply, np.divide, np.power
+np.maximum(a, b), np.minimum(a, b)   # element-wise max/min
+np.greater, np.less, np.equal, np.logical_and, np.logical_or</code></pre>
+    </div>
+    <p class="syntax-title">In-place and out=</p>
+    <div class="code-block">
+<pre><code class="language-python">np.add(a, b, out=a)   # write result into a
+np.sqrt(x, out=result)</code></pre>
+    </div>
+
+    <h2 id="aggregations">8. Aggregations and reductions</h2>
+    <p>Reduction functions take an optional <code>axis</code>: <code>axis=0</code> (down rows), <code>axis=1</code> (along rows). <code>axis=None</code> reduces over the whole array.</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([[1, 2], [3, 4]])
+a.sum()              # 10
+a.sum(axis=0)        # [4, 6]
+a.sum(axis=1)        # [3, 7]
+a.mean(), a.std(), a.var()
+a.min(), a.max()
+np.argmin(a), np.argmax(a)   # index of min/max (flat by default)
+a.argmin(axis=1)             # index along axis
+np.cumsum(a)         # cumulative sum (flat)
+np.cumsum(a, axis=0) # cumulative sum down rows</code></pre>
+    </div>
+    <p><code>np.nansum</code>, <code>np.nanmean</code>, etc. ignore NaN. <code>np.sum(~np.isnan(arr))</code> counts non-NaN elements.</p>
+
+    <h2 id="linear-algebra">9. Linear algebra</h2>
+    <p>Use the <code>np.linalg</code> module and the <code>@</code> operator (matrix multiply).</p>
+    <div class="code-block">
+<pre><code class="language-python">A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+A @ B                    # matrix product (Python 3.5+)
+np.dot(A, B)             # same
+np.matmul(A, B)          # same
+np.inner(a, b)           # inner product of 1D
+np.outer(a, b)           # outer product
+np.linalg.inv(A)         # inverse
+np.linalg.det(A)         # determinant
+np.linalg.eig(A)         # eigenvalues, eigenvectors
+np.linalg.svd(A)         # SVD
+np.linalg.norm(x)        # default L2 norm
+np.linalg.norm(x, ord=1) # L1; ord=np.inf for max
+np.linalg.solve(A, b)    # solve Ax = b</code></pre>
+    </div>
+
+    <h2 id="random">10. Random numbers</h2>
+    <p>Use <code>np.random.Generator</code> (recommended) or legacy <code>np.random</code>.</p>
+    <div class="code-block">
+<pre><code class="language-python">rng = np.random.default_rng(42)  # seed for reproducibility
+rng.random((2, 3))       # uniform [0, 1)
+rng.integers(0, 10, size=(2, 3))  # low (inclusive) to high (exclusive)
+rng.standard_normal((2, 3))  # standard normal
+rng.choice([1, 2, 3], size=5)     # random choices
+rng.permutation(10)      # shuffled 0..9
+rng.shuffle(arr)         # shuffle in place (along axis 0)</code></pre>
+    </div>
+
+    <h2 id="io">11. I/O: save and load arrays</h2>
+    <div class="code-block">
+<pre><code class="language-python">np.save('file.npy', arr)           # single array, binary
+np.savez('file.npz', a=arr1, b=arr2)  # multiple arrays
+np.savez_compressed('file.npz', a=arr1)  # compressed
+np.load('file.npy')               # load .npy
+data = np.load('file.npz'); data['a'], data['b']
+
+# Text (slower, for small data)
+np.savetxt('file.txt', arr, delimiter=',')
+np.loadtxt('file.txt', delimiter=',')</code></pre>
+    </div>
+
+    <h2 id="copy-view">12. Copy vs view</h2>
+    <p>Slicing returns a <strong>view</strong> (same data, different shape/strides); modifying it changes the original. Use <code>.copy()</code> when you need an independent array.</p>
+    <div class="code-block">
+<pre><code class="language-python">a = np.array([1, 2, 3, 4])
+v = a[1:3]    # view
+v[0] = 99     # a is now [1, 99, 3, 4]
+c = a[1:3].copy()
+c[0] = 0      # a unchanged</code></pre>
+    </div>
+    <p><code>reshape</code>, <code>ravel</code>, and slice-based indexing often return views; <code>flatten</code>, <code>astype</code>, and most operations that change dtype or layout return copies.</p>
+
+    <h2 id="summary">13. Summary</h2>
+    <div class="feature-block">
+        <h4>NumPy at a glance</h4>
+        <ul>
+            <li><strong>ndarray</strong>: homogeneous, typed, multi-dimensional; use <code>np.array</code>, <code>zeros</code>, <code>ones</code>, <code>arange</code>, <code>linspace</code>.</li>
+            <li><strong>Shape &amp; dtype</strong>: <code>.shape</code>, <code>.dtype</code>, <code>.astype()</code>, <code>.reshape()</code>.</li>
+            <li><strong>Indexing</strong>: slices, boolean masks, integer arrays; multi-axis with comma.</li>
+            <li><strong>Broadcasting</strong>: align from the right; size 1 or equal; use <code>np.newaxis</code> when needed.</li>
+            <li><strong>Ufuncs</strong>: element-wise math; <code>np.linalg</code> for linear algebra; <code>@</code> for matrix multiply.</li>
+            <li><strong>Reductions</strong>: <code>sum</code>, <code>mean</code>, <code>min</code>, <code>max</code> with <code>axis=</code>.</li>
+            <li><strong>Random</strong>: <code>np.random.default_rng(seed)</code> for reproducible draws.</li>
+            <li><strong>I/O</strong>: <code>np.save</code> / <code>np.load</code> for binary; <code>savetxt</code> / <code>loadtxt</code> for text.</li>
+        </ul>
+    </div>
+
+    <p><a href="index.html">← Back to index</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>

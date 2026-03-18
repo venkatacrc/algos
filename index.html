@@ -60,7 +60,11 @@
 
     <h1>📂 Patterns</h1>
     <p>Rendered views of <code>venkatacrc/algos/patterns</code>:</p>
-    
+    <p style="margin-bottom: 12px;">
+        <strong>📄 All patterns in one (print / PDF):</strong>
+        <a href="patterns/patterns_all.html" style="margin-left: 6px;">patterns_all.html</a>
+        — Open this page, then use <strong>Print → Save as PDF</strong> (Ctrl+P / Cmd+P) to get a single PDF for download or print.
+    </p>
     <ul id="file-list">
         <li class="loading">Loading files via GitHub API...</li>
     </ul>
@@ -95,6 +99,16 @@
         </li>
     </ul>
 
+    <h1 style="margin-top: 60px;">NumPy Tutorial</h1>
+    <p>Detailed NumPy tutorial: ndarray creation, indexing, reshaping, broadcasting, ufuncs, aggregations, linear algebra, random numbers, and I/O.</p>
+    <ul id="numpy-list" style="list-style: none; padding: 0; border: 1px solid #e1e4e8; border-radius: 6px;">
+        <li style="border-bottom: 1px solid #e1e4e8;">
+            <a href="numpy_tutorial.html" style="display: block; padding: 10px 15px; text-decoration: none; color: #0366d6; font-weight: 500;">
+                <span class="icon">📄</span>numpy_tutorial.html
+            </a>
+        </li>
+    </ul>
+
     <h1 style="margin-top: 60px;">📊 SQL Study Guides</h1>
     <p>SQL patterns and study materials:</p>
     
@@ -120,6 +134,33 @@
 
         const listContainer = document.getElementById('file-list');
 
+        // Static fallback when GitHub API fails (e.g. 403 rate limit)
+        const PATTERN_FILES = [
+            '01_sliding_window.html', '02_two_pointers.html', '03_merge_intervals.html',
+            '04_cyclic_sort.html', '05_linked_list.html', '06_tree_bfs.html', '07_tree_dfs.html',
+            '08_topological_sort.html', '09_union_find.html', '10_two_heaps.html',
+            '11_top_k_elements.html', '12_kway_merge.html', '13_trie.html',
+            '14_modified_binary_search.html', '15_subsets.html', '16_bitwise_xor.html',
+            '17_dynamic_programming.html', '18_bst_and_spatial_trees.html'
+        ];
+
+        function renderFallbackList() {
+            listContainer.innerHTML = '';
+            const base = DIR_PATH + '/';
+            PATTERN_FILES.forEach(name => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = base + name;
+                a.innerHTML = `<span class="icon">📄</span>${name}`;
+                li.appendChild(a);
+                listContainer.appendChild(li);
+            });
+            const note = document.createElement('div');
+            note.style.cssText = 'margin-top:8px;font-size:0.9em;color:#57606a;';
+            note.textContent = 'Showing static list (GitHub API unavailable or rate limited).';
+            listContainer.appendChild(note);
+        }
+
         async function fetchFiles() {
             try {
                 const response = await fetch(API_URL);
@@ -130,10 +171,8 @@
 
                 const data = await response.json();
                 
-                // Clear loading text
                 listContainer.innerHTML = '';
 
-                // sort: folders first, then files
                 data.sort((a, b) => {
                     if (a.type === b.type) return a.name.localeCompare(b.name);
                     return a.type === 'dir' ? -1 : 1;
@@ -142,18 +181,8 @@
                 data.forEach(item => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
-                    
-                    // --- THE FIX IS HERE ---
-                    // We manually build the URL to point to the github.io domain
-                    // instead of using item.html_url (which points to github.com source view)
                     a.href = PAGES_BASE_URL + item.name; 
-                    
-                    // Note: If the item is a folder, this link might need to be adjusted
-                    // to point to that folder's index or listing. 
-                    // For now, it treats everything as a resource under the path.
-
                     const icon = item.type === 'dir' ? '📁' : '📄';
-                    
                     a.innerHTML = `<span class="icon">${icon}</span>${item.name}`;
                     li.appendChild(a);
                     listContainer.appendChild(li);
@@ -161,10 +190,7 @@
 
             } catch (error) {
                 console.error(error);
-                listContainer.innerHTML = `<div class="error">
-                    Failed to load files. <br>
-                    <small>${error.message}</small>
-                </div>`;
+                renderFallbackList();
             }
         }
 
