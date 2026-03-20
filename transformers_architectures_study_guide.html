@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugging Face Transformers – Architecture Study Guide</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 36px; color: #24292f; scroll-margin-top: 12px; }
+        h3 { margin-top: 22px; color: #34495e; font-size: 1.08em; }
+        h4 { margin-top: 14px; color: #444; font-size: 1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 5px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .code-block { background: #1d1f21; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 13px; }
+        .code-block pre { margin: 0; padding: 14px 16px; }
+        .code-block code { background: transparent; padding: 0; color: inherit; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        .model-card { border: 1px solid #e1e4e8; border-radius: 8px; padding: 16px 18px; margin: 18px 0; background: #fafbfc; }
+        .model-card h3 { margin-top: 0; }
+        .delta { margin: 8px 0 0 0; padding-left: 18px; }
+        .delta li { margin-bottom: 4px; }
+        .tip { background: #fffbf0; border: 1px solid #e6d9a8; border-radius: 6px; padding: 12px 16px; margin: 14px 0; font-size: 0.95em; }
+        table.arch { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 0.88em; }
+        table.arch th, table.arch td { border: 1px solid #d0d7de; padding: 8px 10px; text-align: left; vertical-align: top; }
+        table.arch th { background: #f6f8fa; font-weight: 600; }
+        table.arch code { font-size: 0.92em; }
+        .refs { margin-top: 48px; padding-top: 20px; border-top: 2px solid #eaecef; font-size: 0.95em; color: #57606a; }
+    </style>
+</head>
+<body>
+
+    <h1>Hugging Face Transformers – Architecture Study Guide</h1>
+    <p>This guide compares <strong>model architectures</strong> as implemented under <code>src/transformers/models/</code> in the <strong>Hugging Face Transformers</strong> library. It anchors on the original <strong>Vaswani et al.</strong> Transformer, then explains <strong>what was removed, changed, or added</strong> in landmark families and <strong>why</strong>. Code blocks are <strong>simplified teaching sketches</strong> (structure faithful to typical HF code; class names and line numbers may differ by release).</p>
+
+    <div class="tip"><strong>Note:</strong> Newer Transformers versions may split logic into <code>modular_*.py</code> files. Always check both <code>modeling_*.py</code> and <code>modular_*.py</code> for your installed version.</div>
+
+    <div class="toc">
+        <strong>Table of contents</strong>
+        <ol>
+            <li><a href="#baseline">Baseline: original Transformer blocks</a>
+                <ol style="margin-top:6px;">
+                    <li><a href="#building-blocks">Building-block code (LN, FFN, MHA, causal, cross)</a></li>
+                    <li><a href="#baseline-composed">Call graph (how §1.1 stacks)</a></li>
+                </ol>
+            </li>
+            <li><a href="#forks">Three common forks in practice</a></li>
+            <li><a href="#taxonomy">Taxonomy tables + pattern code</a></li>
+            <li><a href="#curated">Curated architecture comparisons</a></li>
+            <li><a href="#methodology">How to read any model in the repo</a></li>
+            <li><a href="#worked">Worked examples (stitched code paths)</a></li>
+            <li><a href="#refs">References</a></li>
+        </ol>
+    </div>
+
+    <h2 id="baseline">1. Baseline: original Transformer (Vaswani et al.)</h2>
+    <p>The paper defines an <strong>encoder stack</strong> and a <strong>decoder stack</strong>. Each encoder layer has <strong>multi-head self-attention</strong> (bidirectional over the source), then a <strong>position-wise FFN</strong>, with residuals and layer normalization (exact norm placement varies by implementation; the paper uses post-LN). Each decoder layer adds <strong>masked self-attention</strong> (causal) and <strong>cross-attention</strong> to encoder outputs. Positions use <strong>sinusoidal encodings</strong> added to embeddings.</p>
+
+    <p class="syntax-title">Encoder layer (calls §1.1; post-norm like original paper)</p>
+    <div class="code-block"><pre><code class="language-python">def encoder_layer(x, pad_mask, n_heads, ln1_g, ln1_b, ln2_g, ln2_b, attn, ff):
+    # x: (batch, seq, dim); pad_mask: optional additive mask for padding (see §1.1)
+    h = multi_head_self_attention(x, attn, n_heads, attn_mask=pad_mask)
+    x = layer_norm(x + h, ln1_g, ln1_b)
+    h = feed_forward(x, ff)
+    return layer_norm(x + h, ln2_g, ln2_b)</code></pre></div>
+
+    <p class="syntax-title">Decoder layer (same primitives + causal self-attn + cross-attn)</p>
+    <div class="code-block"><pre><code class="language-python">def decoder_layer(x, encoder_out, causal, enc_key_pad_mask, n_heads,
+                  ln1_g, ln1_b, ln2_g, ln2_b, ln3_g, ln3_b, self_attn, cross_attn, ff):
+    # causal: (1,1,T_dec,T_dec) from causal_mask(); enc_key_pad_mask: mask encoder keys (pads)
+    h = masked_multi_head_self_attention(x, self_attn, n_heads, causal, extra_mask=None)
+    x = layer_norm(x + h, ln1_g, ln1_b)
+    h = multi_head_cross_attention(x, encoder_out, cross_attn, n_heads, attn_mask=enc_key_pad_mask)
+    x = layer_norm(x + h, ln2_g, ln2_b)
+    h = feed_forward(x, ff)
+    return layer_norm(x + h, ln3_g, ln3_b)</code></pre></div>
+
+    <h3 id="building-blocks">1.1 Building-block implementations (stacked references)</h3>
+    <p>These snippets are <strong>minimal PyTorch-style sketches</strong>. Order matches dependency: <code>layer_norm</code> and <code>feed_forward</code> are independent; attention builds on a shared <code>_scaled_dot_product_attention</code>; <code>multi_head_self_attention</code> is used by the encoder; <code>masked_multi_head_self_attention</code> wraps it with a causal mask; <code>multi_head_cross_attention</code> reuses the same MHA core with Q from the decoder and K,V from encoder memory.</p>
+
+    <p class="syntax-title">(1) <code>layer_norm</code> — normalize over hidden dim (post-norm residual path)</p>
+    <div class="code-block"><pre><code class="language-python">import math
+import torch
+import torch.nn.functional as F
+
+def layer_norm(x, gamma, beta, eps=1e-5):
+    """x: (batch, seq, dim). gamma, beta: (dim,) — learnable scale & shift."""
+    mean = x.mean(dim=-1, keepdim=True)
+    var = x.var(dim=-1, unbiased=False, keepdim=True)
+    x_hat = (x - mean) / torch.sqrt(var + eps)
+    return gamma * x_hat + beta</code></pre></div>
+
+    <p class="syntax-title">(2) <code>feed_forward</code> — two linear layers with nonlinearity (position-wise)</p>
+    <div class="code-block"><pre><code class="language-python">def feed_forward(x, ff):
+    """ff holds weights/bias for W1: dim→ff_dim and W2: ff_dim→dim."""
+    h = F.linear(x, ff.w1, ff.b1)
+    h = F.gelu(h)  # paper used ReLU; BERT/GPT often GELU
+    return F.linear(h, ff.w2, ff.b2)</code></pre></div>
+
+    <p class="syntax-title">(3) Shared core — split heads, merge heads, scaled dot-product</p>
+    <div class="code-block"><pre><code class="language-python">def _split_heads(t, n_heads):
+    """(B, T, D) → (B, n_heads, T, d_head) where D = n_heads * d_head"""
+    B, T, D = t.shape
+    d_head = D // n_heads
+    t = t.view(B, T, n_heads, d_head).transpose(1, 2)
+    return t
+
+def _merge_heads(t):
+    """(B, n_heads, T, d_head) → (B, T, D)"""
+    B, H, T, dh = t.shape
+    return t.transpose(1, 2).contiguous().view(B, T, H * dh)
+
+def _scaled_dot_product_attention(q, k, v, attn_mask=None):
+    """q,k,v: (B, n_heads, T_q or T_k, d_head). attn_mask: broadcastable, additive (0 or -inf)."""
+    d_head = q.size(-1)
+    scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_head)
+    if attn_mask is not None:
+        scores = scores + attn_mask
+    weights = F.softmax(scores, dim=-1)
+    return torch.matmul(weights, v)</code></pre></div>
+
+    <p class="syntax-title">(4) <code>multi_head_self_attention</code> — Q, K, V all from <code>x</code> (encoder / bidirectional)</p>
+    <div class="code-block"><pre><code class="language-python">def multi_head_self_attention(x, attn, n_heads, attn_mask=None):
+    """attn: packed Q/K/V output projections + output projection W_o."""
+    B, T, D = x.shape
+    q = F.linear(x, attn.w_q, attn.b_q)
+    k = F.linear(x, attn.w_k, attn.b_k)
+    v = F.linear(x, attn.w_v, attn.b_v)
+    q, k, v = _split_heads(q, n_heads), _split_heads(k, n_heads), _split_heads(v, n_heads)
+    # Optional padding mask as (B,1,1,T) large negative at pad positions
+    ctx = _scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
+    ctx = _merge_heads(ctx)
+    return F.linear(ctx, attn.w_o, attn.b_o)</code></pre></div>
+
+    <p class="syntax-title">(5) <code>masked_multi_head_self_attention</code> — same as (4) + <strong>causal</strong> mask</p>
+    <div class="code-block"><pre><code class="language-python">def causal_mask(T, device, dtype):
+    """Additive mask: allowed=0, disallowed=-inf (upper triangle). Shape (1,1,T,T)."""
+    m = torch.triu(torch.full((T, T), float("-inf"), device=device, dtype=dtype), diagonal=1)
+    return m.view(1, 1, T, T)
+
+def masked_multi_head_self_attention(x, attn, n_heads, causal_only_mask, extra_mask=None):
+    """Decoder self-attn: causal_only_mask from causal_mask(T,...); add padding via extra_mask."""
+    mask = causal_only_mask
+    if extra_mask is not None:
+        mask = mask + extra_mask  # combine padding + causal
+    return multi_head_self_attention(x, attn, n_heads, attn_mask=mask)</code></pre></div>
+
+    <p class="syntax-title">(6) <code>multi_head_cross_attention</code> — Q from decoder state, K,V from encoder memory</p>
+    <div class="code-block"><pre><code class="language-python">def multi_head_cross_attention(x, memory, attn, n_heads, attn_mask=None):
+    """x: (B, T_dec, D); memory: (B, T_enc, D). attn_mask often masks pad keys (enc padding)."""
+    q = F.linear(x, attn.w_q, attn.b_q)
+    k = F.linear(memory, attn.w_k, attn.b_k)
+    v = F.linear(memory, attn.w_v, attn.b_v)
+    q, k, v = _split_heads(q, n_heads), _split_heads(k, n_heads), _split_heads(v, n_heads)
+    ctx = _scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
+    ctx = _merge_heads(ctx)
+    return F.linear(ctx, attn.w_o, attn.b_o)</code></pre></div>
+
+    <h3 id="baseline-composed">1.2 Call graph (how the pieces stack)</h3>
+    <p><strong>Encoder layer</strong> (top of §1) = <code>multi_head_self_attention</code> → residual → <code>layer_norm</code> → <code>feed_forward</code> → residual → <code>layer_norm</code>. <strong>Decoder layer</strong> = <code>masked_multi_head_self_attention</code> (wraps <code>multi_head_self_attention</code> + causal mask) → <code>layer_norm</code> → <code>multi_head_cross_attention</code> (same <code>_scaled_dot_product_attention</code> core, different Q/K/V sources) → <code>layer_norm</code> → <code>feed_forward</code> → <code>layer_norm</code>.</p>
+    <div class="code-block"><pre><code class="language-python"># Dependency summary (all defined in §1.1):
+# layer_norm ─────────────────────────────┐
+# feed_forward ──────────────────────────┤ used by encoder & decoder layers
+# multi_head_self_attention ──────────────┤
+#    ↑ called by masked_multi_head_self_attention
+# multi_head_cross_attention ─────────────┘ (shares _scaled_dot_product_attention with self-attn)</code></pre></div>
+
+    <p>Hugging Face does <strong>not</strong> expose one single class as “the baseline” for all models. Instead, each folder under <code>models/</code> implements a paper’s variant. Use §1.1–1.2 as the <strong>mental diff target</strong> when reading <a href="https://github.com/huggingface/transformers/tree/main/src/transformers/models">HF <code>models/</code></a>.</p>
+
+    <h2 id="forks">2. Three common forks in practice</h2>
+    <table class="arch">
+        <thead><tr><th>Fork</th><th>Typical use</th><th>HF exemplar folders</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Encoder-only</strong></td><td>Understanding, classification, embeddings</td><td><code>bert</code>, <code>roberta</code>, <code>deberta_v2</code></td></tr>
+            <tr><td><strong>Decoder-only</strong></td><td>Causal LM, chat, completion</td><td><code>gpt2</code>, <code>llama</code>, <code>mistral</code>, <code>opt</code></td></tr>
+            <tr><td><strong>Encoder–decoder</strong></td><td>Seq2seq: translation, summarization, ASR</td><td><code>t5</code>, <code>bart</code>, <code>pegasus</code>, <code>whisper</code></td></tr>
+        </tbody>
+    </table>
+
+    <p class="syntax-title">What “forking” removes (sketch)</p>
+    <div class="code-block"><pre><code class="language-python"># Encoder-only: keep encoder_stack; no decoder, no cross_attn
+def forward(input_ids):
+    x = embed(input_ids) + position_embed
+    for layer in encoder_layers:
+        x = encoder_layer(x)
+    return pool_or_sequence_output(x)
+
+# Decoder-only: keep decoder blocks with causal self-attn only (no cross_attn)
+def forward(input_ids):
+    x = embed(input_ids) + position_embed
+    for layer in decoder_layers:
+        x = decoder_layer_causal_only(x, causal_mask)
+    return lm_head(x)
+
+# Encoder-decoder: both stacks; decoder has cross_attn to encoder hidden states
+def forward(encoder_ids, decoder_ids):
+    enc = run_encoder(encoder_ids)
+    dec = run_decoder(decoder_ids, encoder_hidden_states=enc)
+    return lm_head(dec)</code></pre></div>
+
+    <h2 id="taxonomy">3. Taxonomy tables + pattern code</h2>
+
+    <h3>3.1 Backbone topology</h3>
+    <table class="arch">
+        <thead><tr><th>Topology</th><th>Purpose</th><th>Examples</th></tr></thead>
+        <tbody>
+            <tr><td>Encoder-only</td><td>Bidirectional context for NLU</td><td><code>bert</code>, <code>roberta</code>, <code>deberta_v2</code></td></tr>
+            <tr><td>Decoder-only</td><td>Autoregressive generation</td><td><code>gpt2</code>, <code>llama</code>, <code>opt</code></td></tr>
+            <tr><td>Encoder–decoder</td><td>Conditional generation</td><td><code>t5</code>, <code>bart</code>, <code>whisper</code></td></tr>
+            <tr><td>Dual encoders</td><td>Align modalities / contrastive training</td><td><code>clip</code></td></tr>
+            <tr><td>Vision encoder + (optional) text</td><td>Images as token sequences</td><td><code>vit</code>, <code>swin</code></td></tr>
+        </tbody>
+    </table>
+
+    <h3>3.2 Positions &amp; length</h3>
+    <table class="arch">
+        <thead><tr><th>Pattern</th><th>Purpose</th><th>Examples</th></tr></thead>
+        <tbody>
+            <tr><td>Learned absolute embeddings</td><td>Simple; fixed max length</td><td><code>bert</code>, <code>gpt2</code></td></tr>
+            <tr><td>Sinusoidal (fixed)</td><td>Original paper; extrapolation limited</td><td>Conceptual baseline</td></tr>
+            <tr><td>RoPE (rotary)</td><td>Relative structure in Q/K; common in LLMs</td><td><code>llama</code>, <code>mistral</code></td></tr>
+            <tr><td>Relative bias / position bucket</td><td>Length generalization in enc-dec</td><td><code>t5</code></td></tr>
+            <tr><td>Local + global / sparse</td><td>Long documents without full O(n²) everywhere</td><td><code>longformer</code>, <code>big_bird</code></td></tr>
+        </tbody>
+    </table>
+    <p class="syntax-title">RoPE idea (applied to Q and K after projection)</p>
+    <div class="code-block"><pre><code class="language-python"># Simplified: rotate pairs of dimensions of q, k by position-dependent angles
+def apply_rotary_pos_emb(q, k, cos, sin):
+    # q, k: (batch, heads, seq, head_dim)
+    # cos, sin: broadcastable to q, k
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    return q_embed, k_embed</code></pre></div>
+
+    <h3>3.3 Normalization &amp; MLP</h3>
+    <table class="arch">
+        <thead><tr><th>Pattern</th><th>Purpose</th><th>Examples</th></tr></thead>
+        <tbody>
+            <tr><td>Post-LN (norm after residual)</td><td>Original Transformer style</td><td>Some older stacks</td></tr>
+            <tr><td>Pre-LN (norm before sublayer)</td><td>Often more stable deep training</td><td><code>gpt2</code>, <code>llama</code>, many modern models</td></tr>
+            <tr><td>RMSNorm</td><td>Faster than LayerNorm; no mean centering</td><td><code>llama</code>, <code>mistral</code></td></tr>
+            <tr><td>GELU MLP</td><td>Smooth activation; BERT/GPT-era default</td><td><code>bert</code>, <code>gpt2</code></td></tr>
+            <tr><td>SwiGLU MLP</td><td>Two gated linear paths; strong empirical perf</td><td><code>llama</code>, <code>mistral</code></td></tr>
+        </tbody>
+    </table>
+    <p class="syntax-title">SwiGLU MLP (compare to single-gate FFN)</p>
+    <div class="code-block"><pre><code class="language-python">class SwiGLU(nn.Module):
+    def __init__(self, dim, hidden_dim):
+        super().__init__()
+        self.gate_proj = nn.Linear(dim, hidden_dim, bias=False)
+        self.up_proj = nn.Linear(dim, hidden_dim, bias=False)
+        self.down_proj = nn.Linear(hidden_dim, dim, bias=False)
+
+    def forward(self, x):
+        return self.down_proj(F.silu(self.gate_proj(x)) * self.up_proj(x))</code></pre></div>
+
+    <h3>3.4 Attention variants</h3>
+    <table class="arch">
+        <thead><tr><th>Variant</th><th>Purpose</th><th>Examples</th></tr></thead>
+        <tbody>
+            <tr><td>Multi-head attention (MHA)</td><td>Full rank per head</td><td><code>bert</code>, <code>gpt2</code></td></tr>
+            <tr><td>Grouped-query attention (GQA)</td><td>Fewer K/V heads; less KV cache memory</td><td><code>llama</code> (many checkpoints), <code>mistral</code></td></tr>
+            <tr><td>Sliding / local window</td><td>Long sequences with bounded attention</td><td><code>mistral</code> (windowed layers)</td></tr>
+            <tr><td>Cross-attention</td><td>Decoder conditions on encoder</td><td><code>t5</code>, <code>bart</code>, <code>whisper</code></td></tr>
+        </tbody>
+    </table>
+    <p class="syntax-title">GQA: same Q heads, repeat/slice K,V heads</p>
+    <div class="code-block"><pre><code class="language-python"># Conceptual: num_heads=32, num_key_value_heads=8
+# After projecting K,V with 8 heads, expand/repeat to 32 for attention broadcast
+def repeat_kv(hidden_states, n_rep):
+    if n_rep == 1:
+        return hidden_states
+    batch, num_kv_heads, slen, head_dim = hidden_states.shape
+    hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_kv_heads, n_rep, slen, head_dim)
+    return hidden_states.reshape(batch, num_kv_heads * n_rep, slen, head_dim)</code></pre></div>
+
+    <h2 id="curated">4. Curated architecture comparisons</h2>
+    <p>Each block: <strong>HF module</strong> path, <strong>vs</strong> parent, <strong>removed / changed / added</strong>, <strong>purpose</strong>, plus <strong>inline code</strong>.</p>
+
+    <div class="model-card" id="m-bert">
+        <h3>BERT (<code>models/bert/</code>)</h3>
+        <p><strong>Vs</strong> full Transformer: <strong>encoder-only</strong>.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> entire decoder; cross-attention; autoregressive head (replaced by MLM/NSP training heads in original BERT).</li>
+            <li><strong>Changed:</strong> self-attention is <strong>bidirectional</strong> (no causal mask on encoder).</li>
+            <li><strong>Added:</strong> <code>[CLS]</code>, <code>[SEP]</code>; <strong>token type / segment</strong> embeddings; <strong>learned</strong> position embeddings.</li>
+            <li><strong>Purpose:</strong> Deep contextual representations for NLU; sentence-pair tasks via types.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Embedding sum typical of BERT-style models
+def embed_bert(input_ids, token_type_ids):
+    tok = word_embeddings(input_ids)
+    pos = position_embeddings(position_ids)  # learned table
+    seg = token_type_embeddings(token_type_ids)
+    return layer_norm(tok + pos + seg)
+
+# No causal mask in self-attention for standard BERT encoder
+# attn_scores visible to full sequence (plus padding mask only)</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-roberta">
+        <h3>RoBERTa (<code>models/roberta/</code>)</h3>
+        <p><strong>Vs</strong> BERT: same <strong>encoder architecture family</strong>; training recipe differs.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> <strong>NSP</strong> objective (next sentence prediction) in the RoBERTa recipe.</li>
+            <li><strong>Changed:</strong> dynamic masking, larger batches, byte-level BPE—mostly <strong>training</strong>, not a new layer type.</li>
+            <li><strong>Purpose:</strong> Better NLU with simpler objectives and more data/compute.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Modeling stack mirrors BERT-like encoder; difference is not a new op:
+# RoBERTaForMaskedLM(...) still uses RobertaEmbeddings + RobertaLayer x L
+# Key idea: only MLM (and sometimes sequence-level tasks), no NSP loss in RoBERTa pretraining</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-gpt2">
+        <h3>GPT-2 (<code>models/gpt2/</code>)</h3>
+        <p><strong>Vs</strong> full Transformer: <strong>decoder-only</strong>.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> encoder; cross-attention.</li>
+            <li><strong>Changed:</strong> <strong>causal</strong> self-attention; <strong>pre-LayerNorm</strong> stack in GPT-2.</li>
+            <li><strong>Added:</strong> learned position embeddings; single <strong>LM head</strong> tied or untied to embeddings.</li>
+            <li><strong>Purpose:</strong> Unconditional and conditional text generation via left-to-right modeling.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def causal_attention_mask(seq_len, device):
+    # prevent attending to future positions
+    mask = torch.full((seq_len, seq_len), float("-inf"), device=device)
+    mask = torch.triu(mask, diagonal=1)
+    return mask  # added to logits before softmax
+
+def gpt2_block(x, attn, mlp, ln_1, ln_2):
+    x = x + attn(ln_1(x))   # pre-norm
+    x = x + mlp(ln_2(x))
+    return x</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-t5">
+        <h3>T5 (<code>models/t5/</code>)</h3>
+        <p><strong>Vs</strong> vanilla Transformer: still <strong>encoder–decoder</strong>, but <strong>relative position biases</strong> inside attention and <strong>text-to-text</strong> framing.</p>
+        <ul class="delta">
+            <li><strong>Changed:</strong> position info often via <strong>learned bias per head and relative bucket</strong> (not additive sinusoidal on embeddings only).</li>
+            <li><strong>Added:</strong> task prefixes as text (“translate: …”)—<strong>data/API convention</strong>; architecture is seq2seq.</li>
+            <li><strong>Purpose:</strong> Unified supervised objective across many NLP tasks.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Conceptual: attention logits get a bias from relative position bucket
+scores = (q @ k.transpose(-1, -2)) / math.sqrt(d)
+scores = scores + compute_bias(relative_position_bucket)  # shape broadcast to scores
+probs = softmax(scores, dim=-1)</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-bart">
+        <h3>BART (<code>models/bart/</code>)</h3>
+        <p><strong>Vs</strong> T5: also encoder–decoder; <strong>BART</strong> uses <strong>Transformer-style</strong> absolute sinusoidal or learned configs depending on variant; denoising <strong>pretraining</strong> (corrupt document, reconstruct).</p>
+        <ul class="delta">
+            <li><strong>Changed:</strong> Encoder is often <strong>bidirectional</strong>; decoder is <strong>autoregressive</strong> with cross-attn—classic seq2seq Transformer pattern.</li>
+            <li><strong>Purpose:</strong> Strong seq2seq for summarization, dialogue, etc., with denoising objective.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def bart_forward(encoder_ids, decoder_ids, encoder_padding_mask):
+    enc = encoder(input_ids=encoder_ids, attention_mask=encoder_padding_mask)
+    dec = decoder(
+        input_ids=decoder_ids,
+        encoder_hidden_states=enc.last_hidden_state,
+        encoder_attention_mask=encoder_padding_mask,
+    )
+    return dec.last_hidden_state</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-distilbert">
+        <h3>DistilBERT (<code>models/distilbert/</code>)</h3>
+        <p><strong>Vs</strong> BERT: <strong>shallower</strong> (fewer layers), <strong>knowledge distillation</strong> from a teacher BERT.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> token type embeddings in DistilBERT (single sentence); pooler for NSP not used same way.</li>
+            <li><strong>Changed:</strong> ~half the layers; smaller/faster inference.</li>
+            <li><strong>Purpose:</strong> Speed and size with minimal accuracy drop.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Fewer Transformer layers; same per-layer pattern as BERT-like encoder
+# Student forward matches teacher logits/hidden states during distillation (training)
+for i in range(config.num_hidden_layers):  # e.g. 6 vs 12
+    hidden_states = transformer_layer(hidden_states, attn_mask)</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-opt">
+        <h3>OPT (<code>models/opt/</code>)</h3>
+        <p><strong>Vs</strong> GPT-2: <strong>decoder-only</strong> LM; similar <strong>pre-norm</strong> and learned positions; scales to larger models.</p>
+        <ul class="delta">
+            <li><strong>Changed:</strong> architecture details (layer norm epsilon, init, bias flags) per OPT config.</li>
+            <li><strong>Purpose:</strong> Open reproduction of large decoder LMs.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># OPTDecoderLayer: self-attn + FFN, residual, LayerNorm before each sublayer
+def opt_decoder_layer(hidden_states, attention_mask, layer):
+    residual = hidden_states
+    hidden_states = layer.self_attn_layer_norm(hidden_states)
+    hidden_states, _ = layer.self_attn(hidden_states, attention_mask=attention_mask)
+    hidden_states = residual + hidden_states
+    residual = hidden_states
+    hidden_states = layer.final_layer_norm(hidden_states)
+    hidden_states = layer.fc1(hidden_states)
+    hidden_states = activation_fn(hidden_states)
+    hidden_states = layer.fc2(hidden_states)
+    return residual + hidden_states</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-deberta">
+        <h3>DeBERTa / DeBERTa-v2 (<code>models/deberta</code>, <code>deberta_v2</code>)</h3>
+        <p><strong>Vs</strong> BERT: encoder-only but <strong>disentangled attention</strong> (separate content vs relative position) and <strong>enhanced mask decoder</strong> in v2.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> relative position as separate keys; content-to-relative interaction.</li>
+            <li><strong>Changed:</strong> v2 uses <strong>convolution</strong> or bucketed structures in some components (see config); stronger on long contexts and GLUE-style tasks.</li>
+            <li><strong>Purpose:</strong> Richer pairwise modeling than standard dot-product + absolute positions only.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Conceptual disentangled idea: two streams for c (content) and r (relative)
+# Attention scores combine interactions between content and relative position embeddings
+scores = (
+    (q_c @ k_c.transpose(-1, -2))
+    + (q_c @ k_r.transpose(-1, -2))
+    + (q_r @ k_c.transpose(-1, -2))
+    + (q_r @ k_r.transpose(-1, -2))
+) / math.sqrt(d)</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-vit">
+        <h3>ViT (<code>models/vit/</code>)</h3>
+        <p><strong>Vs</strong> NLP Transformer: <strong>images → patch tokens</strong>; encoder stack; <strong>CLS</strong> or pooling for classification.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> decoder (for classification ViT); no text tokenizer.</li>
+            <li><strong>Added:</strong> <strong>Patch embedding</strong> (Conv2d with stride = patch size); optional <code>[CLS]</code> token.</li>
+            <li><strong>Purpose:</strong> Apply Transformer to vision without hand-crafted CNN stem (still patch projection).</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def patchify(images, patch_size, proj):  # images: (B, 3, H, W)
+    # Conv2d(in_ch, dim, kernel=patch_size, stride=patch_size) -> (B, dim, H', W')
+    x = proj(images)
+    x = x.flatten(2).transpose(1, 2)  # (B, num_patches, dim)
+    return x
+
+def vit_encoder(x, cls_token, pos_embed, layers):
+    x = torch.cat([cls_token.expand(x.size(0), -1, -1), x], dim=1)
+    x = x + pos_embed
+    for layer in layers:
+        x = layer(x)
+    return x</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-swin">
+        <h3>Swin (<code>models/swin/</code>)</h3>
+        <p><strong>Vs</strong> ViT: <strong>hierarchical</strong> feature maps + <strong>shifted window</strong> self-attention.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> attention inside <strong>local windows</strong>; <strong>cyclic shift</strong> across blocks for cross-window connections.</li>
+            <li><strong>Changed:</strong> patch merging stages reduce resolution → CNN-like pyramid.</li>
+            <li><strong>Purpose:</strong> Linear-ish complexity in image size vs global ViT attention cost.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def window_partition(x, window_size):
+    # x: (B, H, W, C) -> windows
+    B, H, W, C = x.shape
+    x = x.view(B, H // window_size, window_size, W // window_size, window_size, C)
+    windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C)
+    return windows
+
+# Alternate blocks shift windows to allow information flow between windows</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-clip">
+        <h3>CLIP (<code>models/clip/</code>)</h3>
+        <p><strong>Vs</strong> single-stack LM: <strong>two encoders</strong> (image + text) and <strong>contrastive</strong> alignment in embedding space.</p>
+        <ul class="delta">
+            <li><strong>Removed:</strong> autoregressive decoder for the core CLIP model (generation is not the pretrained objective).</li>
+            <li><strong>Added:</strong> dual towers; <strong>logit scale</strong> temperature; cosine similarity / contrastive loss training.</li>
+            <li><strong>Purpose:</strong> Zero-shot classification and multimodal retrieval via shared embedding geometry.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def clip_logits(image_embeds, text_embeds, logit_scale):
+    # L2-normalize
+    image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+    text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
+    logits = (image_embeds @ text_embeds.T) * logit_scale.exp()
+    return logits  # (batch_img, batch_txt) similarity matrix</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-blip2">
+        <h3>BLIP-2 (<code>models/blip_2/</code>)</h3>
+        <p><strong>Vs</strong> CLIP: adds a <strong>Q-Former</strong> (lightweight transformer) between <strong>frozen</strong> image encoder and <strong>frozen</strong> LLM.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> learnable query tokens attending to image features; projection into LLM hidden size.</li>
+            <li><strong>Purpose:</strong> Cheap adaptation of powerful frozen models for VQA / captioning without full finetune of huge backbones.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def qformer_forward(query_tokens, encoder_hidden_states, cross_attn_layers):
+    # query_tokens: learned embeddings (B, num_queries, D)
+    x = query_tokens
+    for layer in cross_attn_layers:
+        x = layer.self_attn(x)
+        x = layer.cross_attn(x, context=encoder_hidden_states)  # attend to image tokens
+        x = layer.mlp(x)
+    return x  # compressed visual tokens -> feed LLM as soft prompts</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-llama">
+        <h3>LLaMA (<code>models/llama/</code>)</h3>
+        <p><strong>Vs</strong> GPT-2: decoder-only but <strong>RMSNorm</strong>, <strong>RoPE</strong>, <strong>SwiGLU</strong>, typically <strong>no bias</strong> in linear layers; often <strong>GQA</strong> in larger variants.</p>
+        <ul class="delta">
+            <li><strong>Changed:</strong> norm type; position handling; MLP shape.</li>
+            <li><strong>Purpose:</strong> Efficient, high-quality open-weights LLM inference and finetuning ecosystem.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">class LlamaDecoderLayer(nn.Module):
+    def forward(self, hidden_states, attention_mask, position_ids, past_key_value):
+        residual = hidden_states
+        hidden_states = self.input_layernorm(hidden_states)
+        hidden_states, present_kv = self.self_attn(
+            hidden_states=hidden_states,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            past_key_value=past_key_value,
+        )
+        hidden_states = residual + hidden_states
+        residual = hidden_states
+        hidden_states = self.post_attention_layernorm(hidden_states)
+        hidden_states = self.mlp(hidden_states)
+        return residual + hidden_states, present_kv</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-mistral">
+        <h3>Mistral (<code>models/mistral/</code>)</h3>
+        <p><strong>Vs</strong> LLaMA: same broad <strong>decoder + RoPE + RMSNorm + SwiGLU</strong> family; adds <strong>sliding-window attention</strong> on many layers.</p>
+        <ul class="delta">
+            <li><strong>Added / changed:</strong> <strong>local attention window</strong> (global layers optional in some configs).</li>
+            <li><strong>Purpose:</strong> Long context efficiency with strong quality per parameter.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def sliding_window_mask(seq_len, window, device):
+    # True = allow attend; causal + only last `window` positions
+    mask = torch.ones(seq_len, seq_len, device=device, dtype=torch.bool).tril()
+    for i in range(seq_len):
+        mask[i, : max(0, i - window + 1)] = False
+    return mask</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-mixtral">
+        <h3>Mixtral (MoE) (<code>models/mixtral/</code>)</h3>
+        <p><strong>Vs</strong> dense LLaMA-like decoder: FFN replaced by <strong>sparse mixture-of-experts</strong>.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> <strong>router</strong> logits per token; top-k expert selection; <strong>per-expert</strong> feed-forward.</li>
+            <li><strong>Purpose:</strong> Increase parameter count (capacity) while activating only a subset per token (compute).</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def moe_ffn(x, gate, experts, top_k=2):
+    # x: (batch*seq, dim)
+    router_logits = gate(x)  # (batch*seq, num_experts)
+    weights, selected = torch.topk(router_logits, k=top_k, dim=-1)
+    weights = torch.softmax(weights, dim=-1)
+    out = torch.zeros_like(x)
+    for i, expert in enumerate(experts):
+        mask = (selected == i).any(dim=-1)
+        if mask.any():
+            out[mask] += expert(x[mask])  # simplified; real code uses batched routing
+    return out</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-longformer">
+        <h3>Longformer (<code>models/longformer/</code>)</h3>
+        <p><strong>Vs</strong> BERT: encoder with <strong>local window</strong> + global tokens (e.g. <code>[CLS]</code>) attending everywhere.</p>
+        <ul class="delta">
+            <li><strong>Changed:</strong> attention pattern is <strong>sparse</strong> (not full n×n for all tokens).</li>
+            <li><strong>Purpose:</strong> Long documents with manageable memory.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Pattern: diagonal band (local) + special global indices attend to all / attended by all
+# Implementation uses custom CUDA/CPU kernels in HF for efficiency
+def longformer_pattern(seq_len, window, global_indices):
+    allowed = torch.zeros(seq_len, seq_len, dtype=torch.bool)
+    for i in range(seq_len):
+        lo, hi = max(0, i - window // 2), min(seq_len, i + window // 2 + 1)
+        allowed[i, lo:hi] = True
+    for g in global_indices:
+        allowed[g, :] = True
+        allowed[:, g] = True
+    return allowed</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-bigbird">
+        <h3>BigBird (<code>models/big_bird/</code>)</h3>
+        <p><strong>Vs</strong> BERT: <strong>random + window + global</strong> sparse attention pattern (theoretical approximator of full attention).</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> random attention edges; blockwise structure.</li>
+            <li><strong>Purpose:</strong> Long sequence encoder with scalability.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python"># Three-part pattern per query block (conceptual):
+# - attend to nearby tokens (window)
+# - attend to a few random keys (approximation)
+# - global tokens (e.g. first few) attend bidirectionally to all
+# HF implements this with block-sparse attention kernels, not a dense n x n matrix.
+def bigbird_attention_allowed(i, j, window, random_partners, global_idx):
+    if j in global_idx or i in global_idx:
+        return True
+    if abs(i - j) &lt;= window:
+        return True
+    return j in random_partners[i]</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-whisper">
+        <h3>Whisper (<code>models/whisper/</code>)</h3>
+        <p><strong>Vs</strong> text-only: <strong>audio encoder</strong> (Conv front-end) + <strong>decoder</strong> for token prediction.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> mel-spectrogram → Conv layers before Transformer encoder.</li>
+            <li><strong>Purpose:</strong> End-to-end speech recognition / translation to text.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def whisper_forward(mel, decoder_input_ids):
+    x = conv_stem(mel)  # (B, n_mels, time) -> (B, C, T')
+    x = x.permute(0, 2, 1)  # (B, T', C)
+    enc = encoder(x)
+    dec = decoder(input_ids=decoder_input_ids, encoder_hidden_states=enc)
+    return dec</code></pre></div>
+    </div>
+
+    <div class="model-card" id="m-wav2vec2">
+        <h3>Wav2Vec2 (<code>models/wav2vec2/</code>)</h3>
+        <p><strong>Vs</strong> Whisper: <strong>self-supervised</strong> speech pretraining; encoder-focused; CTC or finetune heads.</p>
+        <ul class="delta">
+            <li><strong>Added:</strong> multi-layer CNN <strong>feature encoder</strong>; contrastive / masked prediction pretraining objectives.</li>
+            <li><strong>Purpose:</strong> Learn speech representations with limited labeled audio.</li>
+        </ul>
+        <div class="code-block"><pre><code class="language-python">def wav2vec2_features(raw_waveform, feature_extractor):
+    # CNN downsamples time; outputs (B, T', hidden)
+    x = feature_extractor(raw_waveform)
+    x = transformer_encoder(x)  # contextualization
+    return x  # + projection head for contrastive loss in pretraining</code></pre></div>
+    </div>
+
+    <h2 id="methodology">5. How to read any model in the repo</h2>
+    <ol>
+        <li>Open <code>configuration_&lt;arch&gt;.py</code>. Fields like <code>hidden_size</code>, <code>num_hidden_layers</code>, <code>num_attention_heads</code>, <code>intermediate_size</code>, <code>num_key_value_heads</code>, <code>max_position_embeddings</code>, <code>rope_theta</code>, <code>sliding_window</code>, <code>num_local_experts</code> tell you <strong>what differs</strong> between checkpoints.</li>
+        <li>Open <code>modeling_&lt;arch&gt;.py</code> (or <code>modular_&lt;arch&gt;.py</code>). Find: <code>Embeddings</code>, <code>Attention</code>, <code>MLP</code>/<code>FeedForward</code>, <code>DecoderLayer</code>/<code>EncoderLayer</code>, and the task head (<code>LMHead</code>, <code>ForSequenceClassification</code>, etc.).</li>
+        <li>Use editor search for: <code>causal</code>, <code>past_key_values</code>, <code>rotary</code>, <code>rope</code>, <code>alibi</code>, <code>cross_attn</code>, <code>encoder_attn</code>, <code>relative_position</code>, <code>router</code>, <code>expert</code>.</li>
+    </ol>
+
+    <h2 id="worked">6. Worked examples (stitched code paths)</h2>
+    <p>Each example: <strong>files</strong>, <strong>symbols to search</strong>, <strong>inline stitched path</strong>.</p>
+
+    <h3>6.1 BERT vs GPT-2 (bidirectional encoder vs causal decoder)</h3>
+    <p><strong>Files:</strong> <code>modeling_bert.py</code>, <code>modeling_gpt2.py</code>. <strong>Search:</strong> <code>BertSelfAttention</code>, <code>GPT2Attention</code>, <code>causal</code>.</p>
+    <div class="code-block"><pre><code class="language-python"># BERT: no causal mask on encoder self-attention (padding mask only)
+def bert_self_attention_scores(query, key, attention_mask):
+    scores = (query @ key.transpose(-1, -2)) / math.sqrt(d_head)
+    if attention_mask is not None:
+        scores = scores + attention_mask  # large negative for pad
+    return softmax(scores, dim=-1)
+
+# GPT-2: causal mask so position i cannot attend to j > i
+def gpt2_attn_scores(query, key, causal_mask):
+    scores = (query @ key.transpose(-1, -2)) / math.sqrt(d_head)
+    scores = scores + causal_mask  # -inf above diagonal
+    return softmax(scores, dim=-1)</code></pre></div>
+
+    <h3>6.2 T5 (encoder–decoder + relative bias)</h3>
+    <p><strong>Files:</strong> <code>modeling_t5.py</code>. <strong>Search:</strong> <code>T5Attention</code>, <code>compute_bias</code>, <code>encoder</code>, <code>decoder</code>.</p>
+    <div class="code-block"><pre><code class="language-python">def t5_layer_step(decoder_hidden, encoder_hidden, self_attn, enc_dec_attn, ln_1, ln_2, ln_3):
+    y = decoder_hidden
+    y = y + self_attn(ln_1(y), is_decoder=True, causal_mask=True)
+    y = y + enc_dec_attn(ln_2(y), context=encoder_hidden)
+    y = y + ff(ln_3(y))
+    return y</code></pre></div>
+
+    <h3>6.3 LLaMA (RMSNorm + RoPE + SwiGLU)</h3>
+    <p><strong>Files:</strong> <code>modeling_llama.py</code>. <strong>Search:</strong> <code>LlamaRMSNorm</code>, <code>apply_rotary_pos_emb</code>, <code>LlamaMLP</code>.</p>
+    <div class="code-block"><pre><code class="language-python">class LlamaRMSNorm(nn.Module):
+    def __init__(self, hidden_size, eps=1e-6):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(hidden_size))
+        self.variance_epsilon = eps
+
+    def forward(self, hidden_states):
+        input_dtype = hidden_states.dtype
+        hidden_states = hidden_states.to(torch.float32)
+        variance = hidden_states.pow(2).mean(-1, keepdim=True)
+        hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
+        return self.weight * hidden_states.to(input_dtype)
+
+# RoPE on q,k then SwiGLU in MLP — see sections 3.2 and 3.3</code></pre></div>
+
+    <h3>6.4 ViT (patches + encoder + head)</h3>
+    <p><strong>Files:</strong> <code>modeling_vit.py</code>. <strong>Search:</strong> <code>ViTPatchEmbeddings</code>, <code>ViTEncoder</code>, <code>classifier</code>.</p>
+    <div class="code-block"><pre><code class="language-python">def vit_forward(pixel_values, vit):
+    x = vit.embeddings(pixel_values)  # patchify + cls + pos
+    x = vit.encoder(x).last_hidden_state
+    cls = x[:, 0]
+    logits = vit.classifier(cls)  # or pooler path depending on config
+    return logits</code></pre></div>
+
+    <h3>6.5 Mixtral MoE (router + experts)</h3>
+    <p><strong>Files:</strong> <code>modeling_mixtral.py</code>. <strong>Search:</strong> <code>MixtralSparseMoeBlock</code>, <code>gate</code>, <code>experts</code>.</p>
+    <div class="code-block"><pre><code class="language-python">class MixtralSparseMoeBlock(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.gate = nn.Linear(config.hidden_size, config.num_local_experts, bias=False)
+        self.experts = nn.ModuleList([MixtralBLockSparseTop2MLP(config) for _ in range(config.num_local_experts)])
+
+    def forward(self, hidden_states):
+        b, s, d = hidden_states.shape
+        x = hidden_states.reshape(-1, d)
+        router_logits = self.gate(x)
+        routing_weights, expert_indices = torch.topk(
+            F.softmax(router_logits, dim=-1), k=2, dim=-1
+        )
+        # For each expert, run forward on tokens assigned to it; scatter-add weighted outputs.
+        # HF uses batched GEMMs; see MixtralSparseMoeBlock in modeling_mixtral.py.
+        y = torch.zeros_like(x)
+        return y.reshape(b, s, d)</code></pre></div>
+
+    <p class="tip"><strong>Disclaimer:</strong> Symbol names and file splits change across Transformers releases; use this guide for <strong>architecture</strong>, then confirm against your installed version.</p>
+
+    <div class="refs" id="refs">
+        <h2>References</h2>
+        <ul>
+            <li><a href="https://github.com/huggingface/transformers">huggingface/transformers</a> (GitHub)</li>
+            <li><a href="https://github.com/huggingface/transformers/tree/main/src/transformers/models">src/transformers/models</a> (model implementations)</li>
+            <li><a href="https://huggingface.co/docs/transformers">Hugging Face Transformers documentation</a></li>
+        </ul>
+    </div>
+
+    <p style="margin-top: 28px;"><a href="index.html">← Back to index</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>
