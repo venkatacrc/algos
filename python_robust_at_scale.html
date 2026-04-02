@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python — Robust software at billion-user scale</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+        h1 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; }
+        h2 { margin-top: 32px; color: #24292f; }
+        h3 { margin-top: 20px; color: #34495e; font-size: 1.1em; }
+        a { color: #0366d6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .toc { background: #f6f8fa; padding: 18px 22px; border-radius: 6px; margin-bottom: 28px; }
+        .toc ol { margin: 10px 0 0 20px; }
+        .toc li { margin-bottom: 6px; }
+        code { background: #eaecef; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .feature-block { background: #f6f8fa; border-left: 4px solid #0366d6; padding: 14px 18px; margin: 14px 0; border-radius: 4px; }
+        .feature-block h4 { margin-top: 0; margin-bottom: 8px; }
+        .feature-block ul { margin: 8px 0 0 20px; }
+        .code-block { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 14px; }
+        .code-block pre { margin: 0; padding: 16px; }
+        .code-block code { background: transparent; padding: 0; }
+        .syntax-title { font-weight: 600; margin-bottom: 8px; color: #24292f; }
+        .figure-wrap { overflow-x: auto; margin: 16px 0; max-width: 100%; border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px; background: #fafbfc; }
+        .chart-box { position: relative; height: 240px; max-width: 100%; margin: 16px 0; }
+        .noscript-fallback { font-size: 0.85em; color: #57606a; margin-top: 8px; }
+        ul ul { margin: 6px 0; }
+    </style>
+</head>
+<body>
+
+    <p><a href="index.html">← Back to index</a></p>
+
+    <h1>Python — Robust software at billion-user scale</h1>
+    <p>Practical patterns for <strong>reliable, operable Python</strong> in APIs, workers, and data paths. “Billions of users” means <strong>distributed systems</strong>: stateless apps, horizontal scale, caches, queues, and databases—not one giant process.</p>
+
+    <div class="toc">
+        <strong>Table of contents</strong>
+        <ol>
+            <li><a href="#principles">Principles</a></li>
+            <li><a href="#runtime">Python runtime &amp; concurrency</a></li>
+            <li><a href="#service-design">Service design</a></li>
+            <li><a href="#data">Data &amp; caching</a></li>
+            <li><a href="#observability">Observability</a></li>
+            <li><a href="#security">Security &amp; supply chain</a></li>
+            <li><a href="#testing">Testing &amp; release</a></li>
+            <li><a href="#code-quality">Code quality (Python)</a></li>
+            <li><a href="#reality">Reality check</a></li>
+        </ol>
+    </div>
+
+    <h2 id="principles">1. Principles</h2>
+    <ul>
+        <li><strong>Stateless app tier</strong> — Session and job state live in stores (DB, Redis, queue), not only in process memory, so you can add/remove instances behind a load balancer.</li>
+        <li><strong>Horizontal scale</strong> — Scale out replicas; avoid single hot threads when the language runtime allows.</li>
+        <li><strong>Blast radius</strong> — Partition by cell/region/shard so one outage does not take down everything.</li>
+        <li><strong>Idempotency</strong> — Retries and at-least-once delivery are normal; handlers must be safe to run more than once.</li>
+        <li><strong>Backpressure</strong> — When downstream is slow, shed load or queue work instead of unbounded buffers.</li>
+        <li><strong>Graceful degradation</strong> — Serve stale cache, read-only mode, or reduced features when dependencies fail.</li>
+    </ul>
+
+    <p class="syntax-title">Typical request path (simplified)</p>
+    <div class="figure-wrap">
+        <pre class="mermaid">
+flowchart LR
+    subgraph edge [Edge]
+        Client([Client])
+        CDN[CDN]
+    end
+    subgraph region [Region]
+        LB[Load_balancer]
+        App[Python_apps]
+        Cache[(Cache)]
+        DB[(Primary_DB)]
+        Q[Message_queue]
+    end
+    Client --> CDN --> LB --> App
+    App --> Cache
+    App --> DB
+    App --> Q
+        </pre>
+        <noscript><p class="noscript-fallback">Diagram: Client → CDN → LB → Python apps → cache, DB, and queue.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Idempotent payment-style handler (conceptual)</p>
+    <div class="code-block"><pre><code class="language-python">def handle_charge(idempotency_key: str, amount: int) -&gt; str:
+    if store.already_processed(idempotency_key):
+        return store.result_for(idempotency_key)
+    result = payment_gateway.charge(amount)
+    store.record_once(idempotency_key, result)
+    return result</code></pre></div>
+
+    <p class="syntax-title">Limit concurrent in-flight work (backpressure)</p>
+    <div class="code-block"><pre><code class="language-python">sem = asyncio.Semaphore(100)
+
+async def handle_request():
+    async with sem:
+        return await do_work()</code></pre></div>
+
+    <p class="syntax-title">Feature flag: degrade when flag service is down</p>
+    <div class="code-block"><pre><code class="language-python">def new_checkout_enabled() -&gt; bool:
+    try:
+        return flags.bool("new_checkout", default=False)
+    except FlagsUnavailable:
+        return False  # safe default</code></pre></div>
+
+    <h2 id="runtime">2. Python runtime &amp; concurrency</h2>
+    <ul>
+        <li><strong>I/O-bound</strong> — <code>asyncio</code> + non-blocking clients (e.g. <code>httpx</code> async) often scale well for many concurrent waits.</li>
+        <li><strong>CPU-bound in pure Python</strong> — The <strong>GIL</strong> limits true parallelism in one process; use <strong>multiple processes</strong>, native extensions, or offload to workers/services.</li>
+        <li><strong>Blocking calls in async code</strong> — Never block the event loop on disk, CPU, or sync HTTP; use <code>asyncio.to_thread</code> or a thread pool.</li>
+        <li><strong>Production servers</strong> — Multiple worker <strong>processes</strong> (e.g. Gunicorn + Uvicorn workers) give parallelism despite the GIL for mixed workloads.</li>
+    </ul>
+
+    <div class="figure-wrap">
+        <pre class="mermaid">
+flowchart TD
+    Q[I/O_bound_many_waits?]
+    Q -->|yes| A[asyncio_plus_async_clients]
+    Q -->|no| C[CPU_bound_pure_Python?]
+    C -->|yes| P[ProcessPool_or_other_runtime]
+    C -->|no| T[threads_or_sync_ok_for_mixed]
+        </pre>
+        <noscript><p class="noscript-fallback">Decision: I/O-bound → asyncio; CPU-bound Python → processes/offload.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Parallel I/O with per-call timeout</p>
+    <div class="code-block"><pre><code class="language-python">async def fetch_all(urls: list[str]):
+    tasks = [asyncio.create_task(fetch_one(u)) for u in urls]
+    return await asyncio.gather(*tasks, return_exceptions=False)
+
+async def fetch_one(url: str):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url, timeout=5.0)
+        r.raise_for_status()
+        return r.text</code></pre></div>
+
+    <p class="syntax-title">Offload blocking work from the event loop</p>
+    <div class="code-block"><pre><code class="language-python">result = await asyncio.to_thread(blocking_parse, large_blob)</code></pre></div>
+
+    <p class="syntax-title">CPU-heavy chunk in a process pool (sketch)</p>
+    <div class="code-block"><pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
+
+with ProcessPoolExecutor(max_workers=4) as ex:
+    futures = [ex.submit(heavy_fn, chunk) for chunk in chunks]
+    out = [f.result() for f in futures]</code></pre></div>
+
+    <h2 id="service-design">3. Service design</h2>
+    <ul>
+        <li><strong>Contracts</strong> — Publish OpenAPI/JSON Schema; version breaking changes.</li>
+        <li><strong>Timeouts</strong> — Set connect + read timeouts on every outbound call.</li>
+        <li><strong>Retries</strong> — Retry only when safe; use exponential backoff + <strong>jitter</strong>; cap attempts.</li>
+        <li><strong>Idempotency-Key</strong> — For POSTs that create side effects, clients send a key you store.</li>
+        <li><strong>Circuit breaker</strong> — Stop calling a failing dependency for a cooldown.</li>
+        <li><strong>Bulkheads</strong> — Separate pools for different dependency types so one cannot starve all.</li>
+        <li><strong>Rate limits</strong> — At edge (per user/IP) and inside (per dependency quota).</li>
+    </ul>
+
+    <div class="figure-wrap">
+        <pre class="mermaid">
+sequenceDiagram
+    participant S as Service
+    participant D as Dependency
+    S->>D: call_with_timeout
+    alt success
+        D-->>S: 200
+    else timeout_or_5xx
+        D-->>S: error
+        S->>S: backoff_plus_jitter
+        S->>D: retry_if_idempotent
+    end
+        </pre>
+        <noscript><p class="noscript-fallback">Sequence: call with timeout; on failure, backoff+jitter and retry if idempotent.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Outbound HTTP with explicit timeouts</p>
+    <div class="code-block"><pre><code class="language-python">import httpx
+
+with httpx.Client(timeout=httpx.Timeout(3.0, read=10.0)) as client:
+    r = client.get("https://api.example/v1/x")
+    r.raise_for_status()</code></pre></div>
+
+    <p class="syntax-title">Retry with exponential backoff and jitter</p>
+    <div class="code-block"><pre><code class="language-python">import random, time
+
+def call_with_retries(fn, max_attempts=4):
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except TransientError:
+            if attempt == max_attempts - 1:
+                raise
+            base = 0.5 * (2 ** attempt)
+            time.sleep(base + random.uniform(0, base * 0.25))</code></pre></div>
+
+    <p class="syntax-title">Propagate correlation and idempotency headers</p>
+    <div class="code-block"><pre><code class="language-python">headers = {
+    "X-Request-ID": request_id,
+    "Idempotency-Key": client_key,
+}</code></pre></div>
+
+    <p class="syntax-title">Per-retry delay with jitter (illustrative ms)</p>
+    <div class="chart-box"><canvas id="chartBackoff" aria-label="Backoff delay per attempt"></canvas></div>
+    <noscript><p class="noscript-fallback">Chart: delay grows per attempt; jitter spreads retry times.</p></noscript>
+
+    <h2 id="data">4. Data &amp; caching</h2>
+    <ul>
+        <li><strong>Connection pooling</strong> — Reuse DB/HTTP connections; tune pool size to avoid exhausting DB <code>max_connections</code>.</li>
+        <li><strong>Read replicas</strong> — Route read-heavy, eventually-consistent queries to replicas; writes to primary.</li>
+        <li><strong>Cache</strong> — TTLs, key design, and stampede protection (single-flight, probabilistic early refresh).</li>
+        <li><strong>Queues</strong> — Decouple spikes; consumers scale independently.</li>
+        <li><strong>Outbox pattern</strong> — Write business row + outbox row in one transaction; publisher reads outbox—avoids dual-write races.</li>
+    </ul>
+
+    <div class="figure-wrap">
+        <pre class="mermaid">
+flowchart TD
+    R[Read_request] --> C{Cache_hit?}
+    C -->|yes| RET[Return_cached]
+    C -->|no| L[Acquire_lock_or_single_flight]
+    L --> DB[(Load_from_DB)]
+    DB --> SET[Set_cache_with_TTL]
+    SET --> RET2[Return_value]
+        </pre>
+        <noscript><p class="noscript-fallback">Cache-aside: on miss, coordinate rebuild then set TTL.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Cache-aside read with TTL (conceptual)</p>
+    <div class="code-block"><pre><code class="language-python">def get_user(user_id: str):
+    key = f"user:{user_id}"
+    hit = cache.get(key)
+    if hit is not None:
+        return hit
+    row = db.load_user(user_id)
+    cache.set(key, row, ttl=300)
+    return row</code></pre></div>
+
+    <p class="syntax-title">Outbox row + worker (high level)</p>
+    <div class="code-block"><pre><code class="language-python"># In same DB transaction as business write:
+outbox.insert({"topic": "orders", "payload": json.dumps(event)})
+# Separate worker polls outbox, publishes to broker, marks sent.</code></pre></div>
+
+    <p class="syntax-title">Steady-state traffic: cache vs origin (illustrative)</p>
+    <div class="chart-box"><canvas id="chartCache" aria-label="Cache vs origin share"></canvas></div>
+    <noscript><p class="noscript-fallback">Chart: most reads served from cache at steady state.</p></noscript>
+
+    <h2 id="observability">5. Observability</h2>
+    <ul>
+        <li><strong>Structured logs</strong> — JSON or key=value; include <code>request_id</code>, service, version, error type.</li>
+        <li><strong>Metrics</strong> — RED for services: rate, errors, duration; saturation for resources.</li>
+        <li><strong>Tracing</strong> — Propagate trace context (W3C); use OpenTelemetry SDK/exporters in Python services.</li>
+        <li><strong>SLOs &amp; error budgets</strong> — Define availability/latency targets; alert on budget burn, not every blip.</li>
+    </ul>
+
+    <div class="figure-wrap">
+        <pre class="mermaid">
+flowchart LR
+    Req[HTTP_request] --> Log[Structured_log]
+    Req --> M[Metrics_histogram]
+    Req --> T[Trace_span]
+    Log --> ES[(Log_store)]
+    M --> Prom[(Metrics)]
+    T --> OT[(Trace_backend)]
+        </pre>
+        <noscript><p class="noscript-fallback">Each request emits logs, metrics, and trace spans.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Structured log line (stdlib logging + extra)</p>
+    <div class="code-block"><pre><code class="language-python">logger.info(
+    "request_done",
+    extra={
+        "request_id": rid,
+        "path": "/v1/orders",
+        "status": 200,
+        "latency_ms": 42,
+    },
+)</code></pre></div>
+
+    <p class="syntax-title">RED-style counters (conceptual)</p>
+    <div class="code-block"><pre><code class="language-python">REQUESTS.labels(method="GET", path="/health").inc()
+ERRORS.labels(type="Timeout").inc()
+LATENCY.observe(seconds_elapsed)</code></pre></div>
+
+    <p class="syntax-title">Example RED rates (requests per second, illustrative)</p>
+    <div class="chart-box"><canvas id="chartRed" aria-label="RED metrics bar chart"></canvas></div>
+    <noscript><p class="noscript-fallback">Chart: request rate vs error rate vs p95 latency axis as separate bars for illustration.</p></noscript>
+
+    <h2 id="security">6. Security &amp; supply chain</h2>
+    <ul>
+        <li><strong>Secrets</strong> — From env, vault, or managed identity; never commit; rotate and audit.</li>
+        <li><strong>Dependencies</strong> — Lock files (<code>uv.lock</code>, <code>poetry.lock</code>, <code>requirements.txt</code> pinned in prod); scan for CVEs in CI.</li>
+        <li><strong>Boundaries</strong> — Validate all external input with schemas; avoid unsafe pickle/YAML loaders on untrusted data.</li>
+        <li><strong>Least privilege</strong> — DB and cloud IAM roles scoped to what the service needs.</li>
+    </ul>
+
+    <p class="syntax-title">Read secret from environment (never log the value)</p>
+    <div class="code-block"><pre><code class="language-python">import os
+
+api_key = os.environ["PAYMENT_API_KEY"]  # fail fast if missing</code></pre></div>
+
+    <p class="syntax-title">Validate request body at the boundary (Pydantic v2 style)</p>
+    <div class="code-block"><pre><code class="language-python">from pydantic import BaseModel, Field
+
+class CreateOrder(BaseModel):
+    sku: str = Field(min_length=1, max_length=64)
+    qty: int = Field(ge=1, le=10_000)</code></pre></div>
+
+    <h2 id="testing">7. Testing &amp; release</h2>
+    <ul>
+        <li><strong>Layers</strong> — Unit tests for pure logic; integration tests with real DB/queue in CI where feasible; contract tests for API consumers.</li>
+        <li><strong>Load tests</strong> — Locust, k6, or cloud tools to find limits before users do.</li>
+        <li><strong>Feature flags</strong> — Ship dark; ramp percentage; kill switch.</li>
+        <li><strong>Rollout</strong> — Canary, blue/green, or rolling with automatic rollback on SLO burn.</li>
+    </ul>
+
+    <div class="figure-wrap">
+        <pre class="mermaid">
+flowchart LR
+    CI[CI] --> U[Unit]
+    CI --> I[Integration]
+    CI --> C[Contract]
+    REL[Release] --> CAN[Canary]
+    CAN --> FULL[100_percent]
+        </pre>
+        <noscript><p class="noscript-fallback">CI runs unit, integration, contract; release goes canary then full.</p></noscript>
+    </div>
+
+    <p class="syntax-title">Parametrized pytest cases</p>
+    <div class="code-block"><pre><code class="language-python">import pytest
+
+@pytest.mark.parametrize("qty,ok", [(1, True), (0, False), (10_001, False)])
+def test_order_qty(qty, ok):
+    assert validate_qty(qty) is ok</code></pre></div>
+
+    <p class="syntax-title">Gate risky path behind a flag</p>
+    <div class="code-block"><pre><code class="language-python">if flags.bool("new_search_ranker", default=False):
+    return ranker_v2(results)
+return ranker_v1(results)</code></pre></div>
+
+    <h2 id="code-quality">8. Code quality (Python)</h2>
+    <ul>
+        <li><strong>Types</strong> — Gradual typing with <code>mypy</code> or <code>pyright</code>; stricter on public APIs.</li>
+        <li><strong>Lint/format</strong> — <code>ruff</code> for speed; consistent style in CI.</li>
+        <li><strong>Layering</strong> — Keep domain logic free of HTTP/ORM where possible; test without I/O.</li>
+        <li><strong>Failure modes</strong> — Document what raises, what retries, and invariants (e.g. idempotency).</li>
+    </ul>
+
+    <p class="syntax-title">Typed port + implementation (protocol sketch)</p>
+    <div class="code-block"><pre><code class="language-python">from typing import Protocol
+
+class OrderStore(Protocol):
+    def save(self, order: "Order") -> None: ...
+
+def place_order(store: OrderStore, cmd: "PlaceOrderCmd") -> str:
+    oid = domain.create_order(cmd)
+    store.save(oid)
+    return oid.id</code></pre></div>
+
+    <p class="syntax-title">Run ruff and type checker locally / CI</p>
+    <div class="code-block"><pre><code class="language-bash">ruff check .
+ruff format --check .
+pyright src  # or: mypy src</code></pre></div>
+
+    <h2 id="reality">9. Reality check</h2>
+    <p>Products at extreme scale are usually <strong>polyglot</strong>: Python for APIs, orchestration, ML, and data; other runtimes for hot paths when needed. <strong>Measure</strong> (profiles, traces, load tests) before rewriting. This guide is a map—not a substitute for capacity planning and game days.</p>
+
+    <p class="syntax-title">Quick timing around a block (local profiling hint)</p>
+    <div class="code-block"><pre><code class="language-python">import time
+
+t0 = time.perf_counter()
+result = expensive_call()
+elapsed = time.perf_counter() - t0</code></pre></div>
+
+    <p style="margin-top: 32px;"><a href="index.html">← Back to index</a></p>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            flowchart: { useMaxWidth: true, htmlLabels: true },
+            securityLevel: 'loose',
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            const grid = '#d0d7de';
+            const primary = '#0969da';
+            const muted = '#6e7781';
+            Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            Chart.defaults.color = '#24292f';
+
+            new Chart(document.getElementById('chartBackoff'), {
+                type: 'line',
+                data: {
+                    labels: ['Attempt 1', '2', '3', '4'],
+                    datasets: [{
+                        label: 'Delay before retry (ms, with jitter)',
+                        data: [120, 580, 1240, 2480],
+                        borderColor: primary,
+                        backgroundColor: 'rgba(9, 105, 218, 0.12)',
+                        fill: true,
+                        tension: 0.2,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: grid } },
+                        x: { grid: { display: false } },
+                    },
+                },
+            });
+
+            new Chart(document.getElementById('chartCache'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cache hit', 'Origin / DB'],
+                    datasets: [{
+                        data: [92, 8],
+                        backgroundColor: [primary, muted],
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                },
+            });
+
+            new Chart(document.getElementById('chartRed'), {
+                type: 'bar',
+                data: {
+                    labels: ['Requests/s', 'Errors/s', 'p95 latency (×10 ms)'],
+                    datasets: [{
+                        label: 'Illustrative steady state',
+                        data: [4200, 12, 85],
+                        backgroundColor: [primary, '#cf222e', '#8250df'],
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: grid } },
+                        x: { grid: { display: false } },
+                    },
+                },
+            });
+        })();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
