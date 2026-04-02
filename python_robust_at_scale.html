@@ -48,6 +48,7 @@
             <li><a href="#security">Security &amp; supply chain</a></li>
             <li><a href="#testing">Testing &amp; release</a></li>
             <li><a href="#code-quality">Code quality (Python)</a></li>
+            <li><a href="#libraries">Important libraries</a></li>
             <li><a href="#reality">Reality check</a></li>
         </ol>
     </div>
@@ -364,7 +365,116 @@ def place_order(store: OrderStore, cmd: "PlaceOrderCmd") -> str:
 ruff format --check .
 pyright src  # or: mypy src</code></pre></div>
 
-    <h2 id="reality">9. Reality check</h2>
+    <h2 id="libraries">9. Important libraries</h2>
+    <p>Common packages used in production Python services. Use this as a map, not a shopping list—standardize on one tool per concern in a given codebase.</p>
+
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em;">
+        <thead>
+            <tr style="background: #f6f8fa; text-align: left;">
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Area</th>
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Libraries</th>
+                <th style="padding: 8px 12px; border: 1px solid #e1e4e8;">Typical use</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">HTTP APIs</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>FastAPI</code>, <code>Starlette</code>, <code>Uvicorn</code>, <code>Gunicorn</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">REST/JSON APIs, OpenAPI, async routes; Gunicorn + Uvicorn workers for multi-process.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">HTTP clients</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>httpx</code>, <code>aiohttp</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Outbound calls with timeouts; <code>httpx</code> sync and async in one API.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Schemas &amp; config</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>pydantic</code>, <code>pydantic-settings</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Request/response models, env-based settings with validation.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Resilience</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>tenacity</code>, <code>pybreaker</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Retries with backoff/jitter; circuit breakers around flaky dependencies.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Databases</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>SQLAlchemy</code> 2.x, <code>asyncpg</code>, <code>psycopg</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">ORM + connection pooling; async drivers for asyncio services.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Cache / broker</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>redis</code> (redis-py)</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Cache, rate limits, locks, pub/sub; use <code>redis.asyncio</code> in async apps.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Background jobs</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>Celery</code>, <code>RQ</code>, <code>Dramatiq</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Offload work from the request path; broker-backed queues (Redis/RabbitMQ/SQS).</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Logging</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>structlog</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Structured JSON logs, context binding (<code>request_id</code>, user).</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Tracing &amp; metrics</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>opentelemetry-*</code>, <code>prometheus_client</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Distributed traces, RED/USE metrics and <code>/metrics</code> for Prometheus.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Testing</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>pytest</code>, <code>pytest-asyncio</code>, <code>httpx</code> TestClient, <code>respx</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Unit/integration tests; mock HTTP with <code>respx</code>.</td></tr>
+            <tr><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Packaging &amp; quality</td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;"><code>uv</code>, <code>ruff</code>, <code>mypy</code> / <code>pyright</code></td><td style="padding: 8px 12px; border: 1px solid #e1e4e8;">Lockfiles, fast lint/format, static types in CI.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Retries: Tenacity</h3>
+    <p>Declarative retries with stop conditions and exponential backoff + jitter (complements your own idempotency rules).</p>
+    <div class="code-block"><pre><code class="language-python">import httpx
+from tenacity import retry, stop_after_attempt, wait_exponential_jitter
+
+@retry(stop=stop_after_attempt(4), wait=wait_exponential_jitter(initial=0.5, max=20))
+def fetch_status(url: str) -&gt; int:
+    r = httpx.get(url, timeout=5.0)
+    r.raise_for_status()
+    return r.status_code</code></pre></div>
+
+    <h3>Structured logging: structlog</h3>
+    <p>Emit JSON-friendly events; bind context once per request in middleware.</p>
+    <div class="code-block"><pre><code class="language-python">import structlog
+
+log = structlog.get_logger()
+log = log.bind(request_id="abc-123")
+log.info("order_created", order_id="ord-7", amount_cents=4999)</code></pre></div>
+
+    <h3>Metrics: prometheus_client</h3>
+    <p>Expose counters/histograms for Prometheus scraping (often on a separate admin port).</p>
+    <div class="code-block"><pre><code class="language-python">from prometheus_client import Counter, Histogram
+
+REQUESTS = Counter("http_requests_total", "Requests", ["method", "path"])
+LATENCY = Histogram("http_request_latency_seconds", "Latency", ["path"])
+
+def record(method: str, path: str, seconds: float) -&gt; None:
+    REQUESTS.labels(method=method, path=path).inc()
+    LATENCY.labels(path=path).observe(seconds)</code></pre></div>
+
+    <h3>DB pool: SQLAlchemy</h3>
+    <p>Bound pools and <code>pool_pre_ping</code> avoid handing out dead connections after DB failover.</p>
+    <div class="code-block"><pre><code class="language-python">from sqlalchemy import create_engine
+
+engine = create_engine(
+    db_url,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+)</code></pre></div>
+
+    <h3>Redis (async): redis-py</h3>
+    <p>Shared cache, rate limiting, or distributed locks; keep timeouts on commands.</p>
+    <div class="code-block"><pre><code class="language-python">import redis.asyncio as redis
+
+r = redis.from_url("redis://localhost:6379/0", decode_responses=True)
+await r.set("user:42:profile", payload, ex=300)
+hit = await r.get("user:42:profile")</code></pre></div>
+
+    <h3>Tracing: OpenTelemetry (sketch)</h3>
+    <p>Install <code>opentelemetry-sdk</code>, <code>opentelemetry-exporter-otlp</code>, and instrumentation for FastAPI/httpx/DB; configure a tracer provider once at startup.</p>
+    <div class="code-block"><pre><code class="language-python">from opentelemetry import trace
+
+tracer = trace.get_tracer(__name__)
+
+with tracer.start_as_current_span("place_order") as span:
+    span.set_attribute("order.id", order_id)
+    do_work()</code></pre></div>
+
+    <h3>API surface: FastAPI + settings</h3>
+    <p>Automatic OpenAPI, dependency injection for DB sessions, and validated settings from environment.</p>
+    <div class="code-block"><pre><code class="language-python">from fastapi import FastAPI, Depends
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    database_url: str
+
+app = FastAPI()
+settings = Settings()
+
+@app.get("/health")
+def health() -&gt; dict[str, str]:
+    return {"status": "ok"}</code></pre></div>
+
+    <div class="feature-block">
+        <h4>Choosing a task queue</h4>
+        <ul>
+            <li><strong>Celery</strong> — Mature, many brokers/backends; heavier ops, very common in Python shops.</li>
+            <li><strong>RQ</strong> — Simple Redis-only queue; good for smaller workloads.</li>
+            <li><strong>Dramatiq</strong> — Modern API, Redis/RabbitMQ; middle ground on complexity.</li>
+        </ul>
+    </div>
+
+    <h2 id="reality">10. Reality check</h2>
     <p>Products at extreme scale are usually <strong>polyglot</strong>: Python for APIs, orchestration, ML, and data; other runtimes for hot paths when needed. <strong>Measure</strong> (profiles, traces, load tests) before rewriting. This guide is a map—not a substitute for capacity planning and game days.</p>
 
     <p class="syntax-title">Quick timing around a block (local profiling hint)</p>
